@@ -33,8 +33,8 @@ function App() {
               headers: headers,
               body: JSON.stringify(locationData),
           });
-          // Allow 409 Conflict (Unique constraint violation) in case the default location already exists.
-          if (!res.ok && res.status !== 409) {
+          // Simplified check: Fail if the request wasn't successful for any reason.
+          if (!res.ok) {
                throw new Error(`Failed to add location: ${res.status} ${await res.text()}`);
           }
           console.log('Location add response status:', res.status);
@@ -46,8 +46,8 @@ function App() {
               headers: headers,
               body: JSON.stringify(categoryData),
           });
-           // Allow 409 Conflict (Unique constraint violation) in case the default category already exists.
-           if (!res.ok && res.status !== 409) {
+          // Simplified check: Fail if the request wasn't successful for any reason.
+           if (!res.ok) {
                throw new Error(`Failed to add category: ${res.status} ${await res.text()}`);
           }
           console.log('Category add response status:', res.status);
@@ -60,8 +60,8 @@ function App() {
               headers: headers,
               body: JSON.stringify(imageData),
           });
-           // Allow 409 Conflict (though less likely for images unless primary key somehow conflicts).
-           if (!res.ok && res.status !== 409) {
+          // Simplified check: Fail if the request wasn't successful for any reason.
+           if (!res.ok) {
                throw new Error(`Failed to add image: ${res.status} ${await res.text()}`);
           }
           console.log('Image add response status:', res.status);
@@ -90,7 +90,7 @@ function App() {
           }
           console.log('Item add response status:', res.status);
 
-          setSuccess('Successfully added default entries (or they already existed). Check Datasette.');
+          setSuccess('Successfully added default location, category, image, and item.'); // Updated message
 
       } catch (err) {
           console.error("Error adding default data:", err);
