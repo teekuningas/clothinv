@@ -22,7 +22,7 @@ init_db:
 
 start-backend:
 	@echo "Starting Datasette server on http://127.0.0.1:8001 for $(DB_FILE)..."
-	@datasette serve $(DB_FILE) --port 8001
+	@datasette serve $(DB_FILE) --port 8001 --cors --root
 
 watch-frontend:
 	@echo "Starting frontend development server..."

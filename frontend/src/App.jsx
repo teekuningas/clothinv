@@ -6,9 +6,8 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Do not touch these!
   const DATASETTE_URL = 'http://127.0.0.1:8001/inventory';
-  const API_TOKEN = 'dstok_eyJhIjoicm9vdCIsInQiOjE3NDU5OTYwMzIsImQiOjM2MDB9.peSVs4G-Qd55oA__AYnOGYhHNQE';
+  const API_TOKEN = 'dstok_<token>';
 
   const handleAddDefaults = async () => {
       setLoading(true);

@@ -16,7 +16,6 @@
           buildInputs = with pkgs; [
             sqlite
             nodejs
-            datasette
           ];
         };
       });
