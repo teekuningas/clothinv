@@ -1,1 +1,22 @@
 .aider*
+# Nix build artifacts
+result*
+.direnv/
+*.gcmanifest
+/flake.lock
+
+# Database file
+db/*.db
+db/*.db-journal
+
+# Frontend dependencies and build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.env*.local
+frontend/.DS_Store
+
+# IDE/Editor specific files
+.vscode/
+.idea/
+*.swp
+*~
