@@ -86,7 +86,10 @@ function App() {
           </button>
           {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
           {success && <p style={{ color: 'green', marginTop: '10px' }}>{success}</p>}
-          {!API_TOKEN.startsWith('dstok_') && <p style={{ color: 'orange', marginTop: '10px' }}>Warning: API Token looks like a placeholder. Please replace `YOUR_DATASATTE_API_TOKEN_HERE` in App.jsx.</p>}
+          {api.isConfigured && api.providerType === 'datasette' && !api.apiToken &&
+            <p style={{ color: 'orange', marginTop: '10px' }}>
+              Warning: Datasette provider is configured but API Token (VITE_DATASATTE_TOKEN) is not set in .env. Operations requiring authentication may fail.
+            </p>}
       </main>
     </div>
   );
