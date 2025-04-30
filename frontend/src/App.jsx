@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useApi } from './api/ApiContext'; // Import the custom hook
+import SettingsView from './components/SettingsView'; // Import the SettingsView component
 import './App.css';
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // State for modal visibility
   const api = useApi(); // Use the API context hook
 
   const handleAddDefaults = async () => {
@@ -77,6 +79,10 @@ function App() {
         <h1>Inventory Management</h1>
         <p>Frontend Placeholder - React App</p>
         <p>Datasette backend running separately.</p>
+        {/* Add Settings Button */}
+        <button onClick={() => setIsSettingsOpen(true)} className="settings-button">
+          API Settings
+        </button>
       </header>
       <main style={{ padding: '20px' }}>
         {/* Only show Datasette-specific default data section if configured */}
@@ -96,6 +102,14 @@ function App() {
           </>
         )}
       </main>
+
+      {/* Render Settings Modal */}
+      <SettingsView
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        currentConfig={api} // Pass current config (includes providerType, baseUrl, apiToken)
+        onSave={api.updateConfiguration} // Pass the update function from context
+      />
     </div>
   );
 }
