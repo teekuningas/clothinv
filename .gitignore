@@ -1,9 +1,7 @@
-.aider*
 # Nix build artifacts
+.aider*
 result*
 .direnv/
-*.gcmanifest
-/flake.lock
 
 # Database file
 db/*.db
