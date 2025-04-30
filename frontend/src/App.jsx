@@ -33,7 +33,8 @@ function App() {
               headers: headers,
               body: JSON.stringify(locationData),
           });
-          if (!res.ok && res.status !== 409) { // Allow 409 Conflict (already exists)
+          // Allow 409 Conflict (Unique constraint violation) in case the default location already exists.
+          if (!res.ok && res.status !== 409) {
                throw new Error(`Failed to add location: ${res.status} ${await res.text()}`);
           }
           console.log('Location add response status:', res.status);
@@ -45,7 +46,8 @@ function App() {
               headers: headers,
               body: JSON.stringify(categoryData),
           });
-           if (!res.ok && res.status !== 409) { // Allow 409 Conflict
+           // Allow 409 Conflict (Unique constraint violation) in case the default category already exists.
+           if (!res.ok && res.status !== 409) {
                throw new Error(`Failed to add category: ${res.status} ${await res.text()}`);
           }
           console.log('Category add response status:', res.status);
@@ -58,7 +60,8 @@ function App() {
               headers: headers,
               body: JSON.stringify(imageData),
           });
-           if (!res.ok && res.status !== 409) { // Allow 409 Conflict (less likely here, but possible)
+           // Allow 409 Conflict (though less likely for images unless primary key somehow conflicts).
+           if (!res.ok && res.status !== 409) {
                throw new Error(`Failed to add image: ${res.status} ${await res.text()}`);
           }
           console.log('Image add response status:', res.status);
