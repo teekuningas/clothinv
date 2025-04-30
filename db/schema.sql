@@ -26,6 +26,8 @@ CREATE TABLE IF NOT EXISTS items (
     quantity INTEGER NOT NULL DEFAULT 0,
     location_id INTEGER,
     category_id INTEGER,
+    image_data BLOB, -- Binary image data
+    image_mimetype TEXT, -- MIME type of the image (e.g., 'image/jpeg', 'image/png')
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
