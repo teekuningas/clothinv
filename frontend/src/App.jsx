@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
+import { useApi } from './api/ApiContext'; // Import the custom hook
 import './App.css';
 
 function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
-  const DATASETTE_URL = 'http://127.0.0.1:8001/inventory';
-  const API_TOKEN = 'dstok_<token>';
+  const api = useApi(); // Use the API context hook
 
   const handleAddDefaults = async () => {
       setLoading(true);
@@ -18,76 +17,49 @@ function App() {
       // and image don't exist, inserting them will result in IDs 1, 1, and 1
       // respectively. This is NOT robust for a real application but serves
       // as a placeholder example. A real app would fetch IDs or handle conflicts.
-
-      const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_TOKEN}`,
-      };
+      // A robust implementation would handle potential existing records or get returned IDs.
 
       try {
-          // 1. Add Default Location
-          const locationData = { row: { name: "Default Location", description: "Placeholder location" } };
-          let res = await fetch(`${DATASETTE_URL}/locations/-/insert`, {
-              method: 'POST',
-              headers: headers,
-              body: JSON.stringify(locationData),
-          });
-          // Simplified check: Fail if the request wasn't successful for any reason.
-          if (!res.ok) {
-               throw new Error(`Failed to add location: ${res.status} ${await res.text()}`);
+          if (!api.isConfigured) {
+              throw new Error("API provider is not configured. Check VITE_API_PROVIDER and associated variables in your .env file.");
           }
-          console.log('Location add response status:', res.status);
+          if (api.providerType !== 'datasette') {
+               throw new Error(`Unsupported provider type for default data: ${api.providerType}`);
+          }
+          // Check if the necessary methods exist (they might not if config failed)
+          if (!api.addLocation || !api.addCategory || !api.addImage || !api.addItem) {
+              throw new Error("API methods are not available. Check configuration and console logs.");
+          }
+
+          // 1. Add Default Location
+          const locationData = { name: "Default Location", description: "Placeholder location" };
+          await api.addLocation(locationData);
 
           // 2. Add Default Category
-          const categoryData = { row: { name: "Default Category", description: "Placeholder category" } };
-          res = await fetch(`${DATASETTE_URL}/categories/-/insert`, {
-              method: 'POST',
-              headers: headers,
-              body: JSON.stringify(categoryData),
-          });
-          // Simplified check: Fail if the request wasn't successful for any reason.
-           if (!res.ok) {
-               throw new Error(`Failed to add category: ${res.status} ${await res.text()}`);
-          }
-          console.log('Category add response status:', res.status);
+          const categoryData = { name: "Default Category", description: "Placeholder category" };
+          await api.addCategory(categoryData);
 
           // 3. Add Default Image
           // Using base64 encoded placeholder text for binary data
-          const imageData = { row: { image_data: btoa("placeholder image data"), image_mimetype: "text/plain" } };
-          res = await fetch(`${DATASETTE_URL}/images/-/insert`, {
-              method: 'POST',
-              headers: headers,
-              body: JSON.stringify(imageData),
-          });
-          // Simplified check: Fail if the request wasn't successful for any reason.
-           if (!res.ok) {
-               throw new Error(`Failed to add image: ${res.status} ${await res.text()}`);
-          }
-          console.log('Image add response status:', res.status);
+          // Note: The base64 encoding is now handled inside datasetteProvider.addImage
+          const imageData = { image_data: "placeholder image data", image_mimetype: "text/plain" };
+          await api.addImage(imageData);
            // We assume the IDs are 1, 1, 1 if they were newly inserted.
            // If they already existed, we still try to add the item linked to ID 1.
+          // TODO: A robust solution would fetch/confirm IDs after insertion.
            const assumedLocationId = 1;
            const assumedCategoryId = 1;
            const assumedImageId = 1;
 
-
           // 4. Add Default Item linked to assumed IDs
-          const itemData = { row: {
+          const itemData = {
               name: "Default Item",
               description: "Placeholder item created via API",
               location_id: assumedLocationId,
               category_id: assumedCategoryId,
               image_id: assumedImageId
-          }};
-          res = await fetch(`${DATASETTE_URL}/items/-/insert`, {
-              method: 'POST',
-              headers: headers,
-              body: JSON.stringify(itemData),
-          });
-          if (!res.ok) {
-               throw new Error(`Failed to add item: ${res.status} ${await res.text()}`);
-          }
-          console.log('Item add response status:', res.status);
+          };
+          await api.addItem(itemData);
 
           setSuccess('Successfully added default location, category, image, and item.'); // Updated message
 
