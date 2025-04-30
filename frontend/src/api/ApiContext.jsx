@@ -29,11 +29,9 @@ export const ApiProvider = ({ children }) => {
             if (currentConfig.providerType === 'datasette') {
                 // Bind Datasette provider methods with current config
                 newApiMethods = {
-                    addLocation: (data) => datasetteProvider.addLocation(currentConfig.baseUrl, currentConfig.apiToken, data),
-                    addCategory: (data) => datasetteProvider.addCategory(currentConfig.baseUrl, currentConfig.apiToken, data),
-                    addImage: (data) => datasetteProvider.addImage(currentConfig.baseUrl, currentConfig.apiToken, data),
-                    addItem: (data) => datasetteProvider.addItem(currentConfig.baseUrl, currentConfig.apiToken, data),
-                    // Add other CRUD methods here as needed
+                    // Only expose the composite addItem function
+                    addItem: (compositeData) => datasetteProvider.addItem(currentConfig.baseUrl, currentConfig.apiToken, compositeData),
+                    // Add other CRUD methods here as needed (e.g., getItems, updateItem, deleteItem)
                 };
             }
             // Add else if blocks for other providers here

@@ -15,55 +15,37 @@ function App() {
       setError(null);
       setSuccess(null);
 
-      // NOTE: This function assumes that if the default location, category,
-      // and image don't exist, inserting them will result in IDs 1, 1, and 1
-      // respectively. This is NOT robust for a real application but serves
-      // as a placeholder example. A real app would fetch IDs or handle conflicts.
-      // A robust implementation would handle potential existing records or get returned IDs.
+      // NOTE: The responsibility for adding location/category/image and handling IDs
+      // (even if brittlely assuming '1' for now) is pushed down into the provider's addItem method.
 
       try {
           if (!api.isConfigured) {
               throw new Error("API provider is not configured. Check VITE_API_PROVIDER and associated variables in your .env file.");
           }
           if (api.providerType !== 'datasette') {
-               throw new Error(`Unsupported provider type for default data: ${api.providerType}`);
+               throw new Error(`This 'Add Default Entries' button currently only supports the 'datasette' provider type. Current type: ${api.providerType}`);
           }
-          // Check if the necessary methods exist (they might not if config failed)
-          if (!api.addLocation || !api.addCategory || !api.addImage || !api.addItem) {
-              throw new Error("API methods are not available. Check configuration and console logs.");
+          // Check if the necessary addItem method exists (it might not if config failed)
+          if (!api.addItem) {
+              throw new Error("API 'addItem' method is not available. Check configuration and console logs.");
           }
 
-          // 1. Add Default Location
-          const locationData = { name: "Default Location", description: "Placeholder location" };
-          await api.addLocation(locationData);
-
-          // 2. Add Default Category
-          const categoryData = { name: "Default Category", description: "Placeholder category" };
-          await api.addCategory(categoryData);
-
-          // 3. Add Default Image
-          // Using base64 encoded placeholder text for binary data
-          // Note: The base64 encoding is now handled inside datasetteProvider.addImage
-          const imageData = { image_data: "placeholder image data", image_mimetype: "text/plain" };
-          await api.addImage(imageData);
-           // We assume the IDs are 1, 1, 1 if they were newly inserted.
-           // If they already existed, we still try to add the item linked to ID 1.
-          // TODO: A robust solution would fetch/confirm IDs after insertion.
-           const assumedLocationId = 1;
-           const assumedCategoryId = 1;
-           const assumedImageId = 1;
-
-          // 4. Add Default Item linked to assumed IDs
-          const itemData = {
-              name: "Default Item",
-              description: "Placeholder item created via API",
-              location_id: assumedLocationId,
-              category_id: assumedCategoryId,
-              image_id: assumedImageId
+          // Prepare the composite data object for the single API call
+          const defaultData = {
+              location: { name: "Default Location", description: "Placeholder location" },
+              category: { name: "Default Category", description: "Placeholder category" },
+              image: { image_data: "placeholder image data", image_mimetype: "text/plain" },
+              item: {
+                  name: "Default Item",
+                  description: "Placeholder item created via API",
+                  // location_id, category_id, image_id will be handled by the provider
+              }
           };
-          await api.addItem(itemData);
 
-          setSuccess('Successfully added default location, category, image, and item.'); // Updated message
+          // Single call to the abstracted addItem method
+          await api.addItem(defaultData);
+
+          setSuccess('Successfully added default item (including location, category, image).');
 
       } catch (err) {
           console.error("Error adding default data:", err);

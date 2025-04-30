@@ -56,12 +56,35 @@ export const addImage = async (baseUrl, apiToken, data) => {
 };
 
 export const addItem = async (baseUrl, apiToken, data) => {
-    // Expects { name, description, location_id, category_id, image_id }
-    const itemData = { row: data };
+    // NEW: Expects a composite object like:
+    // {
+    //   item: { name, description },
+    //   location: { name, description },
+    //   category: { name, description },
+    //   image: { image_data, image_mimetype }
+    // }
+    // This provider will handle adding location, category, image first,
+    // then the item, assuming IDs = 1 for simplicity in this example.
+
+    // 1. Add Location (using the existing function logic internally)
+    await addLocation(baseUrl, apiToken, data.location);
+    const assumedLocationId = 1; // Brittle assumption for example
+
+    // 2. Add Category
+    await addCategory(baseUrl, apiToken, data.category);
+    const assumedCategoryId = 1; // Brittle assumption
+
+    // 3. Add Image
+    await addImage(baseUrl, apiToken, data.image);
+    const assumedImageId = 1; // Brittle assumption
+
+    // 4. Add Item using assumed IDs and item data
+    const itemRowData = { ...data.item, location_id: assumedLocationId, category_id: assumedCategoryId, image_id: assumedImageId };
+    const itemPayload = { row: itemRowData };
     const res = await fetch(`${baseUrl}/items/-/insert`, {
         method: 'POST',
         headers: defaultHeaders(apiToken),
-        body: JSON.stringify(itemData),
+        body: JSON.stringify(itemPayload),
     });
     return handleResponse(res, 'item');
 };
