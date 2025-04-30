@@ -13,6 +13,9 @@ frontend/dist/
 frontend/.env*.local
 frontend/.DS_Store
 
+# Environment variables
+.env*
+
 # IDE/Editor specific files
 .vscode/
 .idea/
