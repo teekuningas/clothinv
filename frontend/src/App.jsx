@@ -79,17 +79,22 @@ function App() {
         <p>Datasette backend running separately.</p>
       </header>
       <main style={{ padding: '20px' }}>
-          <h2>Add Default Data</h2>
-          <p>Click the button below to add placeholder entries for Location, Category, Image, and Item via the Datasette API.</p>
-          <button onClick={handleAddDefaults} disabled={loading}>
-              {loading ? 'Adding...' : 'Add Default Entries'}
-          </button>
-          {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
-          {success && <p style={{ color: 'green', marginTop: '10px' }}>{success}</p>}
-          {api.isConfigured && api.providerType === 'datasette' && !api.apiToken &&
-            <p style={{ color: 'orange', marginTop: '10px' }}>
-              Warning: Datasette provider is configured but API Token (VITE_DATASATTE_TOKEN) is not set in .env. Operations requiring authentication may fail.
-            </p>}
+        {/* Only show Datasette-specific default data section if configured */}
+        {api.isConfigured && api.providerType === 'datasette' && (
+          <>
+            <h2>Add Default Data</h2>
+            <p>Click the button below to add placeholder entries for Location, Category, Image, and Item via the Datasette API.</p>
+            <button onClick={handleAddDefaults} disabled={loading}>
+                {loading ? 'Adding...' : 'Add Default Entries'}
+            </button>
+            {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
+            {success && <p style={{ color: 'green', marginTop: '10px' }}>{success}</p>}
+            {!api.apiToken &&
+              <p style={{ color: 'orange', marginTop: '10px' }}>
+                Warning: Datasette provider is configured but API Token (VITE_DATASATTE_TOKEN) is not set in .env. Operations requiring authentication may fail.
+              </p>}
+          </>
+        )}
       </main>
     </div>
   );
