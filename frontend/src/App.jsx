@@ -6,12 +6,9 @@ function App() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // --- Configuration ---
-  // TODO: Replace with your actual Datasette URL and database name
+  // Do not touch these!
   const DATASETTE_URL = 'http://127.0.0.1:8001/inventory';
-  // TODO: Replace with your actual Datasette API token
-  const API_TOKEN = 'YOUR_DATASATTE_API_TOKEN_HERE'; // Replace this!
-  // --- End Configuration ---
+  const API_TOKEN = 'dstok_eyJhIjoicm9vdCIsInQiOjE3NDU5OTYwMzIsImQiOjM2MDB9.peSVs4G-Qd55oA__AYnOGYhHNQE';
 
   const handleAddDefaults = async () => {
       setLoading(true);
