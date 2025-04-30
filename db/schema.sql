@@ -18,6 +18,14 @@ CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table for storing image data
+CREATE TABLE IF NOT EXISTS images (
+    image_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    image_data BLOB NOT NULL,
+    image_mimetype TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Table for inventory items
 CREATE TABLE IF NOT EXISTS items (
     item_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,12 +33,12 @@ CREATE TABLE IF NOT EXISTS items (
     description TEXT,
     location_id INTEGER,
     category_id INTEGER,
-    image_data BLOB, -- Binary image data
-    image_mimetype TEXT, -- MIME type of the image (e.g., 'image/jpeg', 'image/png')
+    image_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
-    FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL
+    FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
+    FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL
 );
 
 -- Optional: Trigger to update the updated_at timestamp on item update
