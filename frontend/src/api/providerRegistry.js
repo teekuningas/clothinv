@@ -37,10 +37,14 @@ export const providers = {
         // List the API methods this provider implements (must match exports from the module)
         methods: [
             'addItem',
-            'listLocations', // Add this
-            'addLocation',   // Add this
-            'updateLocation', // Add this (for future use)
-            'deleteLocation'  // Add this (for future use)
+            'listLocations',
+            'addLocation',
+            'updateLocation',
+            'deleteLocation',
+            'listCategories', // Add this
+            'addCategory',    // Add this
+            'updateCategory', // Add this (for future use)
+            'deleteCategory'  // Add this (for future use)
             /*, 'getItems', 'updateItem', 'deleteItem' */
         ]
     },

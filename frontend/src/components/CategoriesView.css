@@ -1,0 +1,106 @@
+/* Create this file: frontend/src/components/CategoriesView.css */
+
+.categories-view { /* Changed from .locations-view */
+    padding: 20px;
+}
+
+/* Status message styles remain the same */
+.status-loading,
+.status-error,
+.status-success,
+.status-warning {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+}
+
+.status-loading {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.status-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+
+.add-category-form { /* Changed from .add-location-form */
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.add-category-form h3 { /* Changed from .add-location-form */
+    margin-top: 0;
+}
+
+/* Form group styles remain the same */
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input[type="text"] {
+    width: calc(100% - 22px); /* Adjust for padding/border */
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.add-category-form button { /* Changed from .add-location-form */
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.add-category-form button:disabled { /* Changed from .add-location-form */
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.add-category-form button:not(:disabled):hover { /* Changed from .add-location-form */
+    background-color: #0056b3;
+}
+
+.categories-list { /* Changed from .locations-list */
+    list-style: none;
+    padding: 0;
+}
+
+.categories-list li { /* Changed from .locations-list */
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.categories-list li:last-child { /* Changed from .locations-list */
+    border-bottom: none;
+}
+
+.categories-list strong { /* Changed from .locations-list */
+    margin-right: 5px;
+}
