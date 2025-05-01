@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getProviderIds, getProviderById, getProviderDisplayNames } from '../api/providerRegistry'; // Import registry functions
 import './SettingsView.css';
+// Removed unused lodash import
 
 // Remove isOpen, onClose from props
 const SettingsView = ({ currentConfig, onSave }) => {
     // Local state holds the complete settings object being edited,
     // including providerType and provider-specific fields.
     const [localSettings, setLocalSettings] = useState({}); // Keep this state
+    const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
+    const [saveError, setSaveError] = useState(null);
     const [providerDisplayNames, setProviderDisplayNames] = useState({});
 
     // Populate provider display names once
@@ -37,6 +40,10 @@ const SettingsView = ({ currentConfig, onSave }) => {
     // Handle changes to any input field or the provider select
     const handleChange = (e) => {
         const { name, value } = e.target;
+        // Reset save status on any change
+        setSaveStatus('idle');
+        setSaveError(null);
+
         setLocalSettings(prevSettings => {
             const newSettings = { ...prevSettings, [name]: value };
             // If providerType changed, reset specific fields to avoid carrying over old values
@@ -63,12 +70,22 @@ const SettingsView = ({ currentConfig, onSave }) => {
     };
 
 
-    const handleSave = () => {
+    const handleSave = async () => { // Make async to handle potential async onSave
         // Pass the entire localSettings object (including providerType and specific fields)
         // back to the ApiContext's updateConfiguration function.
-        onSave(localSettings);
-        // Remove onClose(); - No longer a modal
-        // Optionally add a success message state here
+        setSaveStatus('saving');
+        setSaveError(null);
+        try {
+            // Assuming onSave might be async or could throw an error
+            await onSave(localSettings);
+            setSaveStatus('success');
+            // Optionally reset status after a delay
+            // setTimeout(() => setSaveStatus('idle'), 3000);
+        } catch (error) {
+            console.error("Error saving settings:", error);
+            setSaveError(error.message || 'An unexpected error occurred.');
+            setSaveStatus('error');
+        }
     };
 
     // Get the definition for the currently selected provider in the form
@@ -116,8 +133,15 @@ const SettingsView = ({ currentConfig, onSave }) => {
 
                 {/* Action Buttons */}
                 <div className="form-actions">
-                    <button type="button" onClick={handleSave} className="save-button">Save Settings</button>
+                    <button type="button" onClick={handleSave} className="save-button" disabled={saveStatus === 'saving'}>
+                        {saveStatus === 'saving' ? 'Saving...' : 'Save Settings'}
+                    </button>
                     {/* Remove Cancel button */}
+                </div>
+                {/* Save Status Feedback */}
+                <div className="save-feedback" style={{ marginTop: '10px', minHeight: '20px' /* Prevent layout shift */ }}>
+                    {saveStatus === 'success' && <p style={{ color: 'green' }}>Settings saved successfully!</p>}
+                    {saveStatus === 'error' && <p style={{ color: 'red' }}>Error: {saveError}</p>}
                 </div>
                 </form>
         </div>
