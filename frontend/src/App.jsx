@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
 import { useApi } from './api/ApiContext'; // Import the custom hook
-import SettingsView from './components/SettingsView'; // Import the SettingsView component
+// Import the view components
+import ItemsView from './components/ItemsView';
+import LocationsView from './components/LocationsView';
+import CategoriesView from './components/CategoriesView';
+import SettingsView from './components/SettingsView'; // Settings is now a view
 import './App.css';
+// Consider adding a new CSS file for navigation styles if needed
 
 function App() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // State for modal visibility
+  // Remove loading, error, success state - moved to ItemsView
+  // Remove isSettingsOpen state
+
+  const [activeView, setActiveView] = useState('items'); // Default view
   const api = useApi(); // Use the API context hook
 
-  const handleAddDefaults = async () => {
-      setLoading(true);
-      setError(null);
-      setSuccess(null);
-
+  // Remove handleAddDefaults function - moved to ItemsView
+/*
       // NOTE: The responsibility for adding location/category/image and handling IDs
       // The responsibility for adding related entities is handled within the provider's addItem method.
 
@@ -55,53 +57,67 @@ function App() {
       } finally {
           setLoading(false);
       }
+*/
+
+  // Helper function to render the active view
+  const renderActiveView = () => {
+      switch (activeView) {
+          case 'items':
+              return <ItemsView />;
+          case 'locations':
+              return <LocationsView />;
+          case 'categories':
+              return <CategoriesView />;
+          case 'settings':
+              // Pass props needed by SettingsView
+              return <SettingsView
+                         currentConfig={api.config}
+                         onSave={api.updateConfiguration}
+                     />;
+          default:
+              return <ItemsView />; // Default to items view
+      }
   };
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Inventory Management</h1>
-        <p>Frontend Placeholder - React App</p>
-        <p>Datasette backend running separately.</p>
-        {/* Add Settings Button */}
-        <button onClick={() => setIsSettingsOpen(true)} className="settings-button">
-          API Settings
-        </button>
+        {/* Simple Navigation */}
+        <nav className="app-nav">
+            <button onClick={() => setActiveView('items')} disabled={activeView === 'items'}>Items</button>
+            <button onClick={() => setActiveView('locations')} disabled={activeView === 'locations'}>Locations</button>
+            <button onClick={() => setActiveView('categories')} disabled={activeView === 'categories'}>Categories</button>
+            <button onClick={() => setActiveView('settings')} disabled={activeView === 'settings'}>Settings</button>
+        </nav>
       </header>
-      <main style={{ padding: '20px' }}>
-        {/* Only show Datasette-specific default data section if configured */}
-        {api.config.isConfigured && api.config.providerType === 'datasette' && (
-          <>
-            <h2>Add Default Data</h2>
-            <p>Click the button below to add placeholder entries for Location, Category, Image, and Item via the Datasette API.</p>
-            <button onClick={handleAddDefaults} disabled={loading}>
-                {loading ? 'Adding...' : 'Add Default Entries'}
-            </button>
-            {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>} {/* Error/Success messages remain the same */}
-            {success && <p style={{ color: 'green', marginTop: '10px' }}>{success}</p>}
-            {/* Warning moved below */}
-          </>
-        )}
-        {/* Update Datasette token warning to access token via config.settings */}
-        {api.config.providerType === 'datasette' && api.config.isConfigured && !api.config.settings?.datasetteApiToken &&
-          <p style={{ color: 'orange', marginTop: '10px' }}>
-            Warning: Datasette provider is configured but the optional API Token is not set in Settings. Operations requiring authentication may fail.
-          </p>}
-        {/* General configuration warning */}
-        {api.config.providerType !== 'none' && !api.config.isConfigured &&
-            <p style={{ color: 'red', marginTop: '10px' }}>
-                Warning: The selected API provider ({api.config.providerType}) is not fully configured. Please check API Settings.
-            </p>
-        }
+      <main className="app-main-content" style={{ padding: '20px' }}>
+          {/* Render the active view component */}
+          {renderActiveView()}
+
+          {/* Keep Global Warnings Here */}
+          <div className="global-warnings" style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
+              {/* Update Datasette token warning */}
+              {api.config.providerType === 'datasette' && api.config.isConfigured && !api.config.settings?.datasetteApiToken &&
+                  <p style={{ color: 'orange' }}>
+                      Warning: Datasette provider is configured but the optional API Token is not set. Operations requiring authentication may fail.
+                  </p>}
+              {/* General configuration warning */}
+              {api.config.providerType !== 'none' && !api.config.isConfigured &&
+                  <p style={{ color: 'red' }}>
+                      Warning: The selected API provider ({api.config.providerType}) is not fully configured. Please check Settings.
+                  </p>
+              }
+               {/* Informational message if no provider is selected */}
+               {api.config.providerType === 'none' &&
+                  <p style={{ color: 'grey' }}>
+                      No API provider selected. Please configure one in Settings.
+                  </p>
+              }
+          </div>
       </main>
 
-      {/* Render Settings Modal - Props passed remain the same conceptually */}
-      <SettingsView
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        currentConfig={api.config} // Pass the whole config object { providerType, settings, isConfigured }
-        onSave={api.updateConfiguration} // Pass the update function from context
-      />
+      {/* Remove SettingsView modal rendering */}
     </div>
   );
 }

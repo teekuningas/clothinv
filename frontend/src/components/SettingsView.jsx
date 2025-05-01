@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { getProviderIds, getProviderById, getProviderDisplayNames } from '../api/providerRegistry'; // Import registry functions
 import './SettingsView.css';
 
-const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
+// Remove isOpen, onClose from props
+const SettingsView = ({ currentConfig, onSave }) => {
     // Local state holds the complete settings object being edited,
     // including providerType and provider-specific fields.
-    const [localSettings, setLocalSettings] = useState({});
+    const [localSettings, setLocalSettings] = useState({}); // Keep this state
     const [providerDisplayNames, setProviderDisplayNames] = useState({});
 
     // Populate provider display names once
@@ -13,12 +14,11 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
         setProviderDisplayNames(getProviderDisplayNames());
     }, []);
 
-    // Initialize local state when the modal opens or the external config changes
+    // Initialize local state when the component mounts or the external config changes
     useEffect(() => {
-        if (isOpen) {
-            // Create a deep copy to avoid mutating the context state directly
-            const initialSettings = JSON.parse(JSON.stringify({
-                providerType: currentConfig.providerType || 'none',
+        // Create a deep copy to avoid mutating the context state directly
+        const initialSettings = JSON.parse(JSON.stringify({
+            providerType: currentConfig.providerType || 'none',
                 ...(currentConfig.settings || {}) // Spread existing settings
             }));
              // Ensure all fields defined in the registry for the current provider exist in local state
@@ -30,9 +30,9 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
                      }
                  });
              }
-            setLocalSettings(initialSettings);
         }
-    }, [isOpen, currentConfig]); // Rerun if modal opens or context config changes
+        setLocalSettings(initialSettings);
+    }, [currentConfig]); // Rerun if context config changes
 
     // Handle changes to any input field or the provider select
     const handleChange = (e) => {
@@ -67,24 +67,20 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
         // Pass the entire localSettings object (including providerType and specific fields)
         // back to the ApiContext's updateConfiguration function.
         onSave(localSettings);
-        onClose(); // Close the modal
+        // Remove onClose(); - No longer a modal
+        // Optionally add a success message state here
     };
 
-    if (!isOpen) {
-        return null;
-    }
-
     // Get the definition for the currently selected provider in the form
-    const selectedProviderId = localSettings.providerType || 'none';
+    const selectedProviderId = localSettings?.providerType || 'none'; // Add optional chaining for safety
     const selectedProvider = getProviderById(selectedProviderId);
     const availableProviderIds = getProviderIds();
 
     return (
-        <div className="settings-modal-overlay">
-            <div className="settings-modal-content">
+        <div className="settings-view-container"> {/* Use a container class */}
                 <h2>API Settings</h2>
-
-                {/* Provider Selection */}
+                {/* Keep the form structure, but remove modal wrappers */}
+                <form onSubmit={(e) => e.preventDefault()}>
                 <div className="form-group">
                     <label htmlFor="providerType">API Provider:</label>
                     <select
@@ -120,10 +116,10 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
 
                 {/* Action Buttons */}
                 <div className="form-actions">
-                    <button onClick={handleSave} className="save-button">Save</button>
-                    <button onClick={onClose} className="cancel-button">Cancel</button>
+                    <button type="button" onClick={handleSave} className="save-button">Save Settings</button>
+                    {/* Remove Cancel button */}
                 </div>
-            </div>
+                </form>
         </div>
     );
 };
