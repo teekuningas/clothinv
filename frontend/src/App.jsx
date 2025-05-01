@@ -81,9 +81,9 @@ function App() {
           </>
         )}
         {/* Update Datasette token warning to use specific config key */}
-        {api.config.providerType === 'datasette' && !api.config.datasetteApiToken && api.config.isConfigured &&
+        {api.config.providerType === 'datasette' && !api.config.datasetteApiToken && api.config.isConfigured && // Corrected property name
           <p style={{ color: 'orange', marginTop: '10px' }}>
-            Warning: Datasette provider is configured but API Token (VITE_DATASATTE_TOKEN / Settings) is not set. Operations requiring authentication may fail.
+            Warning: Datasette provider is configured but API Token (VITE_DATASETTE_TOKEN / Settings) is not set. Operations requiring authentication may fail.
           </p>}
       </main>
 
