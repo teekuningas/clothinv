@@ -68,28 +68,30 @@ function App() {
       </header>
       <main style={{ padding: '20px' }}>
         {/* Only show Datasette-specific default data section if configured */}
-        {api.isConfigured && api.providerType === 'datasette' && (
+        {api.config.isConfigured && api.config.providerType === 'datasette' && (
           <>
             <h2>Add Default Data</h2>
             <p>Click the button below to add placeholder entries for Location, Category, Image, and Item via the Datasette API.</p>
             <button onClick={handleAddDefaults} disabled={loading}>
                 {loading ? 'Adding...' : 'Add Default Entries'}
             </button>
-            {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>}
+            {error && <p style={{ color: 'red', marginTop: '10px' }}>Error: {error}</p>} {/* Error/Success messages remain the same */}
             {success && <p style={{ color: 'green', marginTop: '10px' }}>{success}</p>}
-            {!api.apiToken &&
-              <p style={{ color: 'orange', marginTop: '10px' }}>
-                Warning: Datasette provider is configured but API Token (VITE_DATASATTE_TOKEN) is not set in .env. Operations requiring authentication may fail.
-              </p>}
+            {/* Warning moved below */}
           </>
         )}
+        {/* Update Datasette token warning to use specific config key */}
+        {api.config.providerType === 'datasette' && !api.config.datasetteApiToken && api.config.isConfigured &&
+          <p style={{ color: 'orange', marginTop: '10px' }}>
+            Warning: Datasette provider is configured but API Token (VITE_DATASATTE_TOKEN / Settings) is not set. Operations requiring authentication may fail.
+          </p>}
       </main>
 
       {/* Render Settings Modal */}
       <SettingsView
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        currentConfig={api} // Pass current config (includes providerType, baseUrl, apiToken)
+        currentConfig={api.config} // Pass the whole config object from context
         onSave={api.updateConfiguration} // Pass the update function from context
       />
     </div>

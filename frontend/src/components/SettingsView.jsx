@@ -3,26 +3,28 @@ import './SettingsView.css';
 
 const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
     // Local state for form inputs, initialized from currentConfig when opened
-    const [providerType, setProviderType] = useState('datasette'); // Only option for now
-    const [baseUrl, setBaseUrl] = useState('');
-    const [apiToken, setApiToken] = useState('');
+    // Holds all potential settings, mirroring the structure saved/loaded by ApiContext
+    const [settings, setSettings] = useState({
+        providerType: 'datasette',
+        datasetteBaseUrl: '',
+        datasetteApiToken: '',
+        // Add fields for other providers here later
+    });
 
     // Update local state when the modal opens or currentConfig changes
     useEffect(() => {
         if (isOpen) {
-            setProviderType(currentConfig.providerType || 'datasette');
-            setBaseUrl(currentConfig.baseUrl || '');
-            setApiToken(currentConfig.apiToken || '');
+            setSettings({
+                providerType: currentConfig.providerType || 'datasette',
+                datasetteBaseUrl: currentConfig.datasetteBaseUrl || '',
+                datasetteApiToken: currentConfig.datasetteApiToken || '',
+                // Populate other provider fields from currentConfig here later
+            });
         }
     }, [isOpen, currentConfig]);
 
     const handleSave = () => {
-        // Call the onSave function passed from ApiContext via App
-        onSave({
-            providerType,
-            baseUrl,
-            apiToken,
-        });
+        onSave(settings); // Pass the complete local settings object
         onClose(); // Close the modal after saving
     };
 
@@ -39,8 +41,8 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
                     <label htmlFor="providerType">API Provider:</label>
                     <select
                         id="providerType"
-                        value={providerType}
-                        onChange={(e) => setProviderType(e.target.value)}
+                        value={settings.providerType}
+                        onChange={(e) => setSettings(s => ({ ...s, providerType: e.target.value }))}
                         disabled // Only one option for now
                     >
                         <option value="datasette">Datasette</option>
@@ -50,25 +52,25 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
                 </div>
 
                 {/* Show Datasette specific settings */}
-                {providerType === 'datasette' && (
+                {settings.providerType === 'datasette' && (
                     <>
                         <div className="form-group">
                             <label htmlFor="baseUrl">Datasette Base URL:</label>
                             <input
                                 type="text"
                                 id="baseUrl"
-                                value={baseUrl}
-                                onChange={(e) => setBaseUrl(e.target.value)}
+                                value={settings.datasetteBaseUrl}
+                                onChange={(e) => setSettings(s => ({ ...s, datasetteBaseUrl: e.target.value }))}
                                 placeholder="e.g., http://localhost:8001/database"
                             />
                         </div>
                         <div className="form-group">
                             <label htmlFor="apiToken">Datasette API Token (Optional):</label>
                             <input
-                                type="password" // Use password type for tokens
+                                type="password"
                                 id="apiToken"
-                                value={apiToken}
-                                onChange={(e) => setApiToken(e.target.value)}
+                                value={settings.datasetteApiToken}
+                                onChange={(e) => setSettings(s => ({ ...s, datasetteApiToken: e.target.value }))}
                                 placeholder="Paste token if required"
                             />
                         </div>
@@ -76,7 +78,7 @@ const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
                 )}
 
                 {/* Add conditional blocks for other providers here later */}
-                {/* {providerType === 'homebox' && ( ... )} */}
+                {/* {settings.providerType === 'homebox' && ( ... )} */}
 
                 <div className="form-actions">
                     <button onClick={handleSave} className="save-button">Save</button>
