@@ -1,14 +1,17 @@
 
-const defaultHeaders = (apiToken) => {
+// Helper to generate headers, extracting token from settings
+const defaultHeaders = (settings) => {
     const headers = {
         'Content-Type': 'application/json',
     };
-    if (apiToken) {
-        headers['Authorization'] = `Bearer ${apiToken}`;
+    // Access the token via the settings object using the key defined in the registry
+    if (settings?.datasetteApiToken) {
+        headers['Authorization'] = `Bearer ${settings.datasetteApiToken}`;
     }
     return headers;
 };
 
+// handleResponse remains the same conceptually
 const handleResponse = async (res, entityName) => {
     if (!res.ok) {
         const errorText = await res.text();
@@ -23,39 +26,56 @@ const handleResponse = async (res, entityName) => {
     return { success: true, status: res.status };
 };
 
-export const addLocation = async (baseUrl, apiToken, data) => {
+// --- Internal Helper Functions (Not Exported Directly to Context) ---
+// These now accept the 'settings' object instead of individual config parameters.
+
+const addLocationInternal = async (settings, data) => {
     const locationData = { row: data }; // Expects { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
     const res = await fetch(`${baseUrl}/locations/-/insert`, {
         method: 'POST',
-        headers: defaultHeaders(apiToken),
+        headers: defaultHeaders(settings), // Pass the whole settings object
         body: JSON.stringify(locationData),
     });
     return handleResponse(res, 'location');
 };
 
-export const addCategory = async (baseUrl, apiToken, data) => {
+const addCategoryInternal = async (settings, data) => {
     const categoryData = { row: data }; // Expects { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
     const res = await fetch(`${baseUrl}/categories/-/insert`, {
         method: 'POST',
-        headers: defaultHeaders(apiToken),
+        headers: defaultHeaders(settings),
         body: JSON.stringify(categoryData),
     });
     return handleResponse(res, 'category');
 };
 
-export const addImage = async (baseUrl, apiToken, data) => {
+const addImageInternal = async (settings, data) => {
     // Expects { image_data (string), image_mimetype }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
     // Base64 encode the string data before sending
     const imageData = { row: { ...data, image_data: btoa(data.image_data) } };
     const res = await fetch(`${baseUrl}/images/-/insert`, {
         method: 'POST',
-        headers: defaultHeaders(apiToken),
+        headers: defaultHeaders(settings),
         body: JSON.stringify(imageData),
     });
     return handleResponse(res, 'image');
 };
 
-export const addItem = async (baseUrl, apiToken, data) => {
+
+// --- Exported API Methods (Bound by ApiContext) ---
+// These are the functions listed in the providerRegistry 'methods' array.
+// They receive the 'settings' object as the first argument from ApiContext.
+
+export const addItem = async (settings, data) => {
     // Expects a composite object like:
     // {
     //   item: { name, description },
@@ -63,30 +83,35 @@ export const addItem = async (baseUrl, apiToken, data) => {
     //   category: { name, description },
     //   image: { image_data, image_mimetype }
     // }
-    // This provider will handle adding location, category, image first,
-    // then the item, assuming IDs = 1 for simplicity in this example.
+    // This provider handles adding location, category, image first, then the item.
+    // It still uses the brittle assumption of ID=1 for this example.
+    // It now calls the internal helper functions, passing the 'settings' object.
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-    // 1. Add Location (using the existing function logic internally)
-    await addLocation(baseUrl, apiToken, data.location);
-    const assumedLocationId = 1; // Brittle assumption for example
+
+    // 1. Add Location
+    await addLocationInternal(settings, data.location);
+    const assumedLocationId = 1; // Brittle assumption
 
     // 2. Add Category
-    await addCategory(baseUrl, apiToken, data.category);
+    await addCategoryInternal(settings, data.category);
     const assumedCategoryId = 1; // Brittle assumption
 
     // 3. Add Image
-    await addImage(baseUrl, apiToken, data.image);
+    await addImageInternal(settings, data.image);
     const assumedImageId = 1; // Brittle assumption
 
     // 4. Add Item using assumed IDs and item data
     const itemRowData = { ...data.item, location_id: assumedLocationId, category_id: assumedCategoryId, image_id: assumedImageId };
     const itemPayload = { row: itemRowData };
+
     const res = await fetch(`${baseUrl}/items/-/insert`, {
         method: 'POST',
-        headers: defaultHeaders(apiToken),
+        headers: defaultHeaders(settings), // Pass settings object
         body: JSON.stringify(itemPayload),
     });
-    return handleResponse(res, 'item');
+    return handleResponse(res, 'item'); // Use the same response handler
 };
 
 // Add functions for get, update, delete operations here later

@@ -16,18 +16,20 @@ function App() {
       setSuccess(null);
 
       // NOTE: The responsibility for adding location/category/image and handling IDs
-      // (even if brittlely assuming '1' for now) is pushed down into the provider's addItem method.
+      // The responsibility for adding related entities is handled within the provider's addItem method.
 
       try {
-          if (!api.config.isConfigured) { // Check the nested config object
-              throw new Error("API provider is not configured. Check VITE_API_PROVIDER and associated variables in your .env file.");
+          // Use the generic isConfigured flag from the context
+          if (!api.config.isConfigured) {
+              throw new Error(`API provider (${api.config.providerType}) is not configured. Please check settings.`);
           }
-          if (api.config.providerType !== 'datasette') { // Check the nested config object
+          // Keep the check for datasette-specific feature
+          if (api.config.providerType !== 'datasette') {
                throw new Error(`This 'Add Default Entries' button currently only supports the 'datasette' provider type. Current type: ${api.config.providerType}`);
           }
-          // Check if the necessary addItem method exists (it might not if config failed)
+          // Check if the addItem method was successfully bound by the context
           if (!api.addItem) {
-              throw new Error("API 'addItem' method is not available. Check configuration and console logs.");
+              throw new Error("API 'addItem' method is not available. Check provider configuration and console logs.");
           }
 
           // Prepare the composite data object for the single API call
@@ -80,18 +82,24 @@ function App() {
             {/* Warning moved below */}
           </>
         )}
-        {/* Update Datasette token warning to use specific config key */}
-        {api.config.providerType === 'datasette' && !api.config.datasetteApiToken && api.config.isConfigured && // Corrected property name
+        {/* Update Datasette token warning to access token via config.settings */}
+        {api.config.providerType === 'datasette' && api.config.isConfigured && !api.config.settings?.datasetteApiToken &&
           <p style={{ color: 'orange', marginTop: '10px' }}>
-            Warning: Datasette provider is configured but API Token (VITE_DATASETTE_TOKEN / Settings) is not set. Operations requiring authentication may fail.
+            Warning: Datasette provider is configured but the optional API Token is not set in Settings. Operations requiring authentication may fail.
           </p>}
+        {/* General configuration warning */}
+        {api.config.providerType !== 'none' && !api.config.isConfigured &&
+            <p style={{ color: 'red', marginTop: '10px' }}>
+                Warning: The selected API provider ({api.config.providerType}) is not fully configured. Please check API Settings.
+            </p>
+        }
       </main>
 
-      {/* Render Settings Modal */}
+      {/* Render Settings Modal - Props passed remain the same conceptually */}
       <SettingsView
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
-        currentConfig={api.config} // Pass the whole config object from context
+        currentConfig={api.config} // Pass the whole config object { providerType, settings, isConfigured }
         onSave={api.updateConfiguration} // Pass the update function from context
       />
     </div>
