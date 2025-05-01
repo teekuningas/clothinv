@@ -29,49 +29,7 @@ const handleResponse = async (res, entityName) => {
 // --- Internal Helper Functions (Not Exported Directly to Context) ---
 // These now accept the 'settings' object instead of individual config parameters.
 
-const addLocationInternal = async (settings, data) => {
-    const locationData = { row: data }; // Expects { name, description }
-    const baseUrl = settings?.datasetteBaseUrl;
-    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
-
-    // Perform the insert
-    const insertRes = await fetch(`${baseUrl}/locations/-/insert`, {
-        method: 'POST',
-        headers: defaultHeaders(settings), // Pass the whole settings object
-        body: JSON.stringify(locationData),
-    });
-    // Use handleResponse for initial check, but we need the ID later
-    const insertResult = await handleResponse(insertRes, 'location');
-    if (!insertResult.success) {
-         // Error already thrown by handleResponse, but be explicit
-         throw new Error(`Location insert failed with status ${insertRes.status}`);
-    }
-
-    // After successful insert, fetch the latest location ID
-    const queryUrl = `${baseUrl}/locations.json?_sort_desc=location_id&_size=1`;
-    const queryRes = await fetch(queryUrl, {
-         method: 'GET',
-         headers: { 'Accept': 'application/json' } // Ensure we get JSON
-    });
-
-    if (!queryRes.ok) {
-        const errorText = await queryRes.text();
-        console.error(`Failed to fetch latest location ID: ${queryRes.status} ${errorText}`, queryRes);
-        throw new Error(`Failed to fetch latest location ID after insert: ${queryRes.status}`);
-    }
-
-    const queryData = await queryRes.json();
-    if (!queryData.rows || queryData.rows.length === 0 || !queryData.rows[0].location_id) {
-         console.error("Could not find location_id in query response:", queryData);
-         throw new Error("Failed to retrieve location_id after insert.");
-    }
-
-    const newLocationId = queryData.rows[0].location_id;
-    console.log("Retrieved new location ID:", newLocationId);
-
-    // Return success status and the new ID
-    return { success: true, status: insertRes.status, newId: newLocationId };
-};
+// Note: addLocationInternal was removed and replaced by the exported addLocation below.
 
 const addCategoryInternal = async (settings, data) => {
     const categoryData = { row: data }; // Expects { name, description }
@@ -165,6 +123,53 @@ const addImageInternal = async (settings, data) => {
 // These are the functions listed in the providerRegistry 'methods' array.
 // They receive the 'settings' object as the first argument from ApiContext.
 
+export const addLocation = async (settings, data) => {
+    const locationData = { row: data }; // Expects { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    // Perform the insert
+    const insertRes = await fetch(`${baseUrl}/locations/-/insert`, {
+        method: 'POST',
+        headers: defaultHeaders(settings), // Pass the whole settings object
+        body: JSON.stringify(locationData),
+    });
+    // Use handleResponse for initial check, but we need the ID later
+    const insertResult = await handleResponse(insertRes, 'location');
+    if (!insertResult.success) {
+         // Error already thrown by handleResponse, but be explicit
+         throw new Error(`Location insert failed with status ${insertRes.status}`);
+    }
+
+    // After successful insert, fetch the latest location ID
+    // Using _shape=array simplifies getting the row directly
+    const queryUrl = `${baseUrl}/locations.json?_sort_desc=location_id&_size=1&_shape=array`;
+    const queryRes = await fetch(queryUrl, {
+         method: 'GET',
+         headers: { 'Accept': 'application/json' } // Ensure we get JSON
+    });
+
+    if (!queryRes.ok) {
+        const errorText = await queryRes.text();
+        console.error(`Failed to fetch latest location ID: ${queryRes.status} ${errorText}`, queryRes);
+        throw new Error(`Failed to fetch latest location ID after insert: ${queryRes.status}`);
+    }
+
+    const queryData = await queryRes.json();
+    // With _shape=array, response is an array of objects. Check the first object.
+    if (!queryData || queryData.length === 0 || !queryData[0].location_id) {
+         console.error("Could not find location_id in query response:", queryData);
+         throw new Error("Failed to retrieve location_id after insert.");
+    }
+
+    const newLocationId = queryData[0].location_id;
+    console.log("Retrieved new location ID:", newLocationId);
+
+    // Return success status and the new ID
+    return { success: true, status: insertRes.status, newId: newLocationId };
+};
+
+
 export const addItem = async (settings, data) => {
     // Expects a composite object like:
     // {
@@ -179,11 +184,11 @@ export const addItem = async (settings, data) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     try {
-        // 1. Add Location and get its ID
-        const locationResult = await addLocationInternal(settings, data.location);
+        // 1. Add Location and get its ID using the exported function
+        const locationResult = await addLocation(settings, data.location); // Use exported function
         const locationId = locationResult.newId;
 
-        // 2. Add Category and get its ID
+        // 2. Add Category and get its ID (keep existing internal call for now)
         const categoryResult = await addCategoryInternal(settings, data.category);
         const categoryId = categoryResult.newId;
 
@@ -217,4 +222,44 @@ export const addItem = async (settings, data) => {
     }
 };
 
-// Add functions for get, update, delete operations here later
+export const listLocations = async (settings) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    // Use _shape=array for a simpler response structure (array of objects)
+    const queryUrl = `${baseUrl}/locations.json?_shape=array`;
+    const res = await fetch(queryUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Failed to fetch locations: ${res.status} ${errorText}`, res);
+        throw new Error(`Failed to fetch locations: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // The response is already the array of location objects thanks to _shape=array
+    console.log("Fetched locations:", data);
+    return data; // Returns array like [{location_id: 1, name: 'Closet', ...}, ...]
+};
+
+export const updateLocation = async (settings, locationId, data) => {
+    console.warn('updateLocation is not yet implemented for datasetteProvider.');
+    // Simulate success for now, or throw an error
+    // throw new Error('updateLocation not implemented');
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async
+    return { success: true, message: 'Update not implemented' };
+};
+
+export const deleteLocation = async (settings, locationId) => {
+    console.warn('deleteLocation is not yet implemented for datasetteProvider.');
+    // Simulate success for now, or throw an error
+    // throw new Error('deleteLocation not implemented');
+    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async
+    return { success: true, message: 'Delete not implemented' };
+};
+
+
+// Add functions for getItems, updateItem, deleteItem operations here later

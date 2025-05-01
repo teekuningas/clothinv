@@ -35,7 +35,14 @@ export const providers = {
         // Function to determine if the provider is considered configured based on its settings
         isConfiguredCheck: (settings) => !!settings?.datasetteBaseUrl,
         // List the API methods this provider implements (must match exports from the module)
-        methods: ['addItem' /*, 'getItems', 'updateItem', 'deleteItem' */]
+        methods: [
+            'addItem',
+            'listLocations', // Add this
+            'addLocation',   // Add this
+            'updateLocation', // Add this (for future use)
+            'deleteLocation'  // Add this (for future use)
+            /*, 'getItems', 'updateItem', 'deleteItem' */
+        ]
     },
 
     // --- Homebox Provider Definition (Example Placeholder) ---
