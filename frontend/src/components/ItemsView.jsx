@@ -17,12 +17,11 @@ const ItemsView = () => {
             if (!api.config.isConfigured) {
                 throw new Error(`API provider (${api.config.providerType}) is not configured. Please check settings.`);
             }
-            // Keep the check for datasette-specific feature
-            if (api.config.providerType !== 'datasette') {
-                 throw new Error(`This 'Add Default Entries' button currently only supports the 'datasette' provider type. Current type: ${api.config.providerType}`);
-            }
             // Check if the addItem method was successfully bound by the context
+            // This check is now crucial as the outer conditional relies on it too.
             if (!api.addItem) {
+                // This error should theoretically not be reached if the button is only rendered when api.addItem exists,
+                // but it's good practice to keep it as a safeguard.
                 throw new Error("API 'addItem' method is not available. Check provider configuration and console logs.");
             }
 
@@ -56,11 +55,11 @@ const ItemsView = () => {
             <h2>Items Management</h2>
             <p>Item listing and management features will go here.</p>
 
-            {/* Only show Datasette-specific default data section if configured */}
-            {api.config.isConfigured && api.config.providerType === 'datasette' && (
+            {/* Only show default data section if configured and addItem is available */}
+            {api.config.isConfigured && api.addItem && (
                 <div style={{ marginTop: '20px', borderTop: '1px dashed #ccc', paddingTop: '15px' }}>
-                    <h3>Add Default Data (Datasette Only)</h3>
-                    <p>Click the button below to add placeholder entries for Location, Category, Image, and Item via the Datasette API.</p>
+                    <h3>Add Default Data</h3>
+                    <p>Click the button below to add placeholder entries for Location, Category, Image, and Item using the configured API provider.</p>
                     <button onClick={handleAddDefaults} disabled={loading}>
                         {loading ? 'Adding...' : 'Add Default Entries'}
                     </button>
