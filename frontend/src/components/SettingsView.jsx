@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './SettingsView.css'; // We'll create this CSS file next
+import './SettingsView.css';
 
 const SettingsView = ({ isOpen, onClose, currentConfig, onSave }) => {
     // Local state for form inputs, initialized from currentConfig when opened

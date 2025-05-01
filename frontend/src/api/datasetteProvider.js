@@ -56,7 +56,7 @@ export const addImage = async (baseUrl, apiToken, data) => {
 };
 
 export const addItem = async (baseUrl, apiToken, data) => {
-    // NEW: Expects a composite object like:
+    // Expects a composite object like:
     // {
     //   item: { name, description },
     //   location: { name, description },

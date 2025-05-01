@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-// We will create this file next
 import * as datasetteProvider from './datasetteProvider';
 
 const ApiContext = createContext();
@@ -10,7 +9,6 @@ export const useApi = () => useContext(ApiContext);
 const LS_PROVIDER_TYPE = 'apiProviderType';
 const LS_BASE_URL = 'apiBaseUrl';
 const LS_API_TOKEN = 'apiToken';
-
 
 export const ApiProvider = ({ children }) => {
     const [config, setConfig] = useState({
@@ -38,7 +36,7 @@ export const ApiProvider = ({ children }) => {
             // else if (currentConfig.providerType === 'homebox') { ... }
         }
         setApiMethods(newApiMethods);
-    }, []); // No dependencies, as it relies on the passed currentConfig argument
+    }, []);
 
     // Effect to load initial config from localStorage or env vars
     useEffect(() => {
@@ -49,23 +47,23 @@ export const ApiProvider = ({ children }) => {
 
         // 2. Fallback to environment variables if localStorage is empty
         if (!loadedProviderType) {
-            loadedProviderType = import.meta.env.VITE_API_PROVIDER || 'datasette'; // Default to datasette
-            loadedBaseUrl = import.meta.env.VITE_DATASATTE_URL || ''; // Only relevant if provider is datasette initially
-            loadedApiToken = import.meta.env.VITE_DATASATTE_TOKEN || ''; // Only relevant if provider is datasette initially
+            loadedProviderType = import.meta.env.VITE_API_PROVIDER || 'datasette';
+            loadedBaseUrl = import.meta.env.VITE_DATASETTE_URL || '';
+            loadedApiToken = import.meta.env.VITE_DATASETTE_TOKEN || '';
         }
 
         // Determine initial configuration state
         let initialConfig = {
             providerType: loadedProviderType,
-            baseUrl: loadedBaseUrl || '', // Ensure not null
-            apiToken: loadedApiToken || '', // Ensure not null
+            baseUrl: loadedBaseUrl || '',
+            apiToken: loadedApiToken || '',
             isConfigured: false,
         };
 
         let isConfigured = false;
         if (initialConfig.providerType === 'datasette') {
             isConfigured = !!initialConfig.baseUrl; // Datasette needs URL
-            if (!isConfigured) console.warn("Datasette provider selected, but Base URL is not set (checked localStorage and VITE_DATASATTE_URL).");
+            if (!isConfigured) console.warn("Datasette provider selected, but Base URL is not set (checked localStorage and VITE_DATASETTE_URL).");
         }
         // Add checks for other providers here
         // else if (initialConfig.providerType === 'homebox') { isConfigured = !!initialConfig.baseUrl && !!initialConfig.apiToken }
@@ -75,9 +73,9 @@ export const ApiProvider = ({ children }) => {
         initialConfig.isConfigured = isConfigured;
 
         setConfig(initialConfig);
-        bindApiMethods(initialConfig); // Bind methods based on initial config
+        bindApiMethods(initialConfig);
 
-    }, [bindApiMethods]); // Run only once on mount
+    }, [bindApiMethods]);
 
     // Function to update configuration and save to localStorage
     const updateConfiguration = useCallback((newConfig) => {
@@ -97,7 +95,7 @@ export const ApiProvider = ({ children }) => {
         setConfig(updatedFullConfig); // Update state
         bindApiMethods(updatedFullConfig); // Re-bind API methods
 
-    }, [bindApiMethods]); // Dependency on bindApiMethods
+    }, [bindApiMethods]);
 
     // The value provided includes the config and the methods
     const value = {
