@@ -19,11 +19,11 @@ function App() {
       // (even if brittlely assuming '1' for now) is pushed down into the provider's addItem method.
 
       try {
-          if (!api.isConfigured) {
+          if (!api.config.isConfigured) { // Check the nested config object
               throw new Error("API provider is not configured. Check VITE_API_PROVIDER and associated variables in your .env file.");
           }
-          if (api.providerType !== 'datasette') {
-               throw new Error(`This 'Add Default Entries' button currently only supports the 'datasette' provider type. Current type: ${api.providerType}`);
+          if (api.config.providerType !== 'datasette') { // Check the nested config object
+               throw new Error(`This 'Add Default Entries' button currently only supports the 'datasette' provider type. Current type: ${api.config.providerType}`);
           }
           // Check if the necessary addItem method exists (it might not if config failed)
           if (!api.addItem) {
