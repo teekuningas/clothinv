@@ -30,7 +30,7 @@ const SettingsView = ({ currentConfig, onSave }) => {
                      }
                  });
              }
-        }
+        // Remove the extra closing brace here
         setLocalSettings(initialSettings);
     }, [currentConfig]); // Rerun if context config changes
 
