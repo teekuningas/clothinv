@@ -8,8 +8,8 @@ export const useApi = () => useContext(ApiContext);
 // Define localStorage keys
 const LS_PROVIDER_TYPE = 'apiProviderType';
 // Provider-specific keys
-const LS_DATASATTE_BASE_URL = 'datasetteBaseUrl';
-const LS_DATASATTE_API_TOKEN = 'datasetteApiToken';
+const LS_DATASETTE_BASE_URL = 'datasetteBaseUrl';
+const LS_DATASETTE_API_TOKEN = 'datasetteApiToken';
 // Add keys for other providers here later (e.g., LS_HOMEBOX_URL)
 
 export const ApiProvider = ({ children }) => {
@@ -44,18 +44,18 @@ export const ApiProvider = ({ children }) => {
     useEffect(() => {
         // 1. Try loading from localStorage
         let loadedProviderType = localStorage.getItem(LS_PROVIDER_TYPE);
-        let loadedDatasetteBaseUrl = localStorage.getItem(LS_DATASATTE_BASE_URL);
-        let loadedDatasetteApiToken = localStorage.getItem(LS_DATASATTE_API_TOKEN);
+        let loadedDatasetteBaseUrl = localStorage.getItem(LS_DATASETTE_BASE_URL);
+        let loadedDatasetteApiToken = localStorage.getItem(LS_DATASETTE_API_TOKEN);
         // Load settings for other providers here later
 
         // 2. Fallback to environment variables if localStorage is empty
         if (!loadedProviderType) {
             loadedProviderType = import.meta.env.VITE_API_PROVIDER || 'datasette';
             // Only load ENV vars if the corresponding LS item was *also* empty
-            if (!loadedDatasetteBaseUrl) {
+            if (!loadedDatasetteBaseUrl) { // Use correct env var name
                 loadedDatasetteBaseUrl = import.meta.env.VITE_DATASETTE_URL || '';
             }
-            if (!loadedDatasetteApiToken) {
+            if (!loadedDatasetteApiToken) { // Use correct env var name
                 loadedDatasetteApiToken = import.meta.env.VITE_DATASETTE_TOKEN || '';
             }
             // Load ENV vars for other providers here later
@@ -90,8 +90,8 @@ export const ApiProvider = ({ children }) => {
         // newConfig contains providerType and all potential provider settings
         localStorage.setItem(LS_PROVIDER_TYPE, newConfig.providerType);
         // Save specific settings based on provider (or save all for simplicity now)
-        localStorage.setItem(LS_DATASATTE_BASE_URL, newConfig.datasetteBaseUrl || '');
-        localStorage.setItem(LS_DATASATTE_API_TOKEN, newConfig.datasetteApiToken || '');
+        localStorage.setItem(LS_DATASETTE_BASE_URL, newConfig.datasetteBaseUrl || '');
+        localStorage.setItem(LS_DATASETTE_API_TOKEN, newConfig.datasetteApiToken || '');
         // Save settings for other providers here later
 
         // Recalculate isConfigured based on the new settings
