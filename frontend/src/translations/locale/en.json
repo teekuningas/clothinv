@@ -4,6 +4,8 @@
     "nav.locations": "Locations",
     "nav.categories": "Categories",
     "nav.settings": "Settings",
+    "nav.toggleMobileMenu": "Toggle navigation menu",
+    "nav.closeMobileMenu": "Close navigation menu",
     "warning.datasetteTokenMissing": "Warning: Datasette provider is configured but the optional API Token is not set. Operations requiring authentication may fail.",
     "warning.providerNotConfigured": "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
     "info.noProviderSelected": "No API provider selected. Please configure one in Settings."
