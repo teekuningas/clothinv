@@ -50,11 +50,11 @@
 
 .image-view-modal-close {
     position: absolute;
-    top: -15px; /* Adjust position for larger size */
-    right: -15px; /* Adjust position for larger size */
-    background-color: white; /* White background */
-    color: #333; /* Darker text/icon */
-    border: 1px solid #ccc; /* Light grey border */
+    top: 10px; /* Position inside the content area */
+    right: 10px; /* Position inside the content area */
+    background-color: rgba(40, 40, 40, 0.7); /* Semi-transparent dark background */
+    color: white; /* White 'x' */
+    border: 1px solid rgba(255, 255, 255, 0.4); /* Subtle border */
     border-radius: 50%; /* Circular button */
     width: 36px;  /* Increased width */
     height: 36px; /* Increased height */
@@ -65,12 +65,12 @@
     padding: 0;
     z-index: 1051; /* Above the content */
     transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; /* Added color/shadow transition */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3); /* Slightly softer shadow */
 }
 
 .image-view-modal-close:hover,
 .image-view-modal-close:focus {
-    background-color: #eee; /* Slightly darker on hover */
-    color: #000;
+    background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+    color: white; /* Keep color white */
     outline: none;
 }
