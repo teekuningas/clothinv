@@ -5,6 +5,7 @@ import { useApi } from './api/ApiContext'; // Import the custom hook
 import ItemsView from './components/ItemsView';
 import LocationsView from './components/LocationsView';
 import CategoriesView from './components/CategoriesView';
+import OwnersView from './components/OwnersView';
 import SettingsView from './components/SettingsView'; // Settings is now a view
 import './App.css';
 // Consider adding a new CSS file for navigation styles if needed
@@ -82,6 +83,8 @@ function App() {
               return <LocationsView />;
           case 'categories':
               return <CategoriesView />;
+          case 'owners':
+              return <OwnersView />;
           case 'settings':
               // Pass props needed by SettingsView
               return <SettingsView
@@ -116,6 +119,9 @@ function App() {
             <button onClick={() => setActiveView('categories')} disabled={activeView === 'categories'}>
                 {intl.formatMessage({ id: 'nav.categories', defaultMessage: 'Categories' })}
             </button>
+            <button onClick={() => setActiveView('owners')} disabled={activeView === 'owners'}>
+                {intl.formatMessage({ id: 'nav.owners', defaultMessage: 'Owners' })}
+            </button>
             <button onClick={() => setActiveView('settings')} disabled={activeView === 'settings'}>
                 {intl.formatMessage({ id: 'nav.settings', defaultMessage: 'Settings' })}
             </button>
@@ -140,6 +146,9 @@ function App() {
                   </button>
                   <button onClick={() => handleMobileNavClick('categories')} disabled={activeView === 'categories'}>
                       {intl.formatMessage({ id: 'nav.categories', defaultMessage: 'Categories' })}
+                  </button>
+                  <button onClick={() => handleMobileNavClick('owners')} disabled={activeView === 'owners'}>
+                      {intl.formatMessage({ id: 'nav.owners', defaultMessage: 'Owners' })}
                   </button>
                   <button onClick={() => handleMobileNavClick('settings')} disabled={activeView === 'settings'}>
                       {intl.formatMessage({ id: 'nav.settings', defaultMessage: 'Settings' })}

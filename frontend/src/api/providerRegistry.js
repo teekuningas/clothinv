@@ -49,7 +49,11 @@ export const providers = {
             // Add the following:
             'addItemSimple', // New: For adding items from the form
             'updateItem',    // New: For editing item name/description
-            'deleteItem'     // New: For deleting items
+            'deleteItem',     // New: For deleting items
+            'listOwners',
+            'addOwner',
+            'updateOwner',
+            'deleteOwner',
         ]
     },
 

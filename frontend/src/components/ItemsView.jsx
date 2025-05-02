@@ -9,12 +9,14 @@ const ItemsView = () => {
     const [items, setItems] = useState([]);
     const [locations, setLocations] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [owners, setOwners] = useState([]);
 
     // Add form state
     const [newItemName, setNewItemName] = useState('');
     const [newItemDescription, setNewItemDescription] = useState('');
     const [newItemLocationId, setNewItemLocationId] = useState(''); // Store ID
     const [newItemCategoryId, setNewItemCategoryId] = useState(''); // Store ID
+    const [newItemOwnerId, setNewItemOwnerId] = useState(''); // Store ID
 
     // General status state
     const [loading, setLoading] = useState(false); // For initial list loading and adding
@@ -27,6 +29,7 @@ const ItemsView = () => {
     const [editDescription, setEditDescription] = useState('');
     const [editLocationId, setEditLocationId] = useState(''); // Add state for edit location
     const [editCategoryId, setEditCategoryId] = useState(''); // Add state for edit category
+    const [editOwnerId, setEditOwnerId] = useState(''); // Add state for edit owner
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
 
@@ -46,11 +49,13 @@ const ItemsView = () => {
         const canFetchItems = api.config.isConfigured && typeof api.listItems === 'function';
         const canFetchLocations = api.config.isConfigured && typeof api.listLocations === 'function';
         const canFetchCategories = api.config.isConfigured && typeof api.listCategories === 'function';
+        const canFetchOwners = api.config.isConfigured && typeof api.listOwners === 'function';
 
-        if (!canFetchItems || !canFetchLocations || !canFetchCategories) {
+        if (!canFetchItems || !canFetchLocations || !canFetchCategories || !canFetchOwners) {
             setItems([]);
             setLocations([]);
             setCategories([]);
+            setOwners([]);
             setError(api.config.isConfigured
                 ? intl.formatMessage({ id: 'items.error.fetchPrereqs', defaultMessage: 'Cannot fetch items. Listing items, locations, or categories is not supported by the current API Provider.' })
                 : intl.formatMessage({ id: 'common.status.apiNotConfigured' })
@@ -63,20 +68,23 @@ const ItemsView = () => {
         setSuccess(null);
         try {
             // Fetch all data concurrently
-            const [itemsData, locationsData, categoriesData] = await Promise.all([
+            const [itemsData, locationsData, categoriesData, ownersData] = await Promise.all([
                 api.listItems(),
                 api.listLocations(),
-                api.listCategories()
+                api.listCategories(),
+                api.listOwners() // Add this
             ]);
             setItems(itemsData || []);
             setLocations(locationsData || []);
             setCategories(categoriesData || []);
+            setOwners(ownersData || []);
         } catch (err) {
             console.error("Failed to fetch data:", err);
             setError(intl.formatMessage({ id: 'items.error.fetch', defaultMessage: 'Failed to fetch data: {error}' }, { error: err.message }));
             setItems([]);
             setLocations([]);
             setCategories([]);
+            setOwners([]);
         } finally {
             setLoading(false);
         }
@@ -89,6 +97,7 @@ const ItemsView = () => {
     // --- Helper Functions ---
     const getLocationNameById = (id) => locations.find(loc => loc.location_id === id)?.name || intl.formatMessage({ id: 'items.card.noLocation', defaultMessage: 'N/A' });
     const getCategoryNameById = (id) => categories.find(cat => cat.category_id === id)?.name || intl.formatMessage({ id: 'items.card.noCategory', defaultMessage: 'N/A' });
+    const getOwnerNameById = (id) => owners.find(owner => owner.owner_id === id)?.name || intl.formatMessage({ id: 'items.card.noOwner', defaultMessage: 'N/A' });
 
     // --- Add Item Handler ---
     const handleAddItem = async (e) => {
@@ -103,6 +112,10 @@ const ItemsView = () => {
         }
         if (!newItemCategoryId) {
             setError(intl.formatMessage({ id: 'items.error.categoryMissing', defaultMessage: 'Please select a category.' }));
+            return;
+        }
+        if (!newItemOwnerId) {
+            setError(intl.formatMessage({ id: 'items.error.ownerMissing', defaultMessage: 'Please select an owner.' }));
             return;
         }
         if (!api.config.isConfigured || typeof api.addItemSimple !== 'function') {
@@ -122,7 +135,8 @@ const ItemsView = () => {
                 name: newItemName.trim(),
                 description: newItemDescription.trim() || null,
                 location_id: parseInt(newItemLocationId, 10), // Ensure ID is integer
-                category_id: parseInt(newItemCategoryId, 10) // Ensure ID is integer
+                category_id: parseInt(newItemCategoryId, 10), // Ensure ID is integer
+                owner_id: parseInt(newItemOwnerId, 10) // Ensure ID is integer
             });
 
             if (result.success) {
@@ -131,6 +145,7 @@ const ItemsView = () => {
                 setNewItemDescription('');
                 setNewItemLocationId('');
                 setNewItemCategoryId('');
+                setNewItemOwnerId('');
                 await new Promise(resolve => setTimeout(resolve, 250)); // Add delay before refetch
                 fetchData(); // Refresh the list
             } else {
@@ -151,6 +166,7 @@ const ItemsView = () => {
         setEditDescription(item.description || '');
         setEditLocationId(item.location_id || ''); // Set initial location ID
         setEditCategoryId(item.category_id || ''); // Set initial category ID
+        setEditOwnerId(item.owner_id || ''); // Set initial owner ID
         setUpdateError(null);
         setSuccess(null);
         setError(null);
@@ -162,12 +178,13 @@ const ItemsView = () => {
         setEditDescription('');
         setEditLocationId(''); // Reset edit location ID
         setEditCategoryId(''); // Reset edit category ID
+        setEditOwnerId(''); // Reset edit owner ID
         setUpdateError(null);
     };
 
     const handleUpdateItem = async (e) => {
         e.preventDefault();
-        if (!editingItemId || !editName.trim() || !editLocationId || !editCategoryId || typeof api.updateItem !== 'function') {
+        if (!editingItemId || !editName.trim() || !editLocationId || !editCategoryId || !editOwnerId || typeof api.updateItem !== 'function') {
             setUpdateError(intl.formatMessage({ id: 'items.error.updateInvalid', defaultMessage: 'Cannot update. Invalid data or update function unavailable.' }));
             return;
         }
@@ -181,7 +198,8 @@ const ItemsView = () => {
                 name: editName.trim(),
                 description: editDescription.trim() || null,
                 location_id: parseInt(editLocationId, 10), // Include location_id
-                category_id: parseInt(editCategoryId, 10)  // Include category_id
+                category_id: parseInt(editCategoryId, 10),  // Include category_id
+                owner_id: parseInt(editOwnerId, 10)  // Include owner_id
             });
 
             if (result.success) {
@@ -314,7 +332,24 @@ const ItemsView = () => {
                             ))}
                         </select>
                     </div>
-                    <button type="submit" disabled={loading || !newItemName.trim() || !newItemLocationId || !newItemCategoryId}>
+                    <div className="form-group">
+                        <label htmlFor="item-owner">{intl.formatMessage({ id: 'items.addForm.ownerLabel', defaultMessage: 'Owner:' })}</label>
+                        <select
+                            id="item-owner"
+                            value={newItemOwnerId}
+                            onChange={(e) => setNewItemOwnerId(e.target.value)}
+                            required
+                            disabled={loading || owners.length === 0}
+                        >
+                            <option value="">{intl.formatMessage({ id: 'items.addForm.selectOwnerDefault', defaultMessage: '-- Select Owner --' })}</option>
+                            {owners.map(owner => (
+                                <option key={owner.owner_id} value={owner.owner_id}>
+                                    {owner.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <button type="submit" disabled={loading || !newItemName.trim() || !newItemLocationId || !newItemCategoryId || !newItemOwnerId}>
                         {loading ? intl.formatMessage({ id: 'items.addForm.button.adding', defaultMessage: 'Adding...' }) : intl.formatMessage({ id: 'items.addForm.button.add', defaultMessage: 'Add Item' })}
                     </button>
                 </form>
@@ -343,6 +378,9 @@ const ItemsView = () => {
                                 </p>
                                 <p className="item-meta">
                                     {intl.formatMessage({ id: 'categories.titleSingular', defaultMessage: 'Category' })}: {getCategoryNameById(item.category_id)}
+                                </p>
+                                <p className="item-meta">
+                                    {intl.formatMessage({ id: 'owners.titleSingular', defaultMessage: 'Owner' })}: {getOwnerNameById(item.owner_id)}
                                 </p>
                             </div>
                             {/* Show Edit button only if provider configured and update method exists */}
@@ -423,9 +461,27 @@ const ItemsView = () => {
                                 ))}
                             </select>
                         </div>
+                        {/* Owner Dropdown */}
+                        <div className="form-group">
+                            <label htmlFor="edit-item-owner">{intl.formatMessage({ id: 'items.addForm.ownerLabel', defaultMessage: 'Owner:' })}</label>
+                            <select
+                                id="edit-item-owner"
+                                value={editOwnerId}
+                                onChange={(e) => setEditOwnerId(e.target.value)}
+                                required
+                                disabled={isUpdating || isDeleting || owners.length === 0}
+                            >
+                                <option value="">{intl.formatMessage({ id: 'items.addForm.selectOwnerDefault', defaultMessage: '-- Select Owner --' })}</option>
+                                {owners.map(owner => (
+                                    <option key={owner.owner_id} value={owner.owner_id}>
+                                        {owner.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                         {/* Location/Category dropdowns are NOT included in edit for now - REMOVED */}
                         <div className="modal-actions">
-                            <button type="submit" disabled={isUpdating || isDeleting || !editName.trim() || !editLocationId || !editCategoryId}>
+                            <button type="submit" disabled={isUpdating || isDeleting || !editName.trim() || !editLocationId || !editCategoryId || !editOwnerId}>
                                 {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
                             {api.config.isConfigured && typeof api.deleteItem === 'function' && (

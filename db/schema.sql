@@ -34,9 +34,19 @@ CREATE TABLE IF NOT EXISTS items (
     location_id INTEGER,
     category_id INTEGER,
     image_id INTEGER,
+    owner_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
-    FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL
+    FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL,
+    FOREIGN KEY (owner_id) REFERENCES owners(owner_id) ON DELETE SET NULL
+);
+
+-- Table for item owners
+CREATE TABLE IF NOT EXISTS owners (
+    owner_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

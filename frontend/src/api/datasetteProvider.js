@@ -347,6 +347,110 @@ export const deleteCategory = async (settings, categoryId) => {
     return handleResponse(res, 'delete', `category ID ${categoryId}`);
 };
 
+export const listOwners = async (settings) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    // Use _shape=array for a simpler response structure (array of objects)
+    const queryUrl = `${baseUrl}/owners.json?_shape=array`;
+    const res = await fetch(queryUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Failed to fetch owners: ${res.status} ${errorText}`, res);
+        throw new Error(`Failed to fetch owners: ${res.status}`);
+    }
+
+    const data = await res.json();
+    // The response is already the array of owner objects thanks to _shape=array
+    console.log("Fetched owners:", data);
+    return data; // Returns array like [{owner_id: 1, name: 'Alice', ...}, ...]
+};
+
+export const addOwner = async (settings, data) => { // Rename to addOwner and export
+    const ownerData = { row: data }; // Expects { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    // Perform the insert
+    const insertRes = await fetch(`${baseUrl}/owners/-/insert`, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(ownerData),
+    });
+    // Use updated handleResponse
+    const insertResult = await handleResponse(insertRes, 'add', 'owner');
+     if (!insertResult.success) {
+         throw new Error(`Owner insert failed with status ${insertRes.status}`);
+    }
+
+    // After successful insert, fetch the latest owner ID
+    // Using _shape=array simplifies getting the row directly
+    const queryUrl = `${baseUrl}/owners.json?_sort_desc=owner_id&_size=1&_shape=array`; // Use _shape=array
+    const queryRes = await fetch(queryUrl, {
+         method: 'GET',
+         headers: { 'Accept': 'application/json' }
+    });
+
+    if (!queryRes.ok) {
+        const errorText = await queryRes.text();
+        console.error(`Failed to fetch latest owner ID: ${queryRes.status} ${errorText}`, queryRes);
+        throw new Error(`Failed to fetch latest owner ID after insert: ${queryRes.status}`);
+    }
+
+    const queryData = await queryRes.json();
+    // With _shape=array, response is an array of objects. Check the first object.
+    if (!queryData || queryData.length === 0 || !queryData[0].owner_id) { // Adjust check for array shape
+         console.error("Could not find owner_id in query response:", queryData);
+         throw new Error("Failed to retrieve owner_id after insert.");
+    }
+
+    const newOwnerId = queryData[0].owner_id; // Adjust access for array shape
+    console.log("Retrieved new owner ID:", newOwnerId);
+
+    // Return success status and the new ID
+    return { success: true, status: insertRes.status, newId: newOwnerId };
+};
+
+export const updateOwner = async (settings, ownerId, data) => {
+    // Expects data like { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!ownerId) throw new Error("Owner ID is required for update.");
+
+    const updateUrl = `${baseUrl}/owners/${ownerId}/-/update`;
+    const payload = { update: data }; // Datasette expects update data under the 'update' key
+
+    const res = await fetch(updateUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(payload),
+    });
+
+    // Use handleResponse, customizing operation and entity description
+    return handleResponse(res, 'update', `owner ID ${ownerId}`);
+};
+
+export const deleteOwner = async (settings, ownerId) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!ownerId) throw new Error("Owner ID is required for deletion.");
+
+    const deleteUrl = `${baseUrl}/owners/${ownerId}/-/delete`;
+
+    const res = await fetch(deleteUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        // No body needed for Datasette delete
+    });
+
+    // Use handleResponse, customizing operation and entity description
+    return handleResponse(res, 'delete', `owner ID ${ownerId}`);
+};
+
 export const listItems = async (settings) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
@@ -378,8 +482,8 @@ export const listItems = async (settings) => {
 export const addItemSimple = async (settings, data) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
-    if (!data || !data.name || !data.location_id || !data.category_id) {
-        throw new Error("Item name, location ID, and category ID are required.");
+    if (!data || !data.name || !data.location_id || !data.category_id || !data.owner_id) {
+        throw new Error("Item name, location ID, category ID, and owner ID are required.");
     }
 
     // Prepare the row data, ensuring description is null if empty
@@ -388,6 +492,7 @@ export const addItemSimple = async (settings, data) => {
         description: data.description || null,
         location_id: data.location_id,
         category_id: data.category_id,
+        owner_id: data.owner_id,
         image_id: null // Explicitly set image_id to null for now
     };
     const itemPayload = { row: itemRowData };
@@ -412,8 +517,8 @@ export const updateItem = async (settings, itemId, data) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!itemId) throw new Error("Item ID is required for update.");
     // Add checks for location_id and category_id if they are mandatory for update
-    if (!data || !data.name || !data.location_id || !data.category_id) {
-        throw new Error("Item name, location ID, and category ID are required for update.");
+    if (!data || !data.name || !data.location_id || !data.category_id || !data.owner_id) {
+        throw new Error("Item name, location ID, category ID, and owner ID are required for update.");
     }
 
     const updateUrl = `${baseUrl}/items/${itemId}/-/update`;
@@ -424,6 +529,7 @@ export const updateItem = async (settings, itemId, data) => {
             description: data.description || null, // Keep description handling
             location_id: data.location_id, // Add location_id
             category_id: data.category_id,  // Add category_id
+            owner_id: data.owner_id,  // Add owner_id
             updated_at: new Date().toISOString() // Add the current timestamp
         }
     };
