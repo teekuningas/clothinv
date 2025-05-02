@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApi } from '../api/ApiContext';
 import { useIntl } from 'react-intl';
 import Modal from './Modal';
+import ImageViewModal from './ImageViewModal'; // Import the new component
 import './ItemsView.css'; // Import the CSS file
+import './ImageViewModal.css'; // Import the CSS for the image modal
 
 const ItemsView = () => {
     // --- State ---
@@ -43,6 +45,11 @@ const ItemsView = () => {
     const [deleteCandidateId, setDeleteCandidateId] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState(null);
+
+    // Image View Modal State
+    const [isImageViewModalOpen, setIsImageViewModalOpen] = useState(false);
+    const [imageViewModalUrl, setImageViewModalUrl] = useState(null);
+    const [imageViewModalAlt, setImageViewModalAlt] = useState('');
 
     // Filter state
     const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -372,6 +379,23 @@ const ItemsView = () => {
         }
     };
 
+    // --- Image View Modal Handlers ---
+    const handleImageClick = (imageUrl, imageAlt) => {
+        if (!imageUrl) return; // Don't open if no URL
+        setImageViewModalUrl(imageUrl);
+        setImageViewModalAlt(imageAlt || 'Image view'); // Provide default alt
+        setIsImageViewModalOpen(true);
+    };
+
+    const handleCloseImageViewModal = () => {
+        setIsImageViewModalOpen(false);
+        // Optional: Delay clearing URL slightly for fade-out transition
+        setTimeout(() => {
+            setImageViewModalUrl(null);
+            setImageViewModalAlt('');
+        }, 200); // Match CSS transition duration
+    };
+
     // --- Render ---
     return (
         <div className="items-view">
@@ -416,7 +440,12 @@ const ItemsView = () => {
                         <label htmlFor="item-image">{intl.formatMessage({ id: 'items.addForm.imageLabel', defaultMessage: 'Image:' })}</label>
                         {newItemImagePreview && (
                             <div className="image-preview">
-                                <img src={newItemImagePreview} alt={intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' })} />
+                                <img
+                                    src={newItemImagePreview}
+                                    alt={intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' })}
+                                    onClick={() => handleImageClick(newItemImagePreview, intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' }))}
+                                    style={{ cursor: 'pointer' }} // Indicate it's clickable
+                                />
                             </div>
                         )}
                         <input
@@ -587,7 +616,11 @@ const ItemsView = () => {
                     {filteredItems.map((item) => (
                         <div key={item.item_id} className="item-card">
                             {/* Display image using data directly from item object */}
-                            <div className={`item-image-container ${!item.image_data ? 'placeholder' : ''}`}>
+                            <div
+                                className={`item-image-container ${!item.image_data ? 'placeholder' : ''} ${item.image_data ? 'clickable' : ''}`}
+                                onClick={() => item.image_data && item.image_mimetype && handleImageClick(`data:${item.image_mimetype};base64,${item.image_data}`, item.name)}
+                                title={item.image_data ? intl.formatMessage({ id: 'items.card.viewImageTooltip', defaultMessage: 'Click to view full image' }) : ''}
+                            >
                                 {item.image_data && item.image_mimetype ? (
                                     <img
                                         src={`data:${item.image_mimetype};base64,${item.image_data}`}
@@ -662,7 +695,12 @@ const ItemsView = () => {
                             <label htmlFor="edit-item-image">{intl.formatMessage({ id: 'items.editForm.imageLabel', defaultMessage: 'Image:' })}</label>
                             {displayImageUrl && (
                                 <div className="image-preview">
-                                    <img src={displayImageUrl} alt={intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' })} />
+                                    <img
+                                        src={displayImageUrl}
+                                        alt={intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' })}
+                                        onClick={() => handleImageClick(displayImageUrl, editName || intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' }))}
+                                        style={{ cursor: 'pointer' }} // Indicate it's clickable
+                                    />
                                 </div>
                             )}
                             {/* Show remove button only if there's an image currently displayed (existing or preview) */}
@@ -780,6 +818,14 @@ const ItemsView = () => {
                     </div>
                 </Modal>
             )}
+
+           {/* Full Size Image View Modal */}
+           <ImageViewModal
+               show={isImageViewModalOpen}
+               onClose={handleCloseImageViewModal}
+               imageUrl={imageViewModalUrl}
+               imageAlt={imageViewModalAlt}
+           />
 
         </div>
     );

@@ -1,0 +1,75 @@
+/* frontend/src/components/ImageViewModal.css */
+
+.image-view-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Darker backdrop */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050; /* Ensure it's above other content, adjust if needed */
+    padding: 20px; /* Add padding for smaller screens */
+    box-sizing: border-box;
+    cursor: pointer; /* Indicate clicking backdrop closes */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Add this class when the modal should be visible */
+.image-view-modal-backdrop.show {
+    opacity: 1;
+}
+
+
+.image-view-modal-content {
+    position: relative;
+    max-width: 90vw; /* Limit width relative to viewport */
+    max-height: 90vh; /* Limit height relative to viewport */
+    overflow: auto; /* Allow scrolling if image is larger than container */
+    background-color: #fff; /* Optional: background for the container itself */
+    padding: 5px; /* Small padding around the image */
+    border-radius: 4px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex; /* Helps center image if smaller than max */
+    justify-content: center;
+    align-items: center;
+    cursor: default; /* Reset cursor for the content area */
+}
+
+.image-view-modal-content img {
+    display: block;
+    max-width: 100%; /* Ensure image fits within content area width */
+    max-height: calc(90vh - 40px); /* Adjust based on padding/button */
+    height: auto; /* Maintain aspect ratio */
+    width: auto; /* Maintain aspect ratio */
+    object-fit: contain; /* Show whole image, letterboxed if needed */
+}
+
+.image-view-modal-close {
+    position: absolute;
+    top: -10px; /* Position slightly outside the top-right */
+    right: -10px;
+    background-color: rgba(40, 40, 40, 0.9);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%; /* Circular button */
+    width: 30px;
+    height: 30px;
+    font-size: 24px;
+    line-height: 28px; /* Center the 'x' */
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1051; /* Above the content */
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.image-view-modal-close:hover,
+.image-view-modal-close:focus {
+    background-color: rgba(0, 0, 0, 1);
+    outline: none;
+}
