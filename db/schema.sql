@@ -40,11 +40,3 @@ CREATE TABLE IF NOT EXISTS items (
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
     FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL
 );
-
--- Optional: Trigger to update the updated_at timestamp on item update
-CREATE TRIGGER IF NOT EXISTS update_item_timestamp
-AFTER UPDATE ON items
-FOR EACH ROW
-BEGIN
-    UPDATE items SET updated_at = CURRENT_TIMESTAMP WHERE item_id = OLD.item_id;
-END;

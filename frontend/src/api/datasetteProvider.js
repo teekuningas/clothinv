@@ -423,7 +423,8 @@ export const updateItem = async (settings, itemId, data) => {
             name: data.name,
             description: data.description || null, // Keep description handling
             location_id: data.location_id, // Add location_id
-            category_id: data.category_id  // Add category_id
+            category_id: data.category_id,  // Add category_id
+            updated_at: new Date().toISOString() // Add the current timestamp
         }
     };
 
