@@ -345,10 +345,9 @@
 /* Style the label to look like a button */
 .button-file-input {
     /* Background, color, border inherited from .button-secondary class */
-    display: inline-block; /* Allow setting padding/margins */
+    /* display: inline-block; Let flexbox handle display */
     padding: 10px 15px; /* Match base button padding */
     cursor: pointer;
-    /* vertical-align: middle; Removed, let flexbox handle alignment */
 }
 
 .form-group-image-actions {
