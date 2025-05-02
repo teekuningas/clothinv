@@ -22,37 +22,53 @@
 /* (App class already exists) */
 
 /* --- App Header --- */
-/* (App-header class already exists) */
+.App-header {
+  /* background-color: #282c34; */ /* Old */
+  background-color: #e0e7ef; /* Soft light blue-grey */
+  padding: 20px 20px 10px 20px;
+  /* color: white; */ /* Old */
+  color: #343a40; /* Dark grey text for contrast */
+  margin-bottom: 20px;
+}
 /* position: relative; Added via media query */
 
 /* --- Desktop Navigation --- */
 .app-nav {
   margin-top: 15px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #555; /* Separator */
+  /* border-bottom: 1px solid #555; */ /* Old */
+  border-bottom: 1px solid #b8c8d8; /* Lighter border */
 }
 
 .app-nav button {
-  background-color: #444;
-  color: white;
-  border: 1px solid #666;
+  /* background-color: #444; */ /* Old */
+  background-color: #cddaea; /* Pastel blue-grey */
+  /* color: white; */ /* Old */
+  color: #343a40; /* Dark grey text */
+  /* border: 1px solid #666; */ /* Old */
+  border: 1px solid #b8c8d8; /* Lighter border */
   padding: 8px 15px;
   margin: 0 5px;
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  transition: background-color 0.2s ease; /* Add transition */
+  transition: background-color 0.2s ease, border-color 0.2s ease; /* Add transition */
 }
 
 .app-nav button:hover {
-  background-color: #555;
+  /* background-color: #555; */ /* Old */
+  background-color: #b8c8d8; /* Lighter hover */
+  border-color: #a3b6c7;
 }
 
 .app-nav button:disabled {
-  background-color: #007bff; /* Highlight active tab */
-  color: white;
+  /* background-color: #007bff; */ /* Old */
+  background-color: #a3b6c7; /* Darker pastel for active */
+  /* color: white; */ /* Old */
+  color: #ffffff; /* White text for contrast on active */
   cursor: default;
-  border-color: #0056b3;
+  /* border-color: #0056b3; */ /* Old */
+  border-color: #8fa6b9; /* Darker active border */
 }
 
 /* --- Global Warnings Area --- */
@@ -71,13 +87,15 @@
     display: none; /* Hidden by default */
     background: none;
     border: none;
-    color: white;
+    /* color: white; */ /* Old */
+    color: #343a40; /* Match header text */
     font-size: 2rem; /* Make it large enough to tap */
     cursor: pointer;
     position: absolute; /* Position relative to header */
     top: 15px; /* Adjust as needed */
     right: 20px; /* Adjust as needed */
-    z-index: 1100; /* Ensure it's above other header content if needed */
+    /* Lower z-index so it's below the overlay */
+    z-index: 1090; /* Ensure it's below the overlay (1050 -> 1100) */
     padding: 5px; /* Add some padding for easier interaction */
     line-height: 1; /* Prevent extra spacing */
 }
@@ -89,8 +107,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(40, 44, 52, 0.95); /* Semi-transparent dark background */
-    z-index: 1050; /* Ensure it's above page content */
+    /* background-color: rgba(40, 44, 52, 0.95); */ /* Old */
+    background-color: rgba(200, 210, 220, 0.97); /* Lighter semi-transparent */
+    /* Increase z-index to be above the hamburger button */
+    z-index: 1100; /* Ensure it's above page content and hamburger */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -117,11 +137,14 @@
     right: 20px;
     background: none;
     border: none;
-    color: white;
+    /* color: white; */ /* Old */
+    color: #343a40; /* Dark grey text */
     font-size: 2.5rem; /* Large and easy to tap */
     cursor: pointer;
     line-height: 1; /* Prevent extra spacing */
     padding: 5px; /* Add some padding */
+    /* Ensure close button is clickable above overlay content if needed */
+    z-index: 1110; /* Higher than overlay */
 }
 
 /* Navigation within the mobile overlay */
@@ -134,7 +157,8 @@
 
 .mobile-nav button {
     background-color: transparent;
-    color: white;
+    /* color: white; */ /* Old */
+    color: #343a40; /* Dark grey text */
     border: none;
     padding: 15px 30px; /* Larger tap targets */
     margin: 10px 0;
@@ -148,12 +172,15 @@
 }
 
 .mobile-nav button:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Subtle hover effect */
+    /* background-color: rgba(255, 255, 255, 0.1); */ /* Old */
+    background-color: rgba(52, 58, 64, 0.08); /* Subtle dark hover */
 }
 
 .mobile-nav button:disabled {
-    color: #007bff; /* Highlight active view */
-    background-color: rgba(0, 123, 255, 0.2); /* Slight background for active */
+    /* color: #007bff; */ /* Old */
+    color: #005f73; /* Muted teal/blue for active text */
+    /* background-color: rgba(0, 123, 255, 0.2); */ /* Old */
+    background-color: rgba(0, 95, 115, 0.1); /* Slight background tint for active */
     cursor: default;
 }
 
