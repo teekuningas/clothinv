@@ -156,5 +156,16 @@
     "items.deleteModal.confirmMessage": "Haluatko varmasti poistaa vaatteen \"{name}\"? Toimintoa ei voi peruuttaa.",
     "items.success.delete": "Vaate poistettu onnistuneesti!",
     "items.error.delete": "Vaatteen poisto epäonnistui: {error}",
-    "items.error.deleteInvalid": "Poisto epäonnistui. Virheelliset tiedot tai poistotoiminto ei ole käytettävissä."
+    "items.error.deleteInvalid": "Poisto epäonnistui. Virheelliset tiedot tai poistotoiminto ei ole käytettävissä.",
+    "items.list.emptyFiltered": "Yksikään vaate ei vastaa nykyisiä suodattimia.",
+    "items.filter.toggleButton": "Suodattimet",
+    "items.filter.title": "Suodata vaatteita",
+    "items.filter.nameLabel": "Nimi sisältää:",
+    "items.filter.namePlaceholder": "esim. Paita",
+    "items.filter.descriptionLabel": "Kuvaus sisältää:",
+    "items.filter.descriptionPlaceholder": "esim. Puuvilla",
+    "items.filter.locationLabel": "Sijainti:",
+    "items.filter.categoryLabel": "Kategoria:",
+    "items.filter.ownerLabel": "Omistaja:",
+    "items.filter.resetButton": "Nollaa suodattimet"
 }
