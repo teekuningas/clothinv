@@ -9,6 +9,7 @@
 .modal-actions button,
 .button-file-input { /* Include label styled as button */
     padding: 10px 15px; /* Consistent vertical padding for height */
+    font-weight: bold;
     border: 1px solid transparent;
     border-radius: 4px;
     cursor: pointer;
@@ -143,7 +144,6 @@
 
 .add-item-form .form-group label {
     display: block;
-    margin-bottom: 5px;
     font-weight: bold;
 }
 
@@ -177,9 +177,7 @@
 /* Remove specific color overrides for buttons within the add form; let variant classes handle it */
 .add-item-form button {
     padding: 10px 15px;
-    /* background-color: #cddaea; */ /* Removed */
-    /* color: #343a40; */ /* Removed */
-    /* border: 1px solid #b8c8d8; */ /* Removed */
+    font-weight: bold;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -365,7 +363,6 @@
 
 .edit-item-form .form-group label {
     display: block;
-    margin-bottom: 5px;
     font-weight: bold;
 }
 
