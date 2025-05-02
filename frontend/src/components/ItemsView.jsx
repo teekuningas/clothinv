@@ -131,6 +131,7 @@ const ItemsView = () => {
                 setNewItemDescription('');
                 setNewItemLocationId('');
                 setNewItemCategoryId('');
+                await new Promise(resolve => setTimeout(resolve, 250)); // Add delay before refetch
                 fetchData(); // Refresh the list
             } else {
                 setError(intl.formatMessage({ id: 'items.error.add', defaultMessage: 'Failed to add item: {error}' }, { error: result.message || intl.formatMessage({ id: 'common.error.unknown' }) }));

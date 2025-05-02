@@ -87,6 +87,7 @@ const CategoriesView = () => {
                 setSuccess(intl.formatMessage({ id: 'categories.success.add', defaultMessage: 'Category "{name}" added successfully!' }, { name: newCategoryName.trim() }));
                 setNewCategoryName('');
                 setNewCategoryDescription('');
+                await new Promise(resolve => setTimeout(resolve, 250)); // Add delay before refetch
                 fetchCategories(); // Refresh the list
             } else {
                 // Should ideally not happen if addCategory throws errors, but handle just in case
@@ -97,12 +98,6 @@ const CategoriesView = () => {
             // Use intl for consistency, even if the message might be technical
             setError(intl.formatMessage({ id: 'categories.error.add', defaultMessage: 'Failed to add category: {error}' }, { error: err.message }));
         } finally {
-            // Add a small delay before resetting loading state if successful, allowing backend time
-            // Check if success message was set in the try block (use a local variable as state update is async)
-            const wasSuccessful = !!success; // Capture success state before potential async delay
-            if (wasSuccessful) {
-                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
-            }
             setLoading(false);
         }
     };

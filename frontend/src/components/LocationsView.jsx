@@ -87,6 +87,7 @@ const LocationsView = () => {
                 setSuccess(intl.formatMessage({ id: 'locations.success.add', defaultMessage: 'Location "{name}" added successfully!' }, { name: newLocationName.trim() }));
                 setNewLocationName('');
                 setNewLocationDescription('');
+                await new Promise(resolve => setTimeout(resolve, 250)); // Add delay before refetch
                 fetchLocations(); // Refresh the list
             } else {
                 // Should ideally not happen if addLocation throws errors, but handle just in case
@@ -96,11 +97,6 @@ const LocationsView = () => {
             console.error("Failed to add location:", err);
             setError(intl.formatMessage({ id: 'locations.error.add', defaultMessage: 'Failed to add location: {error}' }, { error: err.message }));
         } finally {
-            // Add a small delay before resetting loading state if successful
-            const wasSuccessful = !!success; // Capture success state before potential async delay
-            if (wasSuccessful) {
-                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
-            }
             setLoading(false);
         }
     };
