@@ -9,9 +9,8 @@ async function loadMessages(locale) {
         console.warn(`Invalid locale "${locale}" requested. Falling back to "${validLocale}".`);
     }
     try {
-        // Assuming translation files are named like en.json, fi.json in the same directory
-        // NOTE: You need to create these files, e.g., frontend/src/translations/en.json
-        const { default: messages } = await import(`./${validLocale}.json`);
+        /* @vite-ignore */
+        const { default: messages } = await import(`./locale/${validLocale}.json`);
         return messages;
     } catch (error) {
         console.error(`Failed to load messages for locale "${validLocale}":`, error);
