@@ -42,7 +42,6 @@ const ItemsView = () => {
     // Filter state
     const [isFilterVisible, setIsFilterVisible] = useState(false);
     const [filterName, setFilterName] = useState('');
-    const [filterDescription, setFilterDescription] = useState('');
     const [filterLocationIds, setFilterLocationIds] = useState([]); // Array of selected location_id
     const [filterCategoryIds, setFilterCategoryIds] = useState([]); // Array of selected category_id
     const [filterOwnerIds, setFilterOwnerIds] = useState([]); // Array of selected owner_id
@@ -105,15 +104,12 @@ const ItemsView = () => {
     // Calculate filtered items based on current filters
     const filteredItems = useMemo(() => {
         const lowerFilterName = filterName.toLowerCase();
-        const lowerFilterDescription = filterDescription.toLowerCase();
 
         return items.filter(item => {
-            // Name filter (case-insensitive includes)
-            if (lowerFilterName && !item.name.toLowerCase().includes(lowerFilterName)) {
-                return false;
-            }
-            // Description filter (case-insensitive includes, handle null)
-            if (lowerFilterDescription && !(item.description || '').toLowerCase().includes(lowerFilterDescription)) {
+            // Combined Text filter (case-insensitive includes for name OR description)
+            if (lowerFilterName &&
+                !item.name.toLowerCase().includes(lowerFilterName) &&
+                !(item.description || '').toLowerCase().includes(lowerFilterName)) {
                 return false;
             }
             // Location filter (must match one of the selected IDs if any are selected)
@@ -130,7 +126,7 @@ const ItemsView = () => {
             }
             return true; // Item passes all active filters
         });
-    }, [items, filterName, filterDescription, filterLocationIds, filterCategoryIds, filterOwnerIds]);
+    }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]);
 
     // --- Helper Functions ---
     const getLocationNameById = (id) => locations.find(loc => loc.location_id === id)?.name || intl.formatMessage({ id: 'items.card.noLocation', defaultMessage: 'N/A' });
@@ -223,7 +219,6 @@ const ItemsView = () => {
 
     const handleResetFilters = () => {
         setFilterName('');
-        setFilterDescription('');
         setFilterLocationIds([]);
         setFilterCategoryIds([]);
         setFilterOwnerIds([]);
@@ -436,9 +431,8 @@ const ItemsView = () => {
                     aria-controls="filters-container"
                     aria-expanded={isFilterVisible}
                 >
-                    {/* Basic Filter Icon (replace with SVG/Icon library if available) */}
-                    <span role="img" aria-hidden="true">⚙️</span>{' '}
                     {intl.formatMessage({ id: 'items.filter.toggleButton', defaultMessage: 'Filters' })}
+                    {' '}
                     ({filteredItems.length}/{items.length}) {/* Show filtered/total count */}
                 </button>
             )}
@@ -448,23 +442,13 @@ const ItemsView = () => {
                 <div id="filters-container" className="filters-container">
                     <h4>{intl.formatMessage({ id: 'items.filter.title', defaultMessage: 'Filter Items' })}</h4>
                     <div className="filter-group">
-                        <label htmlFor="filter-name">{intl.formatMessage({ id: 'items.filter.nameLabel', defaultMessage: 'Name contains:' })}</label>
+                        <label htmlFor="filter-text">{intl.formatMessage({ id: 'items.filter.textLabel', defaultMessage: 'Text contains:' })}</label>
                         <input
                             type="text"
-                            id="filter-name"
+                            id="filter-text"
                             value={filterName}
                             onChange={(e) => setFilterName(e.target.value)}
-                            placeholder={intl.formatMessage({ id: 'items.filter.namePlaceholder', defaultMessage: 'e.g., Shirt' })}
-                        />
-                    </div>
-                    <div className="filter-group">
-                        <label htmlFor="filter-description">{intl.formatMessage({ id: 'items.filter.descriptionLabel', defaultMessage: 'Description contains:' })}</label>
-                        <input
-                            type="text"
-                            id="filter-description"
-                            value={filterDescription}
-                            onChange={(e) => setFilterDescription(e.target.value)}
-                            placeholder={intl.formatMessage({ id: 'items.filter.descriptionPlaceholder', defaultMessage: 'e.g., Cotton' })}
+                            placeholder={intl.formatMessage({ id: 'items.filter.textPlaceholder', defaultMessage: 'e.g., Blue Shirt' })}
                         />
                     </div>
 

@@ -260,13 +260,13 @@
 
 /* --- Filters --- */
 .filter-toggle-button {
-    display: inline-flex; /* Align icon and text */
-    align-items: center;
-    gap: 5px;
-    padding: 8px 12px;
+    /* display: inline-flex; Align icon and text */
+    /* align-items: center; */
+    /* gap: 5px; */ /* Removed icon, so gap is not needed */
+    padding: 7px 14px; /* Slightly adjusted padding */
     margin-bottom: 15px; /* Space below button */
     background-color: #f8f9fa;
-    border: 1px solid #dee2e6;
+    border: 1px solid #ced4da; /* Slightly darker border */
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.95em;
@@ -275,12 +275,12 @@
 }
 
 .filter-toggle-button:hover {
-    background-color: #e9ecef;
+    background-color: #e2e6ea; /* Slightly darker hover */
     border-color: #ced4da;
 }
 
 .filter-toggle-button[aria-expanded="true"] {
-    background-color: #e9ecef;
+    background-color: #e2e6ea; /* Keep hover state when open */
     border-color: #ced4da;
 }
 
