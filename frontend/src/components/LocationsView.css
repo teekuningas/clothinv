@@ -1,12 +1,9 @@
-/* frontend/src/components/LocationsView.css */
-/* Replace entire file content with this */
-
-.locations-view { /* Renamed from .categories-view */
+.locations-view {
     padding: 20px;
 }
 
 
-.add-location-form { /* Renamed from .add-category-form */
+.add-location-form {
     margin-bottom: 20px;
     padding: 15px;
     border: 1px solid #dee2e6; /* Consistent border */
@@ -14,20 +11,20 @@
     background-color: #e9ecef; /* Consistent light grey background */
 }
 
-.add-location-form h3 { /* Updated selector */
+.add-location-form h3 {
     margin-top: 0;
 }
 
 /* Input styling within forms in this view */
-.add-location-form .form-group input[type="text"], /* Updated selector */
-.edit-location-form .form-group input[type="text"] { /* Apply to edit form too - Renamed */
+.add-location-form .form-group input[type="text"],
+.edit-location-form .form-group input[type="text"] { /* Apply to edit form too */
     width: calc(100% - 22px); /* Adjust for padding/border */
     padding: 8px 10px;
     border: 1px solid #ced4da; /* Slightly darker border for inputs */
     border-radius: 4px;
 }
 
-.add-location-form button { /* Updated selector */
+.add-location-form button {
     padding: 10px 15px;
     /* Match App.css nav buttons */
     background-color: #cddaea;
@@ -38,7 +35,7 @@
     transition: background-color 0.2s ease, border-color 0.2s ease; /* Match App.css */
 }
 
-.add-location-form button:disabled { /* Updated selector */
+.add-location-form button:disabled {
     /* Match App.css disabled nav buttons */
     background-color: #a3b6c7;
     color: #ffffff;
@@ -46,14 +43,14 @@
     cursor: not-allowed;
 }
 
-.add-location-form button:not(:disabled):hover { /* Updated selector */
+.add-location-form button:not(:disabled):hover {
     /* Match App.css nav button hover */
     background-color: #b8c8d8;
     border-color: #a3b6c7;
 }
 
-/* --- Location Card Styles --- */ /* Renamed comment */
-.locations-list { /* Container for cards - Renamed from .categories-list */
+/* --- Location Card Styles --- */
+.locations-list { /* Container for cards */
     padding: 0;
     margin-top: 20px;
     /* Optional: Use grid for layout */
@@ -62,7 +59,7 @@
     gap: 15px; */
 }
 
-.location-card { /* Renamed from .category-card */
+.location-card {
     border: 1px solid #dee2e6; /* Consistent border */
     border-radius: 4px;
     padding: 15px;
@@ -73,18 +70,18 @@
     padding-right: 60px; /* Make space for the edit button */
 }
 
-.location-card h4 { /* Updated selector */
+.location-card h4 {
     margin-top: 0;
     margin-bottom: 5px;
 }
 
-.location-card p { /* Updated selector */
+.location-card p {
     margin-bottom: 10px;
     color: #555;
     font-size: 0.95em;
 }
 
-.edit-button { /* No change needed - scoped by usage */
+.edit-button {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -99,13 +96,13 @@
     transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.edit-button:hover:not(:disabled) { /* No change needed */
+.edit-button:hover:not(:disabled) {
     /* Match Add button hover */
     background-color: #b8c8d8;
     border-color: #a3b6c7;
 }
 
-.edit-button:disabled { /* No change needed */
+.edit-button:disabled {
     /* Match Add button disabled */
     background-color: #a3b6c7; /* Use consistent disabled style */
     color: #ffffff;
@@ -116,12 +113,12 @@
 
 /* --- Edit/Delete Modal Styles --- */
 /* Assumes a Modal component provides overlay and basic box */
-.edit-location-form { /* Styles specific to the form inside the edit modal - Renamed */
+.edit-location-form { /* Styles specific to the form inside the edit modal */
     padding: 10px 0 0 0; /* Add padding top, remove others */
 }
 
 /* Styles for action buttons container within the modal */
-.modal-actions { /* No change needed - scoped by usage */
+.modal-actions {
     display: flex;
     justify-content: flex-end; /* Align buttons to the right */
     gap: 10px; /* Space between buttons */
@@ -132,7 +129,7 @@
 
 /* Responsive Modal Actions */
 @media (max-width: 480px) { /* Adjust breakpoint as needed */
-    .modal-actions { /* No change needed */
+    .modal-actions {
         flex-direction: column; /* Stack buttons vertically */
         align-items: stretch; /* Make buttons full width */
         gap: 8px; /* Adjust gap for vertical layout */
@@ -140,7 +137,7 @@
 }
 
 /* General button styling within modal actions */
-.modal-actions button { /* No change needed */
+.modal-actions button {
     padding: 8px 15px;
     border: 1px solid transparent; /* Base border */
     border-radius: 4px;
@@ -148,7 +145,7 @@
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; /* Add color transition */
 }
 
-.modal-actions button:disabled { /* No change needed */
+.modal-actions button:disabled {
     /* Consistent disabled look, slightly lighter than primary disabled */
     background-color: #ced4da;
     border-color: #ced4da;
@@ -157,32 +154,32 @@
 }
 
 /* Specific style for delete buttons */
-.delete-button { /* No change needed */
+.delete-button {
     background-color: #dc3545; /* Red */
     color: white;
     border-color: #dc3545;
 }
 
-.delete-button:hover:not(:disabled) { /* No change needed */
+.delete-button:hover:not(:disabled) {
     background-color: #c82333;
     border-color: #bd2130;
 }
 
-.delete-button:disabled { /* No change needed */
+.delete-button:disabled {
     background-color: #f1b0b7; /* Lighter red for disabled */
     border-color: #f1b0b7;
     color: #a13843;
 }
 
 /* Style for primary action (Save/Confirm) */
-.modal-actions button[type="submit"], /* No change needed */
+.modal-actions button[type="submit"],
 .modal-actions button:first-of-type:not(.delete-button) { /* Target save/confirm */
      /* Match Add/Edit button style */
      background-color: #cddaea;
      color: #343a40;
      border-color: #b8c8d8;
 }
-.modal-actions button[type="submit"]:hover:not(:disabled), /* No change needed */
+.modal-actions button[type="submit"]:hover:not(:disabled),
 .modal-actions button:first-of-type:not(.delete-button):hover:not(:disabled) {
     /* Match Add/Edit button hover */
     background-color: #b8c8d8;
@@ -190,21 +187,21 @@
 }
 
 /* Style for cancel button */
-.modal-actions button:last-of-type { /* Target cancel - No change needed */
+.modal-actions button:last-of-type { /* Target cancel */
     background-color: #e9ecef; /* Consistent light grey */
     color: #495057; /* Darker grey text */
     border-color: #dee2e6; /* Subtle border */
 }
-.modal-actions button:last-of-type:hover:not(:disabled) { /* No change needed */
+.modal-actions button:last-of-type:hover:not(:disabled) {
     background-color: #e2e6ea;
 } /* Keep hover subtle */
 
 
 /* Styles for delete confirmation content */
-.delete-confirm-content p { /* No change needed */
+.delete-confirm-content p {
     margin-bottom: 10px;
     line-height: 1.5;
 }
-.delete-confirm-content p:first-of-type { /* No change needed */
+.delete-confirm-content p:first-of-type {
     font-weight: bold; /* Emphasize the question */
 }

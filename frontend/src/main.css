@@ -36,37 +36,26 @@ body {
 }
 
 .status-loading {
-    /* background-color: #e0e0e0; */ /* Old */
     background-color: #e9ecef; /* Light grey */
-    /* color: #333; */ /* Old */
     color: #495057; /* Darker grey text */
     border-color: #dee2e6; /* Subtle border */
 }
 
 .status-error {
-    /* background-color: #f8d7da; */ /* Old */
     background-color: #fde0e0; /* Pastel red */
-    /* color: #721c24; */ /* Old */
     color: #9d1c1c; /* Darker red text */
-    /* border-color: #f5c6cb; */ /* Old */
     border-color: #fbcaca; /* Pastel red border */
 }
 
 .status-success {
-    /* background-color: #d4edda; */ /* Old */
     background-color: #d1f7e0; /* Pastel green */
-    /* color: #155724; */ /* Old */
     color: #0a5c36; /* Darker green text */
-    /* border-color: #c3e6cb; */ /* Old */
     border-color: #a3e9c1; /* Pastel green border */
 }
 
 .status-warning {
-    /* background-color: #fff3cd; */ /* Old */
     background-color: #fff8d9; /* Pastel yellow */
-    /* color: #856404; */ /* Old */
     color: #8a6d0a; /* Darker yellow/brown text */
-    /* border-color: #ffeeba; */ /* Old */
     border-color: #ffefb3; /* Pastel yellow border */
 }
 
@@ -82,10 +71,4 @@ body {
   color: #555; /* Consistent label color */
 }
 
-/* Optional: Basic View Padding (if desired consistently) */
-/*
-.view-container {
-    padding: 20px;
-}
-*/
 /* ========================================== */

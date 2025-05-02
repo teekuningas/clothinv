@@ -11,7 +11,7 @@
     background-color: #e9ecef; /* Consistent light grey background */
 }
 
-.add-owner-form h3 { /* Changed from .add-location-form */
+.add-owner-form h3 {
     margin-top: 0;
 }
 
@@ -24,7 +24,7 @@
     border-radius: 4px;
 }
 
-.add-owner-form button { /* Changed from .add-location-form */
+.add-owner-form button {
     padding: 10px 15px;
     /* Match App.css nav buttons */
     background-color: #cddaea;
@@ -35,7 +35,7 @@
     transition: background-color 0.2s ease, border-color 0.2s ease; /* Match App.css */
 }
 
-.add-owner-form button:disabled { /* Changed from .add-location-form */
+.add-owner-form button:disabled {
     /* Match App.css disabled nav buttons */
     background-color: #a3b6c7;
     color: #ffffff;
@@ -43,7 +43,7 @@
     cursor: not-allowed;
 }
 
-.add-owner-form button:not(:disabled):hover { /* Changed from .add-location-form */
+.add-owner-form button:not(:disabled):hover {
     /* Match App.css nav button hover */
     background-color: #b8c8d8;
     border-color: #a3b6c7;

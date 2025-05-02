@@ -23,29 +23,22 @@
 
 /* --- App Header --- */
 .App-header {
-  /* background-color: #282c34; */ /* Old */
   background-color: #e0e7ef; /* Soft light blue-grey */
   padding: 20px 20px 10px 20px;
-  /* color: white; */ /* Old */
   color: #343a40; /* Dark grey text for contrast */
   margin-bottom: 20px;
 }
-/* position: relative; Added via media query */
 
 /* --- Desktop Navigation --- */
 .app-nav {
   margin-top: 15px;
   padding-bottom: 10px;
-  /* border-bottom: 1px solid #555; */ /* Old */
   border-bottom: 1px solid #b8c8d8; /* Lighter border */
 }
 
 .app-nav button {
-  /* background-color: #444; */ /* Old */
   background-color: #cddaea; /* Pastel blue-grey */
-  /* color: white; */ /* Old */
   color: #343a40; /* Dark grey text */
-  /* border: 1px solid #666; */ /* Old */
   border: 1px solid #b8c8d8; /* Lighter border */
   padding: 8px 15px;
   margin: 0 5px;
@@ -56,18 +49,14 @@
 }
 
 .app-nav button:hover {
-  /* background-color: #555; */ /* Old */
   background-color: #b8c8d8; /* Lighter hover */
   border-color: #a3b6c7;
 }
 
 .app-nav button:disabled {
-  /* background-color: #007bff; */ /* Old */
   background-color: #a3b6c7; /* Darker pastel for active */
-  /* color: white; */ /* Old */
   color: #ffffff; /* White text for contrast on active */
   cursor: default;
-  /* border-color: #0056b3; */ /* Old */
   border-color: #8fa6b9; /* Darker active border */
 }
 
@@ -87,7 +76,6 @@
     display: none; /* Hidden by default */
     background: none;
     border: none;
-    /* color: white; */ /* Old */
     color: #343a40; /* Match header text */
     font-size: 2rem; /* Make it large enough to tap */
     cursor: pointer;
@@ -107,7 +95,6 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* background-color: rgba(40, 44, 52, 0.95); */ /* Old */
     background-color: rgba(200, 210, 220, 0.97); /* Lighter semi-transparent */
     /* Increase z-index to be above the hamburger button */
     z-index: 1100; /* Ensure it's above page content and hamburger */
@@ -121,14 +108,6 @@
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* Style for when overlay is hidden (can be added/removed via JS/React state if needed,
-   but for now, we rely on conditional rendering in React which is simpler) */
-/*
-.mobile-menu-overlay.hidden {
-    opacity: 0;
-    visibility: hidden;
-}
-*/
 
 /* Close button inside the overlay */
 .close-menu-button {
@@ -137,7 +116,6 @@
     right: 20px;
     background: none;
     border: none;
-    /* color: white; */ /* Old */
     color: #343a40; /* Dark grey text */
     font-size: 2.5rem; /* Large and easy to tap */
     cursor: pointer;
@@ -157,7 +135,6 @@
 
 .mobile-nav button {
     background-color: transparent;
-    /* color: white; */ /* Old */
     color: #343a40; /* Dark grey text */
     border: none;
     padding: 15px 30px; /* Larger tap targets */
@@ -172,19 +149,15 @@
 }
 
 .mobile-nav button:hover {
-    /* background-color: rgba(255, 255, 255, 0.1); */ /* Old */
     background-color: rgba(52, 58, 64, 0.08); /* Subtle dark hover */
 }
 
 .mobile-nav button:disabled {
-    /* color: #007bff; */ /* Old */
     color: #005f73; /* Muted teal/blue for active text */
-    /* background-color: rgba(0, 123, 255, 0.2); */ /* Old */
     background-color: rgba(0, 95, 115, 0.1); /* Slight background tint for active */
     cursor: default;
 }
 
-/* --- Media Query for Responsiveness --- */
 /* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
 @media (max-width: 768px) {
     .App-header {

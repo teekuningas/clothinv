@@ -1,7 +1,6 @@
 /* Settings View Styles */
-.settings-view { /* Renamed from .settings-view-container */
+.settings-view {
   padding: 20px; /* Consistent padding */
-  /* Remove background, border, shadow, width, max-width, position, color, margin - handled by App structure or not needed */
 }
 
 .settings-view h2 {
