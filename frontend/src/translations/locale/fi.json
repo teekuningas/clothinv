@@ -10,7 +10,6 @@
     "warning.providerNotConfigured": "Varoitus: Valittu API-palvelu ({providerType}) ei ole täysin määritetty. Tarkista Asetukset.",
     "info.noProviderSelected": "API-palvelua ei ole valittu. Määritä palvelu Asetuksissa.",
     "modal.closeButton.label": "Sulje modaali",
-    /* Common UI elements */
     "common.add": "Lisää",
     "common.edit": "Muokkaa",
     "common.delete": "Poista",
@@ -27,7 +26,6 @@
     "common.error.unknown": "Tuntematon syy",
     "common.status.apiNotConfigured": "API-palvelua ei ole määritetty. Määritä se Asetuksissa.",
     "common.status.methodUnsupported": "Metodi {methodName} ei ole tuettu nykyisessä API-palvelussa.",
-    /* Categories View Specific */
     "categories.title": "Kategorioiden hallinta",
     "categories.loading": "Ladataan kategorioita...",
     "categories.error.fetch": "Kategorioiden haku epäonnistui: {error}",
@@ -50,8 +48,8 @@
     "categories.error.updateInvalid": "Päivitys epäonnistui. Virheelliset tiedot tai päivitystoiminto ei ole käytettävissä.",
     "categories.deleteModal.title": "Vahvista poisto",
     "categories.deleteModal.confirmMessage": "Haluatko varmasti poistaa kategorian \"{name}\"? Toimintoa ei voi peruuttaa.",
-    "categories.common.deleting": "Poistetaan...", /* Note: common.deleting exists, maybe rename this? Using common for now */
-    "categories.common.confirmDelete": "Vahvista poisto", /* Note: common.confirmDelete exists, maybe rename this? Using common for now */
+    "categories.common.deleting": "Poistetaan...",
+    "categories.common.confirmDelete": "Vahvista poisto",
     "categories.success.delete": "Kategoria poistettu onnistuneesti!",
     "categories.error.delete": "Kategorian poisto epäonnistui: {error}",
     "categories.error.deleteInUse": "Kategoriaa ei voi poistaa, koska se on liitetty yhteen tai useampaan vaatteeseen.",
