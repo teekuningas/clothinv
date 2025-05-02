@@ -11,16 +11,7 @@
   margin: 20px auto; /* Center the container */
 }
 
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-  color: #555;
-}
+/* Generic .form-group and label styles removed - now in index.css */
 
 .form-group input[type="text"],
 .form-group input[type="password"],
