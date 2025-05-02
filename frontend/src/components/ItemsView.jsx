@@ -768,14 +768,14 @@ const ItemsView = () => {
                             )}
                             {/* Action buttons for image */}
                             <div className="form-group-image-actions">
-                                <label htmlFor="edit-item-image" className="button-secondary button-file-input"> {/* Ensure both classes */}
+                                <label htmlFor="edit-item-image" className="button-primary button-file-input"> {/* Change to primary style */}
                                     {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => handleOpenWebcam('edit')}
                                     disabled={isUpdating || isDeleting}
-                                    className="button-secondary" // Style as secondary button
+                                    className="button-primary" // Change to primary style
                                 >
                                     {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                                 </button>
