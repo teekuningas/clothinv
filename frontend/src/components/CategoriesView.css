@@ -6,9 +6,9 @@
 .add-category-form {
     margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    background-color: #f9f9f9;
+    border: 1px solid #dee2e6; /* Consistent border */
+    border-radius: 4px; /* Consistent radius */
+    background-color: #e9ecef; /* Consistent light grey background */
 }
 
 .add-category-form h3 { /* Changed from .add-location-form */
@@ -20,27 +20,33 @@
 .edit-category-form .form-group input[type="text"] { /* Apply to edit form too */
     width: calc(100% - 22px); /* Adjust for padding/border */
     padding: 8px 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ced4da; /* Slightly darker border for inputs */
     border-radius: 4px;
 }
 
 .add-category-form button { /* Changed from .add-location-form */
     padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
+    /* Match App.css nav buttons */
+    background-color: #cddaea;
+    color: #343a40;
+    border: 1px solid #b8c8d8;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease; /* Match App.css */
 }
 
 .add-category-form button:disabled { /* Changed from .add-location-form */
-    background-color: #cccccc;
+    /* Match App.css disabled nav buttons */
+    background-color: #a3b6c7;
+    color: #ffffff;
+    border-color: #8fa6b9;
     cursor: not-allowed;
 }
 
 .add-category-form button:not(:disabled):hover { /* Changed from .add-location-form */
-    background-color: #0056b3;
+    /* Match App.css nav button hover */
+    background-color: #b8c8d8;
+    border-color: #a3b6c7;
 }
 
 /* --- Category Card Styles --- */
@@ -54,7 +60,7 @@
 }
 
 .category-card {
-    border: 1px solid #ddd;
+    border: 1px solid #dee2e6; /* Consistent border */
     border-radius: 4px;
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
@@ -80,21 +86,27 @@
     top: 10px;
     right: 10px;
     padding: 5px 10px;
-    font-size: 0.9em;
-    background-color: #6c757d; /* Grey */
-    color: white;
-    border: none;
-    border-radius: 3px;
+    font-size: 0.9em; /* Keep slightly smaller */
+    /* Match Add button style */
+    background-color: #cddaea;
+    color: #343a40;
+    border: 1px solid #b8c8d8;
+    border-radius: 4px; /* Consistent radius */
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .edit-button:hover:not(:disabled) {
-    background-color: #5a6268;
+    /* Match Add button hover */
+    background-color: #b8c8d8;
+    border-color: #a3b6c7;
 }
 
 .edit-button:disabled {
-    background-color: #cccccc;
+    /* Match Add button disabled */
+    background-color: #a3b6c7; /* Use consistent disabled style */
+    color: #ffffff;
+    border-color: #8fa6b9;
     cursor: not-allowed;
 }
 
@@ -118,14 +130,17 @@
 /* General button styling within modal actions */
 .modal-actions button {
     padding: 8px 15px;
-    border: none;
+    border: 1px solid transparent; /* Base border */
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; /* Add color transition */
 }
 
 .modal-actions button:disabled {
-    background-color: #cccccc;
+    /* Consistent disabled look, slightly lighter than primary disabled */
+    background-color: #ced4da;
+    border-color: #ced4da;
+    color: #6c757d;
     cursor: not-allowed;
 }
 
@@ -133,32 +148,44 @@
 .delete-button {
     background-color: #dc3545; /* Red */
     color: white;
+    border-color: #dc3545;
 }
 
 .delete-button:hover:not(:disabled) {
     background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.delete-button:disabled {
+    background-color: #f1b0b7; /* Lighter red for disabled */
+    border-color: #f1b0b7;
+    color: #a13843;
 }
 
 /* Style for primary action (Save/Confirm) */
 .modal-actions button[type="submit"],
 .modal-actions button:first-of-type:not(.delete-button) { /* Target save/confirm */
-     background-color: #007bff; /* Blue */
-     color: white;
+     /* Match Add/Edit button style */
+     background-color: #cddaea;
+     color: #343a40;
+     border-color: #b8c8d8;
 }
 .modal-actions button[type="submit"]:hover:not(:disabled),
 .modal-actions button:first-of-type:not(.delete-button):hover:not(:disabled) {
-    background-color: #0056b3;
+    /* Match Add/Edit button hover */
+    background-color: #b8c8d8;
+    border-color: #a3b6c7;
 }
 
 /* Style for cancel button */
 .modal-actions button:last-of-type { /* Target cancel */
-    background-color: #f8f9fa; /* Light grey */
-    color: #333;
-    border: 1px solid #ccc;
+    background-color: #e9ecef; /* Consistent light grey */
+    color: #495057; /* Darker grey text */
+    border-color: #dee2e6; /* Subtle border */
 }
 .modal-actions button:last-of-type:hover:not(:disabled) {
     background-color: #e2e6ea;
-}
+} /* Keep hover subtle */
 
 
 /* Styles for delete confirmation content */
