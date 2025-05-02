@@ -5,15 +5,81 @@ const ApiContext = createContext();
 
 export const useApi = () => useContext(ApiContext);
 
-// Define localStorage key for the selected provider type
-const LS_PROVIDER_TYPE = 'apiProviderType';
+// Define localStorage key for API provider configuration
+const LS_API_PROVIDER_CONFIG_KEY = 'apiProviderConfig';
+
+// --- Helper: Calculate Configuration Status --- (Moved before ApiProvider for clarity)
+// Determines if the provider is configured based on its registry definition
+const checkConfiguration = (providerType, settings) => {
+    const provider = getProviderById(providerType);
+    if (!provider || providerType === 'none') {
+        return false;
+    }
+    // Use the provider's specific check function if available
+    if (provider.isConfiguredCheck) {
+        return provider.isConfiguredCheck(settings);
+    }
+    // Fallback: check if all 'required' fields in the registry have a value
+    return provider.configFields?.every(field =>
+        !field.required || (settings && settings[field.key])
+    ) ?? false;
+};
+
 
 export const ApiProvider = ({ children }) => {
     // State now holds providerType, a generic settings object, and isConfigured flag
-    const [config, setConfig] = useState({
-        providerType: 'none', // Default to 'none'
-        settings: {},         // Holds provider-specific settings like { datasetteBaseUrl: '...' }
-        isConfigured: false,
+    // Initialize state from localStorage or defaults using a function for useState
+    const [config, setConfig] = useState(() => {
+        const savedConfig = localStorage.getItem(LS_API_PROVIDER_CONFIG_KEY);
+        let initialConfig;
+
+        if (savedConfig) {
+            try {
+                initialConfig = JSON.parse(savedConfig);
+                // Basic validation and defaults for older formats
+                initialConfig.providerType = initialConfig.providerType || 'none';
+                initialConfig.settings = initialConfig.settings || {};
+                // Ensure provider exists
+                if (!getProviderById(initialConfig.providerType)) {
+                    console.warn(`Saved provider type "${initialConfig.providerType}" is invalid. Resetting to 'none'.`);
+                    initialConfig.providerType = 'none';
+                    initialConfig.settings = {};
+                }
+            } catch (e) {
+                console.error("Failed to parse saved API config, using defaults.", e);
+                initialConfig = null; // Reset if parsing failed
+            }
+        }
+
+        // If no saved config or parsing failed, use defaults + ENV vars
+        if (!initialConfig) {
+            const defaultProviderType = import.meta.env.VITE_API_PROVIDER || 'none';
+            initialConfig = {
+                providerType: getProviderById(defaultProviderType) ? defaultProviderType : 'none', // Validate ENV var provider
+                settings: {},
+                isConfigured: false, // Will be recalculated below
+            };
+            // Load initial settings from ENV vars if defined in registry for the default provider
+            const provider = getProviderById(initialConfig.providerType);
+            if (provider && provider.configFields) {
+                provider.configFields.forEach(field => {
+                    if (field.envVar && import.meta.env[field.envVar]) {
+                        initialConfig.settings[field.key] = import.meta.env[field.envVar];
+                    } else {
+                        // Initialize with empty string if not set by ENV var
+                        initialConfig.settings[field.key] = initialConfig.settings[field.key] ?? '';
+                    }
+                });
+            }
+        }
+
+        // Always recalculate isConfigured based on loaded/default provider and settings
+        initialConfig.isConfigured = checkConfiguration(initialConfig.providerType, initialConfig.settings);
+        if (initialConfig.providerType !== 'none' && !initialConfig.isConfigured) {
+             console.warn(`${getProviderById(initialConfig.providerType)?.displayName || initialConfig.providerType} provider is selected, but it's not fully configured based on current settings.`);
+        }
+
+        return initialConfig;
     });
     const [apiMethods, setApiMethods] = useState({}); // Holds bound API methods like { addItem: func }
 
@@ -39,73 +105,22 @@ export const ApiProvider = ({ children }) => {
         setApiMethods(newApiMethods);
     }, []); // No dependencies needed as it uses the passed currentConfig
 
-    // --- Helper: Calculate Configuration Status ---
-    // Determines if the provider is configured based on its registry definition
-    const checkConfiguration = (providerType, settings) => {
-        const provider = getProviderById(providerType);
-        if (!provider || providerType === 'none') {
-            return false;
-        }
-        // Use the provider's specific check function if available
-        if (provider.isConfiguredCheck) {
-            return provider.isConfiguredCheck(settings);
-        }
-        // Fallback: check if all 'required' fields in the registry have a value
-        return provider.configFields?.every(field =>
-            !field.required || (settings && settings[field.key])
-        ) ?? false;
-    };
 
-    // --- Effect: Load Initial Configuration ---
-    // Runs once on mount to load config from localStorage or environment variables
+    // --- Effect: Bind API Methods on Config Change ---
+    // Re-bind methods whenever the config object changes.
     useEffect(() => {
-        // 1. Determine the initial provider type
-        let initialProviderType = localStorage.getItem(LS_PROVIDER_TYPE) || import.meta.env.VITE_API_PROVIDER || 'none';
-        const provider = getProviderById(initialProviderType);
+        bindApiMethods(config);
+    }, [config, bindApiMethods]); // Re-run if config or bindApiMethods changes
 
-        if (!provider) {
-            console.warn(`Invalid provider type loaded ('${initialProviderType}'). Falling back to 'none'.`);
-            initialProviderType = 'none';
-        }
-
-        // 2. Load settings for the determined provider type
-        const initialSettings = {};
-        const selectedProvider = getProviderById(initialProviderType); // Get definition again
-
-        if (selectedProvider && selectedProvider.configFields) {
-            selectedProvider.configFields.forEach(field => {
-                // Prioritize localStorage, then environment variable, then default to empty/null
-                const lsValue = localStorage.getItem(field.localStorageKey);
-                const envValue = import.meta.env[field.envVar];
-                initialSettings[field.key] = lsValue ?? envValue ?? ''; // Use nullish coalescing
-            });
-        }
-
-        // 3. Calculate initial configuration status
-        const isConfigured = checkConfiguration(initialProviderType, initialSettings);
-        if (initialProviderType !== 'none' && !isConfigured) {
-             console.warn(`${selectedProvider.displayName} provider is selected, but it's not fully configured based on required settings.`);
-        }
-
-
-        // 4. Set the initial state
-        const initialConfig = {
-            providerType: initialProviderType,
-            settings: initialSettings,
-            isConfigured: isConfigured,
-        };
-        setConfig(initialConfig);
-        bindApiMethods(initialConfig); // Bind methods based on loaded config
-
-    }, [bindApiMethods]); // Run only once on mount
 
     // --- Function: Update Configuration ---
-    // Updates the config state, saves to localStorage, and re-binds API methods
-    const updateConfiguration = useCallback((newSettings) => {
-        // newSettings is expected to be an object like { providerType: 'datasette', datasetteBaseUrl: '...', ... }
-        // coming directly from the SettingsView form state.
+    // Updates the config state, saves to localStorage (single key), and triggers re-binding via useEffect.
+    const updateConfiguration = useCallback((newConfigData) => {
+        // newConfigData is expected to be an object like:
+        // { providerType: 'datasette', settings: { datasetteBaseUrl: '...', datasetteApiToken: '...' } }
+        // coming from the SettingsView save handler.
 
-        const { providerType, ...providerSpecificSettings } = newSettings;
+        const { providerType, settings } = newConfigData;
         const provider = getProviderById(providerType);
 
         if (!provider) {
@@ -113,34 +128,38 @@ export const ApiProvider = ({ children }) => {
             return; // Or handle error appropriately
         }
 
-        // 1. Save provider type to localStorage
-        localStorage.setItem(LS_PROVIDER_TYPE, providerType);
-
-        // 2. Save provider-specific settings to localStorage
-        const settingsToSave = {};
+        // 1. Extract only the relevant settings for the selected provider based on registry
+        const relevantSettings = {};
+        const currentSettings = settings || {}; // Use provided settings or empty object
         if (provider.configFields) {
             provider.configFields.forEach(field => {
-                const valueToSave = providerSpecificSettings[field.key] ?? ''; // Default to empty string if undefined/null
-                localStorage.setItem(field.localStorageKey, valueToSave);
-                settingsToSave[field.key] = valueToSave; // Build the settings object for state
+                // Store the value from newConfigData.settings or default to empty string
+                relevantSettings[field.key] = currentSettings[field.key] ?? '';
             });
         }
 
-         // 3. Recalculate configuration status
-        const isConfigured = checkConfiguration(providerType, settingsToSave);
+        // 2. Recalculate configuration status
+        const isConfigured = checkConfiguration(providerType, relevantSettings);
 
-        // 4. Update state
+        // 3. Construct the final config object for state and storage
         const updatedFullConfig = {
             providerType: providerType,
-            settings: settingsToSave,
+            settings: relevantSettings, // Store only relevant settings
             isConfigured: isConfigured,
         };
+
+        // 4. Update state - this will trigger the useEffect to re-bind methods
         setConfig(updatedFullConfig);
 
-        // 5. Re-bind API methods for the new configuration
-        bindApiMethods(updatedFullConfig);
+        // 5. Persist the updated API config to the single localStorage key
+        try {
+            localStorage.setItem(LS_API_PROVIDER_CONFIG_KEY, JSON.stringify(updatedFullConfig));
+        } catch (error) {
+            console.error("Failed to save API config to localStorage:", error);
+            // Optionally notify the user
+        }
 
-    }, [bindApiMethods]); // Dependency on bindApiMethods
+    }, []); // No dependencies needed here, relies on closure values
 
     // --- Context Value ---
     // Expose the config object, bound API methods, and the update function

@@ -1,83 +1,101 @@
-import React, { useState, useEffect } from 'react';
-import { getProviderIds, getProviderById, getProviderDisplayNames } from '../api/providerRegistry'; // Import registry functions
+import React, { useState, useEffect, useCallback } from 'react';
+import { getProviderIds, getProviderById, getProviderDisplayNames } from '../api/providerRegistry';
+import { useApi } from '../api/ApiContext'; // Import useApi hook
+import { useTranslationContext } from '../translations/TranslationContext'; // Import translation hook
 import './SettingsView.css';
-// Removed unused lodash import
 
-// Remove isOpen, onClose from props
-const SettingsView = ({ currentConfig, onSave }) => {
-    // Local state holds the complete settings object being edited,
-    // including providerType and provider-specific fields.
-    const [localSettings, setLocalSettings] = useState({}); // Keep this state
+// SettingsView now gets its state and save functions from context
+const SettingsView = () => {
+    const { config: apiConfig, updateConfiguration: saveApiConfig } = useApi(); // Get API context
+    const { locale: currentLocale, changeLocale, availableLocales } = useTranslationContext(); // Get Translation context
+
+    // Local state ONLY holds the API configuration being edited
+    const [localApiSettings, setLocalApiSettings] = useState({ providerType: 'none', settings: {} });
     const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
     const [saveError, setSaveError] = useState(null);
     const [providerDisplayNames, setProviderDisplayNames] = useState({});
+    const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
+    const [saveError, setSaveError] = useState(null);
 
     // Populate provider display names once
     useEffect(() => {
         setProviderDisplayNames(getProviderDisplayNames());
     }, []);
 
-    // Initialize local state when the component mounts or the external config changes
+    // Initialize local state for API settings when apiConfig changes
     useEffect(() => {
-        // Create a deep copy to avoid mutating the context state directly
-        const initialSettings = JSON.parse(JSON.stringify({
-            providerType: currentConfig.providerType || 'none',
-                ...(currentConfig.settings || {}) // Spread existing settings
-            }));
-             // Ensure all fields defined in the registry for the current provider exist in local state
-             const provider = getProviderById(initialSettings.providerType);
-             if (provider && provider.configFields) {
-                 provider.configFields.forEach(field => {
-                     if (!(field.key in initialSettings)) {
-                         initialSettings[field.key] = ''; // Initialize missing fields
-                     }
-                 });
-             }
-        // Remove the extra closing brace here
-        setLocalSettings(initialSettings);
-    }, [currentConfig]); // Rerun if context config changes
+        // Use a deep copy method (structuredClone preferred)
+        const initialLocalState = {
+            providerType: apiConfig.providerType || 'none',
+            settings: apiConfig.settings ? (typeof structuredClone === 'function' ? structuredClone(apiConfig.settings) : JSON.parse(JSON.stringify(apiConfig.settings))) : {}
+        };
+        // Ensure all fields defined in the registry for the current provider exist in local state
+        const provider = getProviderById(initialLocalState.providerType);
+        if (provider && provider.configFields) {
+            provider.configFields.forEach(field => {
+                if (!(field.key in initialLocalState.settings)) {
+                    initialLocalState.settings[field.key] = ''; // Initialize missing fields
+                }
+            });
+        }
+        setLocalApiSettings(initialLocalState);
+        setSaveStatus('idle'); // Reset save status when config changes externally
+        setSaveError(null);
+    }, [apiConfig]); // Rerun only if the API config from context changes
 
-    // Handle changes to any input field or the provider select
-    const handleChange = (e) => {
+    // Handle changes ONLY for API provider select and API settings inputs
+    const handleApiChange = useCallback((e) => {
         const { name, value } = e.target;
-        // Reset save status on any change
         setSaveStatus('idle');
         setSaveError(null);
 
-        setLocalSettings(prevSettings => {
-            const newSettings = { ...prevSettings, [name]: value };
-            // If providerType changed, reset specific fields to avoid carrying over old values
+        setLocalApiSettings(prevApiSettings => {
+            let newApiSettings = { ...prevApiSettings };
+
             if (name === 'providerType') {
-                const oldProviderId = prevSettings.providerType;
-                const newProvider = getProviderById(value);
-                // Remove old provider's fields
-                const oldProvider = getProviderById(oldProviderId);
-                if (oldProvider && oldProvider.configFields) {
-                    oldProvider.configFields.forEach(field => {
-                        delete newSettings[field.key];
+                // Handle API provider change
+                const newProviderType = value;
+                const oldProviderId = prevApiSettings.providerType;
+                const newProvider = getProviderById(newProviderType);
+
+                newApiSettings.providerType = newProviderType;
+                newApiSettings.settings = {}; // Reset settings object
+
+                // Initialize new provider's fields
+                if (newProvider && newProvider.configFields) {
+                    newProvider.configFields.forEach(field => {
+                        // Initialize with empty string
+                        newApiSettings.settings[field.key] = '';
                     });
                 }
-                 // Initialize new provider's fields
-                 if (newProvider && newProvider.configFields) {
-                     newProvider.configFields.forEach(field => {
-                         // Initialize with empty string, respecting existing values if any (e.g., from context)
-                         newSettings[field.key] = newSettings[field.key] ?? '';
-                     });
-                 }
+            } else {
+                // Handle change in a provider-specific setting input
+                // Assumes input 'name' matches the key in the settings object
+                newApiSettings.settings = {
+                    ...prevApiSettings.settings,
+                    [name]: value
+                };
             }
-            return newSettings;
+            return newApiSettings;
         });
-    };
+    }, []); // No dependencies needed
 
+    // Handle language change directly using context function
+    const handleLocaleChange = useCallback((e) => {
+        changeLocale(e.target.value);
+        // Note: Language change is saved immediately via context, no local state needed here.
+        // Reset API save status if user changes language while API settings are modified but not saved.
+        setSaveStatus('idle');
+        setSaveError(null);
+    }, [changeLocale]);
 
-    const handleSave = async () => { // Make async to handle potential async onSave
-        // Pass the entire localSettings object (including providerType and specific fields)
-        // back to the ApiContext's updateConfiguration function.
+    // Handle saving ONLY the API configuration
+    const handleSaveApiConfig = useCallback(async () => {
         setSaveStatus('saving');
         setSaveError(null);
         try {
-            // Assuming onSave might be async or could throw an error
-            await onSave(localSettings);
+            // Pass the local API settings state to the context update function
+            await saveApiConfig(localApiSettings);
             setSaveStatus('success');
             // Optionally reset status after a delay
             // setTimeout(() => setSaveStatus('idle'), 3000);
@@ -86,64 +104,98 @@ const SettingsView = ({ currentConfig, onSave }) => {
             setSaveError(error.message || 'An unexpected error occurred.');
             setSaveStatus('error');
         }
-    };
+        } catch (error) {
+            console.error("Error saving API settings:", error);
+            setSaveError(error.message || 'An unexpected error occurred.');
+            setSaveStatus('error');
+        }
+    }, [localApiSettings, saveApiConfig]); // Dependencies: local state being saved, context function
 
-    // Get the definition for the currently selected provider in the form
-    const selectedProviderId = localSettings?.providerType || 'none'; // Add optional chaining for safety
+    // Get the definition for the currently selected provider in the local state
+    const selectedProviderId = localApiSettings?.providerType || 'none';
     const selectedProvider = getProviderById(selectedProviderId);
-    const availableProviderIds = getProviderIds();
+    const availableProviderIds = getProviderIds(); // Get all available provider IDs
 
     return (
-        <div className="settings-view-container"> {/* Use a container class */}
-                <h2>API Settings</h2>
-                {/* Keep the form structure, but remove modal wrappers */}
-                <form onSubmit={(e) => e.preventDefault()}>
-                <div className="form-group">
-                    <label htmlFor="providerType">API Provider:</label>
-                    <select
-                        id="providerType"
-                        name="providerType" // Name matches the key in localSettings state
-                        value={selectedProviderId}
-                        onChange={handleChange}
-                        // disabled={availableProviderIds.length <= 1} // Optionally disable if only one provider
-                    >
-                        {availableProviderIds.map(id => (
-                            <option key={id} value={id}>
-                                {providerDisplayNames[id] || id} {/* Show display name */}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+        <div className="settings-view-container">
+            <h2>Settings</h2>
+            <form onSubmit={(e) => e.preventDefault()}>
 
-                {/* Dynamically Rendered Provider Fields */}
-                {selectedProvider && selectedProvider.configFields && selectedProvider.configFields.map(field => (
-                    <div className="form-group" key={field.key}>
-                        <label htmlFor={field.key}>{field.label}:</label>
-                        <input
-                            type={field.type}
-                            id={field.key}
-                            name={field.key} // Name matches the key in localSettings state
-                            value={localSettings[field.key] || ''} // Ensure controlled component
-                            onChange={handleChange}
-                            placeholder={field.placeholder}
-                            required={field.required} // HTML5 validation (basic)
-                        />
+                {/* --- Language Settings --- */}
+                <fieldset className="settings-fieldset">
+                    <legend>Language</legend>
+                    <div className="form-group">
+                        <label htmlFor="locale">Display Language:</label>
+                        <select
+                            id="locale"
+                            name="locale" // Informational name
+                            value={currentLocale} // Value from translation context
+                            onChange={handleLocaleChange} // Use dedicated handler
+                        >
+                            {/* Use availableLocales from translation context */}
+                            {availableLocales.map(lang => (
+                                <option key={lang.code} value={lang.code}>
+                                    {lang.name}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                ))}
+                </fieldset>
 
-                {/* Action Buttons */}
-                <div className="form-actions">
-                    <button type="button" onClick={handleSave} className="save-button" disabled={saveStatus === 'saving'}>
-                        {saveStatus === 'saving' ? 'Saving...' : 'Save Settings'}
-                    </button>
-                    {/* Remove Cancel button */}
-                </div>
-                {/* Save Status Feedback */}
-                <div className="save-feedback" style={{ marginTop: '10px', minHeight: '20px' /* Prevent layout shift */ }}>
-                    {saveStatus === 'success' && <p style={{ color: 'green' }}>Settings saved successfully!</p>}
-                    {saveStatus === 'error' && <p style={{ color: 'red' }}>Error: {saveError}</p>}
-                </div>
-                </form>
+                {/* --- API Settings --- */}
+                <fieldset className="settings-fieldset">
+                    <legend>API Configuration</legend>
+                    <div className="form-group">
+                        <label htmlFor="providerType">API Provider:</label>
+                        <select
+                            id="providerType"
+                            name="providerType" // Name matches key in localApiSettings state
+                            value={selectedProviderId} // Value from local API state
+                            onChange={handleApiChange} // Use API change handler
+                        >
+                            {availableProviderIds.map(id => (
+                                <option key={id} value={id}>
+                                    {providerDisplayNames[id] || id} {/* Show display name */}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Dynamically Rendered Provider Fields */}
+                    {selectedProvider && selectedProvider.configFields && selectedProvider.configFields.map(field => (
+                        <div className="form-group" key={field.key}>
+                            <label htmlFor={`api-setting-${field.key}`}>{field.label}:</label>
+                            <input
+                                type={field.type}
+                                id={`api-setting-${field.key}`} // Unique ID
+                                name={field.key} // Name matches the key within localApiSettings.settings
+                                value={localApiSettings.settings?.[field.key] || ''} // Access nested setting safely
+                                onChange={handleApiChange} // Use API change handler
+                                placeholder={field.placeholder}
+                                required={field.required} // Basic HTML5 validation
+                            />
+                        </div>
+                    ))}
+
+                    {/* Action Buttons for API Settings */}
+                    <div className="form-actions">
+                        <button
+                            type="button"
+                            onClick={handleSaveApiConfig}
+                            className="save-button"
+                            disabled={saveStatus === 'saving' || saveStatus === 'success'} // Disable if saving or just succeeded
+                        >
+                            {saveStatus === 'saving' ? 'Saving API Config...' : 'Save API Config'}
+                        </button>
+                    </div>
+
+                    {/* Save Status Feedback for API Settings */}
+                    <div className="save-feedback" style={{ marginTop: '10px', minHeight: '20px' }}>
+                        {saveStatus === 'success' && <p style={{ color: 'green' }}>API configuration saved successfully!</p>}
+                        {saveStatus === 'error' && <p style={{ color: 'red' }}>API Save Error: {saveError}</p>}
+                    </div>
+                </fieldset>
+            </form>
         </div>
     );
 };
