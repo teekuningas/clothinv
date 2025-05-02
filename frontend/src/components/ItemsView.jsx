@@ -489,7 +489,7 @@ const ItemsView = () => {
                         )}
                         {/* Action buttons for image */}
                         <div className="form-group-image-actions">
-                            <label htmlFor="item-image" className="button-secondary button-file-input"> {/* Ensure both classes */}
+                            <label htmlFor="item-image" className="button-primary button-file-input"> {/* Change to primary style */}
                                 {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                             </label>
                             <button
