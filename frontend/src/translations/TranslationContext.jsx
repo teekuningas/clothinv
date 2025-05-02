@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { IntlProvider } from 'react-intl';
-import { availableLocales, defaultLocale, getLocaleCodes, LS_LOCALE_KEY, ENV_DEFAULT_LOCALE_KEY } from '../config/i18n';
+import { availableLocales, defaultLocale, getLocaleCodes, LS_LOCALE_KEY, ENV_DEFAULT_LOCALE_KEY } from './i18n'; // Updated path
 
 // --- Helper: Load Messages Dynamically ---
 async function loadMessages(locale) {
