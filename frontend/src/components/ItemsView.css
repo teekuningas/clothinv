@@ -342,10 +342,13 @@
 
 /* Style the label to look like a button */
 .button-file-input {
-    /* Inherits styles from .button-secondary */
+    /* Explicitly apply secondary button styles for consistency */
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
     display: inline-block; /* Allow setting padding/margins */
     cursor: pointer;
-    vertical-align: middle; /* Align with other buttons */
+    /* vertical-align: middle; Removed, let flexbox handle alignment */
 }
 
 .form-group-image-actions {
@@ -353,7 +356,8 @@
     margin-top: 8px; /* Space above the action buttons */
     display: flex; /* Arrange buttons horizontally */
     gap: 10px; /* Space between buttons */
-    align-items: center; /* Vertically align items if heights differ */
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    align-items: center; /* Vertically align items */
 }
 
 .edit-item-form .form-group {
@@ -370,9 +374,17 @@
 .remove-image-button {
     padding: 5px 10px; /* Slightly smaller padding */
     font-size: 0.9em;
-    margin-top: 8px; /* Space above remove button */
-    align-self: flex-start; /* Align with preview */
+    /* margin-top: 8px; Removed, use gap from flex container */
+    /* align-self: flex-start; Removed, let flexbox handle alignment */
     /* Danger styles already applied */
+}
+
+/* Responsive stacking for image action buttons */
+@media (max-width: 600px) {
+    .form-group-image-actions {
+        flex-direction: column; /* Stack vertically */
+        align-items: flex-start; /* Align buttons to the left */
+    }
 }
 
 /* Re-use modal action styles if defined globally or copy from CategoriesView.css */
