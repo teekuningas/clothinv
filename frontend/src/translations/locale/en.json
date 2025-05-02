@@ -176,5 +176,14 @@
     "items.filter.locationLabel": "Location:",
     "items.filter.categoryLabel": "Category:",
     "items.filter.ownerLabel": "Owner:",
-    "items.filter.resetButton": "Reset Filters"
+    "items.filter.resetButton": "Reset Filters",
+    "webcam.initializing": "Initializing Camera...",
+    "webcam.error.notSupported": "Webcam access is not supported by this browser.",
+    "webcam.error.permissionDenied": "Permission denied. Please allow camera access in browser settings and click Retry.",
+    "webcam.error.noCamera": "No camera found on this device.",
+    "webcam.error.inUse": "Camera is already in use or cannot be accessed. Please check other applications or browser tabs.",
+    "webcam.error.accessGeneric": "Error accessing webcam: {errorName}. Please try again.",
+    "webcam.error.captureFailed": "Failed to process captured image. Please try again.",
+    "webcam.button.capture.ariaLabel": "Capture photo",
+    "webcam.button.retry": "Retry"
 }

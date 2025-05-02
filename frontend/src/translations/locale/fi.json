@@ -176,5 +176,14 @@
     "items.filter.locationLabel": "Sijainti:",
     "items.filter.categoryLabel": "Kategoria:",
     "items.filter.ownerLabel": "Omistaja:",
-    "items.filter.resetButton": "Nollaa suodattimet"
+    "items.filter.resetButton": "Nollaa suodattimet",
+    "webcam.initializing": "Alustetaan kameraa...",
+    "webcam.error.notSupported": "Verkkokameran käyttöä ei tueta tässä selaimessa.",
+    "webcam.error.permissionDenied": "Lupa evätty. Salli kameran käyttö selaimen asetuksista ja napsauta Yritä uudelleen.",
+    "webcam.error.noCamera": "Tällä laitteella ei löytynyt kameraa.",
+    "webcam.error.inUse": "Kamera on jo käytössä tai sitä ei voida käyttää. Tarkista muut sovellukset tai selainvälilehdet.",
+    "webcam.error.accessGeneric": "Virhe kameran käytössä: {errorName}. Yritä uudelleen.",
+    "webcam.error.captureFailed": "Kaapatun kuvan käsittely epäonnistui. Yritä uudelleen.",
+    "webcam.button.capture.ariaLabel": "Ota kuva",
+    "webcam.button.retry": "Yritä uudelleen"
 }

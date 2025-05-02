@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useIntl } from 'react-intl';
 import './WebcamCapture.css'; // We'll create this CSS file next
 
 // Helper function to convert Base64 Data URL to File object
@@ -33,9 +34,8 @@ function dataURLtoFile(dataurl, filename) {
         return null; // Return null or throw error on failure
     }
 }
-
-
 const WebcamCapture = ({ show, onCapture, onClose }) => {
+    const intl = useIntl();
     const videoRef = useRef(null);
     const canvasRef = useRef(null); // Hidden canvas for capturing
     const [stream, setStream] = useState(null);
@@ -68,7 +68,7 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
 
         // Check for browser support
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setError("Webcam access is not supported by this browser.");
+            setError(intl.formatMessage({ id: 'webcam.error.notSupported', defaultMessage: 'Webcam access is not supported by this browser.' }));
             setIsInitializing(false);
             return;
         }
@@ -90,14 +90,14 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
         } catch (err) {
             console.error("Error accessing webcam:", err.name, err.message); // Log error name
             if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-                setError("Permission denied. Please allow camera access in browser settings and click Retry.");
+                setError(intl.formatMessage({ id: 'webcam.error.permissionDenied', defaultMessage: 'Permission denied. Please allow camera access in browser settings and click Retry.' }));
             } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-                 setError("No camera found on this device.");
+                 setError(intl.formatMessage({ id: 'webcam.error.noCamera', defaultMessage: 'No camera found on this device.' }));
             } else if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-                 setError("Camera is already in use or cannot be accessed. Please check other applications or browser tabs.");
+                 setError(intl.formatMessage({ id: 'webcam.error.inUse', defaultMessage: 'Camera is already in use or cannot be accessed. Please check other applications or browser tabs.' }));
             }
              else {
-                setError(`Error accessing webcam: ${err.name}. Please try again.`);
+                setError(intl.formatMessage({ id: 'webcam.error.accessGeneric', defaultMessage: 'Error accessing webcam: {errorName}. Please try again.' }, { errorName: err.name }));
             }
             // Ensure stream is null if error occurred after getting it (less likely but possible)
             stopCamera();
@@ -152,7 +152,7 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
             onCapture(imageFile); // Pass the File object back to parent
         } else {
              // Set an error state specific to capture failure
-             setError("Failed to process captured image. Please try again.");
+             setError(intl.formatMessage({ id: 'webcam.error.captureFailed', defaultMessage: 'Failed to process captured image. Please try again.' }));
         }
 
         // Important: Do not stop camera here. Let the parent component hide the modal
@@ -181,10 +181,10 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
                     <canvas ref={canvasRef} style={{ display: 'none' }} />
 
                     {/* Display Status Messages Inside Container */}
-                    {isInitializing && <p className="webcam-status-message webcam-loading">Initializing Camera...</p>}
+                    {isInitializing && <p className="webcam-status-message webcam-loading">{intl.formatMessage({ id: 'webcam.initializing', defaultMessage: 'Initializing Camera...' })}</p>}
                     {error && (
                         <div className="webcam-status-message webcam-error">
-                            <p>Error: {error}</p>
+                            <p>{intl.formatMessage({ id: 'common.error', defaultMessage: 'Error' })}: {error}</p>
                         </div>
                     )}
 
@@ -193,7 +193,7 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
                          <button
                             className="webcam-capture-button"
                             onClick={handleCaptureClick}
-                            aria-label="Capture photo"
+                            aria-label={intl.formatMessage({ id: 'webcam.button.capture.ariaLabel', defaultMessage: 'Capture photo' })}
                          >
                             {/* Simple capture icon (could use SVG or FontAwesome) */}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
@@ -209,11 +209,11 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
                     {/* Show Retry button only if there's an error */}
                     {error && (
                         <button className="webcam-retry-button" onClick={startCamera}>
-                            Retry
+                            {intl.formatMessage({ id: 'webcam.button.retry', defaultMessage: 'Retry' })}
                         </button>
                     )}
                     <button className="webcam-cancel-button" onClick={onClose}>
-                        Cancel
+                        {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                     </button>
                 </div>
             </div>
