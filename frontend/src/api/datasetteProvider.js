@@ -253,19 +253,39 @@ export const listLocations = async (settings) => {
 };
 
 export const updateLocation = async (settings, locationId, data) => {
-    console.warn('updateLocation is not yet implemented for datasetteProvider.');
-    // Simulate success for now, or throw an error
-    // throw new Error('updateLocation not implemented');
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async
-    return { success: true, message: 'Update not implemented' };
+    // Expects data like { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!locationId) throw new Error("Location ID is required for update.");
+
+    const updateUrl = `${baseUrl}/locations/${locationId}/-/update`;
+    const payload = { update: data }; // Datasette expects update data under the 'update' key
+
+    const res = await fetch(updateUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(payload),
+    });
+
+    // Use handleResponse, customizing operation and entity description
+    return handleResponse(res, 'update', `location ID ${locationId}`);
 };
 
 export const deleteLocation = async (settings, locationId) => {
-    console.warn('deleteLocation is not yet implemented for datasetteProvider.');
-    // Simulate success for now, or throw an error
-    // throw new Error('deleteLocation not implemented');
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async
-    return { success: true, message: 'Delete not implemented' };
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!locationId) throw new Error("Location ID is required for deletion.");
+
+    const deleteUrl = `${baseUrl}/locations/${locationId}/-/delete`;
+
+    const res = await fetch(deleteUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        // No body needed for Datasette delete
+    });
+
+    // Use handleResponse, customizing operation and entity description
+    return handleResponse(res, 'delete', `location ID ${locationId}`);
 };
 
 export const listCategories = async (settings) => {
