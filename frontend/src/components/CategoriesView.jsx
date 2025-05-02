@@ -295,7 +295,7 @@ const CategoriesView = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label htmlFor="edit-category-description">Description:</label>
+                            <label htmlFor="edit-category-description">{intl.formatMessage({ id: 'categories.addForm.descriptionLabel', defaultMessage: 'Description:' })}</label>
                             <input
                                 type="text"
                                 id="edit-category-description"
