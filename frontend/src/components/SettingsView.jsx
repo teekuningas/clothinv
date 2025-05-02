@@ -14,8 +14,7 @@ const SettingsView = () => {
     const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
     const [saveError, setSaveError] = useState(null);
     const [providerDisplayNames, setProviderDisplayNames] = useState({});
-    const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
-    const [saveError, setSaveError] = useState(null);
+    // Removed duplicate state declarations for saveStatus and saveError
 
     // Populate provider display names once
     useEffect(() => {
@@ -104,11 +103,7 @@ const SettingsView = () => {
             setSaveError(error.message || 'An unexpected error occurred.');
             setSaveStatus('error');
         }
-        } catch (error) {
-            console.error("Error saving API settings:", error);
-            setSaveError(error.message || 'An unexpected error occurred.');
-            setSaveStatus('error');
-        }
+        // Removed duplicate catch block
     }, [localApiSettings, saveApiConfig]); // Dependencies: local state being saved, context function
 
     // Get the definition for the currently selected provider in the local state
