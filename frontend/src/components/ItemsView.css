@@ -4,6 +4,123 @@
     padding: 20px;
 }
 
+/* --- Base Button Style --- */
+.items-view button,
+.modal-actions button { /* Apply broadly */
+    padding: 8px 15px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em; /* Consistent font size */
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    line-height: 1.5; /* Ensure text vertical alignment */
+    text-align: center;
+}
+
+.items-view button:focus-visible,
+.modal-actions button:focus-visible {
+    outline: 2px solid #005fcc; /* Example focus ring */
+    outline-offset: 2px;
+}
+
+.items-view button:disabled,
+.modal-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* --- Button Variants --- */
+/* Primary (Add, Save) */
+.button-primary,
+.add-item-form button[type="submit"],
+.modal-actions button[type="submit"] {
+    background-color: #cddaea; /* Existing blueish */
+    color: #343a40;
+    border-color: #b8c8d8;
+}
+.button-primary:hover:not(:disabled),
+.add-item-form button[type="submit"]:hover:not(:disabled),
+.modal-actions button[type="submit"]:hover:not(:disabled) {
+    background-color: #b8c8d8;
+    border-color: #a3b6c7;
+}
+.button-primary:disabled,
+.add-item-form button[type="submit"]:disabled,
+.modal-actions button[type="submit"]:disabled {
+     background-color: #a3b6c7; /* Existing disabled */
+     color: #ffffff;
+     border-color: #8fa6b9;
+     opacity: 1; /* Override base disabled opacity if needed */
+}
+
+
+/* Secondary (Cancel, Edit, Filter, Reset) */
+.button-secondary,
+.item-card .edit-button, /* Apply to card edit button */
+.filter-toggle-button,
+.reset-filters-button,
+.modal-actions button[type="button"]:not(.delete-button):not(.remove-image-button) /* Target cancel/other buttons */
+ {
+    background-color: #e9ecef; /* Light grey */
+    color: #495057;
+    border-color: #dee2e6;
+}
+.button-secondary:hover:not(:disabled),
+.item-card .edit-button:hover:not(:disabled),
+.filter-toggle-button:hover:not(:disabled),
+.reset-filters-button:hover:not(:disabled),
+.modal-actions button[type="button"]:not(.delete-button):not(.remove-image-button):hover:not(:disabled) {
+    background-color: #e2e6ea;
+    border-color: #ced4da;
+}
+.button-secondary:disabled,
+.item-card .edit-button:disabled,
+.filter-toggle-button:disabled,
+.reset-filters-button:disabled,
+.modal-actions button[type="button"]:not(.delete-button):not(.remove-image-button):disabled {
+    background-color: #e9ecef; /* Keep light grey */
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+/* Danger (Delete, Remove Image) */
+.button-danger,
+.delete-button, /* Keep existing class */
+.remove-image-button {
+    background-color: #f8d7da; /* Light red */
+    color: #721c24; /* Dark red text */
+    border-color: #f5c6cb; /* Reddish border */
+}
+.button-danger:hover:not(:disabled),
+.delete-button:hover:not(:disabled),
+.remove-image-button:hover:not(:disabled) {
+    background-color: #f1b0b7;
+    border-color: #ec98a1;
+}
+.button-danger:disabled,
+.delete-button:disabled,
+.remove-image-button:disabled {
+    background-color: #f8d7da; /* Keep light red */
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* Specific override for main delete confirmation button */
+.delete-confirm-content .delete-button {
+    background-color: #dc3545; /* Stronger red */
+    color: white;
+    border-color: #dc3545;
+}
+.delete-confirm-content .delete-button:hover:not(:disabled) {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+ .delete-confirm-content .delete-button:disabled {
+    background-color: #f1b0b7; /* Lighter red when disabled */
+    border-color: #f1b0b7;
+    color: #a13843;
+}
+
 /* --- Add Item Form --- */
 .add-item-form {
     margin-bottom: 30px; /* More space before the list */
@@ -64,28 +181,17 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
-    margin-top: 10px; /* Add margin above button */
-}
-
-.add-item-form button:disabled {
-    background-color: #a3b6c7;
-    color: #ffffff;
-    border-color: #8fa6b9;
-    cursor: not-allowed;
-}
-
-.add-item-form button:not(:disabled):hover {
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
 }
 
 /* Image Preview Styles */
 .image-preview {
-    margin-bottom: 10px;
-    max-width: 200px; /* Limit preview size */
-    max-height: 200px;
+    margin-bottom: 0; /* Remove default margin, use gap */
+    max-width: 250px; /* Slightly larger max width */
+    max-height: 250px;
     border: 1px solid #ced4da;
-    overflow: hidden; /* Contain the image */
+    border-radius: 4px; /* Add border radius */
+    overflow: hidden;
+    align-self: flex-start; /* Don't stretch full width */
 }
 
 .image-preview img {
@@ -187,19 +293,14 @@
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+    background-color: rgba(255, 255, 255, 0.9); /* Less transparent */
+    /* color: #343a40; */ /* Handled by button-secondary */
+    /* border: 1px solid #b8c8d8; */ /* Handled by button-secondary */
+    /* border-radius: 4px; */ /* Handled by base button */
+    /* cursor: pointer; */ /* Handled by base button */
+    /* transition: background-color 0.2s ease, border-color 0.2s ease; */ /* Handled by base button */
     backdrop-filter: blur(2px); /* Optional: blur background behind button */
-}
-
-.item-card .edit-button:hover:not(:disabled) {
-    background-color: rgba(240, 240, 240, 0.9);
-    border-color: #a3b6c7;
-}
-
-.item-card .edit-button:disabled {
-    background-color: rgba(163, 182, 199, 0.7); /* Disabled look */
-    color: #ffffff;
-    border-color: #8fa6b9;
-    cursor: not-allowed;
+    z-index: 10; /* Ensure it's above image */
 }
 
 
@@ -207,6 +308,34 @@
 /* Assuming Modal.css provides base styles */
 .edit-item-form {
     padding: 10px 0 0 0;
+}
+
+/* Apply to both add and edit forms */
+.add-item-form .form-group-image,
+.edit-item-form .form-group-image {
+    display: flex;
+    flex-direction: column; /* Stack label, preview, input, remove button */
+    gap: 8px; /* Space between elements */
+    margin-bottom: 15px; /* Consistent bottom margin */
+}
+
+.add-item-form .form-group-image label,
+.edit-item-form .form-group-image label {
+    display: block;
+    margin-bottom: 0; /* Remove default margin, use gap */
+    font-weight: bold;
+}
+
+/* Style file input */
+.add-item-form input[type="file"],
+.edit-item-form input[type="file"] {
+    /* Basic styling, can be enhanced further if needed */
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9em;
+    max-width: 350px; /* Limit width */
+    margin-top: 0; /* Remove default margin, use gap */
 }
 
 .edit-item-form .form-group {
@@ -219,20 +348,13 @@
     font-weight: bold;
 }
 
-/* Remove Image Button in Edit Modal */
+/* Adjust remove image button */
 .remove-image-button {
-    padding: 5px 10px;
-    font-size: 0.85em;
-    background-color: #f8d7da; /* Light red */
-    color: #721c24; /* Dark red text */
-    border: 1px solid #f5c6cb; /* Reddish border */
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 5px 0 10px 0; /* Spacing */
-    transition: background-color 0.2s ease;
-}
-.remove-image-button:hover:not(:disabled) {
-    background-color: #f1b0b7;
+    padding: 5px 10px; /* Slightly smaller padding */
+    font-size: 0.9em;
+    margin: 0; /* Remove default margin, use gap */
+    align-self: flex-start; /* Align with preview */
+    /* Danger styles already applied */
 }
 
 /* Re-use modal action styles if defined globally or copy from CategoriesView.css */
@@ -245,69 +367,13 @@
     border-top: 1px solid #eee;
 }
 
-/* Status messages inside modal */
-.modal-status {
-    margin-bottom: 15px; /* Space before actions */
-    margin-top: -5px; /* Reduce space after last form group */
-}
-
+/* Media query for modal actions (optional, keep if needed) */
 @media (max-width: 480px) {
     .modal-actions {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
     }
-}
-
-.modal-actions button {
-    padding: 8px 15px;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.modal-actions button:disabled {
-    background-color: #ced4da;
-    border-color: #ced4da;
-    color: #6c757d;
-    cursor: not-allowed;
-}
-
-.delete-button { /* Ensure this class is used on delete buttons */
-    background-color: #dc3545;
-    color: white;
-    border-color: #dc3545;
-}
-.delete-button:hover:not(:disabled) {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
-.delete-button:disabled {
-    background-color: #f1b0b7;
-    border-color: #f1b0b7;
-    color: #a13843;
-}
-
-.modal-actions button[type="submit"],
-.modal-actions button:first-of-type:not(.delete-button) {
-     background-color: #cddaea;
-     color: #343a40;
-     border-color: #b8c8d8;
-}
-.modal-actions button[type="submit"]:hover:not(:disabled),
-.modal-actions button:first-of-type:not(.delete-button):hover:not(:disabled) {
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
-}
-
-.modal-actions button:last-of-type:not(.delete-button) { /* Target cancel */
-    background-color: #e9ecef;
-    color: #495057;
-    border-color: #dee2e6;
-}
-.modal-actions button:last-of-type:not(.delete-button):hover:not(:disabled) {
-    background-color: #e2e6ea;
 }
 
 .delete-confirm-content p {
@@ -320,28 +386,12 @@
 
 /* --- Filters --- */
 .filter-toggle-button {
-    /* display: inline-flex; Align icon and text */
-    /* align-items: center; */
-    /* gap: 5px; */ /* Removed icon, so gap is not needed */
-    padding: 7px 14px; /* Slightly adjusted padding */
+    /* Styles handled by .button-secondary */
     margin-bottom: 15px; /* Space below button */
-    background-color: #f8f9fa;
-    border: 1px solid #ced4da; /* Slightly darker border */
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.95em;
-    color: #495057;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.filter-toggle-button:hover {
-    background-color: #e2e6ea; /* Slightly darker hover */
-    border-color: #ced4da;
 }
 
 .filter-toggle-button[aria-expanded="true"] {
-    background-color: #e2e6ea; /* Keep hover state when open */
-    border-color: #ced4da;
+    /* Keep hover state when open - handled by :hover */
 }
 
 .filters-container {
@@ -416,18 +466,8 @@
 }
 
 .reset-filters-button {
-    padding: 8px 15px;
-    background-color: #e9ecef;
-    color: #495057;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    /* Styles handled by .button-secondary */
     margin-top: 10px; /* Space above reset button */
-}
-
-.reset-filters-button:hover {
-    background-color: #e2e6ea;
 }
 
 /* Responsive adjustments for filters if needed */

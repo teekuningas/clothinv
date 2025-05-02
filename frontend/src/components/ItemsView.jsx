@@ -36,6 +36,7 @@ const ItemsView = () => {
     const [editOwnerId, setEditOwnerId] = useState(''); // Add state for edit owner
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
+    const [imageMarkedForRemoval, setImageMarkedForRemoval] = useState(false); // Track if user wants to remove existing image
 
     // Delete state
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -149,6 +150,7 @@ const ItemsView = () => {
                 } else if (type === 'edit') {
                     setEditItemImageFile(file);
                     setEditItemImagePreview(reader.result);
+                    setImageMarkedForRemoval(false); // New file selected, so don't mark for removal
                 }
             };
             reader.readAsDataURL(file);
@@ -263,6 +265,7 @@ const ItemsView = () => {
         setEditItemImageFile(null); // Clear any previously selected file
         setEditItemImagePreview(null); // Clear previous preview
         setEditOwnerId(item.owner_id || ''); // Set initial owner ID
+        setImageMarkedForRemoval(false); // Reset removal flag
         setUpdateError(null);
         setSuccess(null);
         setError(null);
@@ -279,6 +282,7 @@ const ItemsView = () => {
         setEditItemImageFile(null); // Clear file state on cancel
         setEditItemImagePreview(null); // Clear preview on cancel
         setEditOwnerId(''); // Reset edit owner ID
+        setImageMarkedForRemoval(false); // Reset removal flag
         setUpdateError(null);
     };
 
@@ -286,6 +290,7 @@ const ItemsView = () => {
     const handleRemoveEditImage = () => {
         setEditItemImageFile(null); // Clear selected file
         setEditItemImagePreview(null); // Clear preview
+        setImageMarkedForRemoval(true); // Mark the image for removal on save
     };
 
     const handleUpdateItem = async (e) => {
@@ -299,12 +304,6 @@ const ItemsView = () => {
         setUpdateError(null);
         setSuccess(null);
 
-        // Determine if image should be removed:
-        // Find the original item to check its current image status
-        const currentItem = items.find(i => i.item_id === editingItemId);
-        // Remove if: No preview shown, no new file selected, AND the original item *had* an image.
-        const removeImageFlag = !editItemImagePreview && !editItemImageFile && editingItemId && items.find(i => i.item_id === editingItemId)?.image_id;
-
         try {
             const result = await api.updateItem(editingItemId, {
                 name: editName.trim(),
@@ -313,7 +312,7 @@ const ItemsView = () => {
                 category_id: parseInt(editCategoryId, 10),  // Include category_id
                 owner_id: parseInt(editOwnerId, 10),  // Include owner_id
                 imageFile: editItemImageFile, // Pass the new file (if any)
-                removeImage: removeImageFlag // Pass the remove flag
+                removeImage: imageMarkedForRemoval // Pass the explicit removal flag
             });
 
             if (result.success) {
@@ -413,7 +412,7 @@ const ItemsView = () => {
                         />
                     </div>
                      {/* Image Upload */}
-                    <div className="form-group">
+                    <div className="form-group form-group-image">
                         <label htmlFor="item-image">{intl.formatMessage({ id: 'items.addForm.imageLabel', defaultMessage: 'Image:' })}</label>
                         {newItemImagePreview && (
                             <div className="image-preview">
@@ -631,7 +630,8 @@ const ItemsView = () => {
                 const currentItem = items.find(i => i.item_id === editingItemId);
                 // Construct current image data URL directly from item data
                 const currentImageDataUrl = currentItem?.image_data && currentItem?.image_mimetype ? `data:${currentItem.image_mimetype};base64,${currentItem.image_data}` : null;
-                const displayImageUrl = editItemImagePreview || currentImageDataUrl; // Show preview if available, else current image
+                // Show preview if available, else current image, unless marked for removal
+                const displayImageUrl = imageMarkedForRemoval ? null : (editItemImagePreview || currentImageDataUrl);
                 return (
                 <Modal show={!!editingItemId} onClose={handleCancelEdit} title={intl.formatMessage({ id: 'items.editModal.title', defaultMessage: 'Edit Item' })}>
                     <form onSubmit={handleUpdateItem} className="edit-item-form">
@@ -658,7 +658,7 @@ const ItemsView = () => {
                             />
                         </div>
                         {/* Image Upload/Preview/Remove */}
-                        <div className="form-group">
+                        <div className="form-group form-group-image">
                             <label htmlFor="edit-item-image">{intl.formatMessage({ id: 'items.editForm.imageLabel', defaultMessage: 'Image:' })}</label>
                             {displayImageUrl && (
                                 <div className="image-preview">
@@ -745,7 +745,7 @@ const ItemsView = () => {
                             </button>
                             {api.config.isConfigured && typeof api.deleteItem === 'function' && (
                                 <button
-                                    type="button"
+                                    type="button" // Explicitly set type
                                     className="delete-button"
                                     onClick={() => handleDeleteClick(editingItemId)}
                                     disabled={isUpdating || isDeleting}
@@ -753,7 +753,7 @@ const ItemsView = () => {
                                     {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                                 </button>
                             )}
-                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting}>
+                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary"> {/* Add class for styling */}
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
