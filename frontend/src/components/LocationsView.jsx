@@ -262,30 +262,109 @@ const LocationsView = () => {
                         />
                     </div>
                     <button type="submit" disabled={loading || !newLocationName.trim()}>
-                        {loading ? 'Adding...' : 'Add Location'}
+                        {loading ? intl.formatMessage({ id: 'locations.addForm.button.adding', defaultMessage: 'Adding...' }) : intl.formatMessage({ id: 'locations.addForm.button.add', defaultMessage: 'Add Location' })}
                     </button>
                 </form>
             )}
 
 
             {/* Locations List */}
-            <h3>Existing Locations</h3>
-             {typeof api.listLocations === 'function' && !loading && locations.length === 0 && !error && (
-                 <p>No locations found.</p>
+            <h3>{intl.formatMessage({ id: 'locations.list.title', defaultMessage: 'Existing Locations' })}</h3>
+             {typeof api.listLocations !== 'function' && api.config.isConfigured && (
+                 <p className="status-warning">{intl.formatMessage({ id: 'locations.list.notSupported', defaultMessage: 'Listing locations is not supported by the current API Provider.' })}</p>
+             )}
+             {typeof api.listLocations === 'function' && !loading && locations.length === 0 && !error && api.config.isConfigured && (
+                <p>{intl.formatMessage({ id: 'locations.list.empty', defaultMessage: 'No locations found. Add one above!' })}</p>
              )}
              {typeof api.listLocations === 'function' && locations.length > 0 && (
-                <ul className="locations-list">
+                <div className="locations-list"> {/* Use div for card container */}
                     {locations.map((loc) => (
-                        <li key={loc.location_id}>
-                            <strong>{loc.name}</strong>
-                            {loc.description && <span> - {loc.description}</span>}
-                            {/* Add Edit/Delete buttons here later */}
-                        </li>
+                        <div key={loc.location_id} className="location-card">
+                            <h4>{loc.name}</h4>
+                            {loc.description && <p>{loc.description}</p>}
+                            {/* Show Edit button only if provider configured and update method exists */}
+                            {api.config.isConfigured && typeof api.updateLocation === 'function' && (
+                                <button
+                                    onClick={() => handleEditClick(loc)}
+                                    className="edit-button"
+                                    aria-label={intl.formatMessage({ id: 'locations.editButton.label', defaultMessage: 'Edit {name}' }, { name: loc.name })}
+                                    disabled={loading || isUpdating || isDeleting} // Disable if any operation is in progress
+                                >
+                                    {intl.formatMessage({ id: 'common.edit', defaultMessage: 'Edit' })}
+                                </button>
+                            )}
+                        </div>
                     ))}
-                </ul>
+                </div>
              )}
-             {typeof api.listLocations !== 'function' && api.config.isConfigured && (
-                 <p className="status-warning">Listing locations is not supported by the current API Provider.</p>
+
+            {/* Edit Location Modal */}
+            {editingLocationId && (
+                <Modal show={!!editingLocationId} onClose={handleCancelEdit} title={intl.formatMessage({ id: 'locations.editModal.title', defaultMessage: 'Edit Location' })}>
+                    <form onSubmit={handleUpdateLocation} className="edit-location-form">
+                        {updateError && <p className="status-error">Error: {updateError}</p>}
+                        <div className="form-group">
+                            <label htmlFor="edit-location-name">{intl.formatMessage({ id: 'locations.addForm.nameLabel', defaultMessage: 'Name:' })}</label>
+                            <input
+                                type="text"
+                                id="edit-location-name"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                required
+                                disabled={isUpdating || isDeleting} // Disable during update or delete
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="edit-location-description">{intl.formatMessage({ id: 'locations.addForm.descriptionLabel', defaultMessage: 'Description:' })}</label>
+                            <input
+                                type="text"
+                                id="edit-location-description"
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                disabled={isUpdating || isDeleting} // Disable during update or delete
+                            />
+                        </div>
+                        <div className="modal-actions">
+                             <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()}>
+                                {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
+                            </button>
+                            {/* Show Delete button only if provider configured and delete/listItems methods exist */}
+                            {api.config.isConfigured && typeof api.deleteLocation === 'function' && typeof api.listItems === 'function' && (
+                                <button
+                                    type="button"
+                                    className="delete-button"
+                                    onClick={() => handleDeleteClick(editingLocationId)}
+                                    disabled={isUpdating || isDeleting} // Disable during update or delete
+                                >
+                                    {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
+                                </button>
+                            )}
+                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting}>
+                                {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <Modal show={showDeleteConfirm} onClose={handleCancelDelete} title={intl.formatMessage({ id: 'locations.deleteModal.title', defaultMessage: 'Confirm Deletion' })}>
+                    <div className="delete-confirm-content">
+                        {deleteError && <p className="status-error">Error: {deleteError}</p>}
+                        <p>
+                            {intl.formatMessage({ id: 'locations.deleteModal.confirmMessage', defaultMessage: 'Are you sure you want to delete the location "{name}"? This action cannot be undone.' }, { name: locations.find(l => l.location_id === deleteCandidateId)?.name || '' })}
+                        </p>
+                        <div className="modal-actions">
+                            <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
+                                {isDeleting ? intl.formatMessage({ id: 'common.deleting', defaultMessage: 'Deleting...' }) : intl.formatMessage({ id: 'common.confirmDelete', defaultMessage: 'Confirm Delete' })}
+                            </button>
+                            <button onClick={handleCancelDelete} disabled={isDeleting}>
+                                {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
              )}
 
         </div>
