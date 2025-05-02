@@ -174,12 +174,12 @@
      background-size: 0.65em auto;
      padding-right: 30px; /* Make space for arrow */
 }
-
+/* Remove specific color overrides for buttons within the add form; let variant classes handle it */
 .add-item-form button {
     padding: 10px 15px;
-    background-color: #cddaea;
-    color: #343a40;
-    border: 1px solid #b8c8d8;
+    /* background-color: #cddaea; */ /* Removed */
+    /* color: #343a40; */ /* Removed */
+    /* border: 1px solid #b8c8d8; */ /* Removed */
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s ease, border-color 0.2s ease;
