@@ -489,7 +489,7 @@ const ItemsView = () => {
                         )}
                         {/* Action buttons for image */}
                         <div className="form-group-image-actions">
-                            <label htmlFor="item-image" className="button-secondary button-file-input">
+                            <label htmlFor="item-image" className="button-secondary button-file-input"> {/* Ensure both classes */}
                                 {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                             </label>
                             <button
@@ -505,7 +505,7 @@ const ItemsView = () => {
                                 <button
                                     type="button"
                                     onClick={handleRemoveNewImage}
-                                    className="remove-image-button" // Use danger style
+                                    className="button-danger remove-image-button" // Use danger style + specific class
                                 >{intl.formatMessage({ id: 'items.editForm.removeImage', defaultMessage: 'Remove Image' })}</button>
                             )}
                         </div>
@@ -768,7 +768,7 @@ const ItemsView = () => {
                             )}
                             {/* Action buttons for image */}
                             <div className="form-group-image-actions">
-                                <label htmlFor="edit-item-image" className="button-secondary button-file-input">
+                                <label htmlFor="edit-item-image" className="button-secondary button-file-input"> {/* Ensure both classes */}
                                     {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                                 </label>
                                 <button
@@ -784,7 +784,7 @@ const ItemsView = () => {
                                     <button
                                         type="button"
                                         onClick={handleRemoveEditImage}
-                                        className="remove-image-button"
+                                        className="button-danger remove-image-button" // Use danger style + specific class
                                         disabled={isUpdating || isDeleting}
                                     >
                                         {intl.formatMessage({ id: 'items.editForm.removeImage', defaultMessage: 'Remove Image' })}
