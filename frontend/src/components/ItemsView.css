@@ -30,12 +30,19 @@
 
 .add-item-form .form-group input[type="text"],
 .add-item-form .form-group select,
++.add-item-form .form-group input[type="file"], /* Style file input */
 .edit-item-form .form-group input[type="text"] { /* Apply to edit form too */
     width: calc(100% - 22px); /* Adjust for padding/border */
     padding: 8px 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 1em; /* Ensure consistent font size */
+}
+
+/* Basic styling for file input - often hidden and triggered by a label/button */
+.add-item-form .form-group input[type="file"],
+.edit-item-form .form-group input[type="file"] {
+    margin-top: 5px; /* Space above file input */
 }
 
 .add-item-form .form-group select {
@@ -72,6 +79,20 @@
     border-color: #a3b6c7;
 }
 
+/* Image Preview Styles */
+.image-preview {
+    margin-bottom: 10px;
+    max-width: 200px; /* Limit preview size */
+    max-height: 200px;
+    border: 1px solid #ced4da;
+    overflow: hidden; /* Contain the image */
+}
+
+.image-preview img {
+    display: block; /* Remove extra space below image */
+    width: 100%;
+    height: auto; /* Maintain aspect ratio */
+}
 /* --- Items List (Gallery) --- */
 .items-list {
     display: grid;
@@ -94,19 +115,36 @@
     overflow: hidden; /* Ensure content stays within rounded corners */
 }
 
-.item-image-placeholder {
+/* Container for image or placeholder */
+.item-image-container {
     width: 100%;
-    /* Maintain a portrait aspect ratio (e.g., 3:4) */
-    /* padding-top: calc(4 / 3 * 100%); */ /* Aspect ratio padding hack */
-    height: 200px; /* Or fixed height */
-    background: linear-gradient(135deg, #e0e7ef 25%, #f8f9fa 25%, #f8f9fa 50%, #e0e7ef 50%, #e0e7ef 75%, #f8f9fa 75%, #f8f9fa 100%);
-    background-size: 40px 40px; /* Size of the pattern */
+    height: 200px; /* Fixed height for consistency */
     border-bottom: 1px solid #dee2e6; /* Separator */
-    display: flex; /* For centering text if needed */
+    display: flex;
     align-items: center;
     justify-content: center;
-    color: #adb5bd; /* Placeholder text color */
-    font-style: italic;
+    overflow: hidden; /* Ensure image fits */
+    background-color: #f8f9fa; /* Default background */
+}
+
+/* Placeholder styling using background */
+.item-image-container.placeholder {
+    background: linear-gradient(135deg, #e0e7ef 25%, #f8f9fa 25%, #f8f9fa 50%, #e0e7ef 50%, #e0e7ef 75%, #f8f9fa 75%, #f8f9fa 100%);
+    background-size: 40px 40px; /* Size of the pattern */
+}
+
+.item-image-container img.item-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the area, cropping if needed */
+}
+
+/* Loading/Error states (Optional - not strictly needed if placeholder is sufficient) */
+.item-image-loading,
+.item-image-error {
+    font-size: 0.9em;
+    color: #6c757d;
+    text-align: center;
 }
 
 .item-card-content {
@@ -181,6 +219,22 @@
     font-weight: bold;
 }
 
+/* Remove Image Button in Edit Modal */
+.remove-image-button {
+    padding: 5px 10px;
+    font-size: 0.85em;
+    background-color: #f8d7da; /* Light red */
+    color: #721c24; /* Dark red text */
+    border: 1px solid #f5c6cb; /* Reddish border */
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px 0 10px 0; /* Spacing */
+    transition: background-color 0.2s ease;
+}
+.remove-image-button:hover:not(:disabled) {
+    background-color: #f1b0b7;
+}
+
 /* Re-use modal action styles if defined globally or copy from CategoriesView.css */
 .modal-actions {
     display: flex;
@@ -189,6 +243,12 @@
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #eee;
+}
+
+/* Status messages inside modal */
+.modal-status {
+    margin-bottom: 15px; /* Space before actions */
+    margin-top: -5px; /* Reduce space after last form group */
 }
 
 @media (max-width: 480px) {

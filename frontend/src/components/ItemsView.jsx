@@ -16,6 +16,8 @@ const ItemsView = () => {
     const [newItemDescription, setNewItemDescription] = useState('');
     const [newItemLocationId, setNewItemLocationId] = useState(''); // Store ID
     const [newItemCategoryId, setNewItemCategoryId] = useState(''); // Store ID
+    const [newItemImageFile, setNewItemImageFile] = useState(null); // Store File object
+    const [newItemImagePreview, setNewItemImagePreview] = useState(null); // Store Data URL for preview
     const [newItemOwnerId, setNewItemOwnerId] = useState(''); // Store ID
 
     // General status state
@@ -29,6 +31,8 @@ const ItemsView = () => {
     const [editDescription, setEditDescription] = useState('');
     const [editLocationId, setEditLocationId] = useState(''); // Add state for edit location
     const [editCategoryId, setEditCategoryId] = useState(''); // Add state for edit category
+    const [editItemImageFile, setEditItemImageFile] = useState(null); // Store File object for edit
+    const [editItemImagePreview, setEditItemImagePreview] = useState(null); // Store Data URL for edit preview
     const [editOwnerId, setEditOwnerId] = useState(''); // Add state for edit owner
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
@@ -133,6 +137,26 @@ const ItemsView = () => {
     const getCategoryNameById = (id) => categories.find(cat => cat.category_id === id)?.name || intl.formatMessage({ id: 'items.card.noCategory', defaultMessage: 'N/A' });
     const getOwnerNameById = (id) => owners.find(owner => owner.owner_id === id)?.name || intl.formatMessage({ id: 'items.card.noOwner', defaultMessage: 'N/A' });
 
+    // --- Image File Handling ---
+    const handleFileChange = (event, type) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (type === 'add') {
+                    setNewItemImageFile(file);
+                    setNewItemImagePreview(reader.result);
+                } else if (type === 'edit') {
+                    setEditItemImageFile(file);
+                    setEditItemImagePreview(reader.result);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        // Clear the input value to allow selecting the same file again
+        event.target.value = null;
+    };
+
     // --- Add Item Handler ---
     const handleAddItem = async (e) => {
         e.preventDefault();
@@ -170,7 +194,8 @@ const ItemsView = () => {
                 description: newItemDescription.trim() || null,
                 location_id: parseInt(newItemLocationId, 10), // Ensure ID is integer
                 category_id: parseInt(newItemCategoryId, 10), // Ensure ID is integer
-                owner_id: parseInt(newItemOwnerId, 10) // Ensure ID is integer
+                owner_id: parseInt(newItemOwnerId, 10), // Ensure ID is integer
+                imageFile: newItemImageFile // Pass the File object
             });
 
             if (result.success) {
@@ -179,6 +204,8 @@ const ItemsView = () => {
                 setNewItemDescription('');
                 setNewItemLocationId('');
                 setNewItemCategoryId('');
+                setNewItemImageFile(null); // Clear file state
+                setNewItemImagePreview(null); // Clear preview
                 setNewItemOwnerId('');
                 await new Promise(resolve => setTimeout(resolve, 250)); // Add delay before refetch
                 fetchData(); // Refresh the list
@@ -231,6 +258,10 @@ const ItemsView = () => {
         setEditDescription(item.description || '');
         setEditLocationId(item.location_id || ''); // Set initial location ID
         setEditCategoryId(item.category_id || ''); // Set initial category ID
+        // Don't need to fetch image separately, it's already in the item object from listItems
+        // Set preview based on existing item data if available
+        setEditItemImageFile(null); // Clear any previously selected file
+        setEditItemImagePreview(null); // Clear previous preview
         setEditOwnerId(item.owner_id || ''); // Set initial owner ID
         setUpdateError(null);
         setSuccess(null);
@@ -243,8 +274,18 @@ const ItemsView = () => {
         setEditDescription('');
         setEditLocationId(''); // Reset edit location ID
         setEditCategoryId(''); // Reset edit category ID
+        // Clear image state on cancel
+        // No need to clear preview specifically if it's derived from item data
+        setEditItemImageFile(null); // Clear file state on cancel
+        setEditItemImagePreview(null); // Clear preview on cancel
         setEditOwnerId(''); // Reset edit owner ID
         setUpdateError(null);
+    };
+
+    // Handler for the "Remove Image" button in the edit modal
+    const handleRemoveEditImage = () => {
+        setEditItemImageFile(null); // Clear selected file
+        setEditItemImagePreview(null); // Clear preview
     };
 
     const handleUpdateItem = async (e) => {
@@ -258,13 +299,21 @@ const ItemsView = () => {
         setUpdateError(null);
         setSuccess(null);
 
+        // Determine if image should be removed:
+        // Find the original item to check its current image status
+        const currentItem = items.find(i => i.item_id === editingItemId);
+        // Remove if: No preview shown, no new file selected, AND the original item *had* an image.
+        const removeImageFlag = !editItemImagePreview && !editItemImageFile && editingItemId && items.find(i => i.item_id === editingItemId)?.image_id;
+
         try {
             const result = await api.updateItem(editingItemId, {
                 name: editName.trim(),
                 description: editDescription.trim() || null,
                 location_id: parseInt(editLocationId, 10), // Include location_id
                 category_id: parseInt(editCategoryId, 10),  // Include category_id
-                owner_id: parseInt(editOwnerId, 10)  // Include owner_id
+                owner_id: parseInt(editOwnerId, 10),  // Include owner_id
+                imageFile: editItemImageFile, // Pass the new file (if any)
+                removeImage: removeImageFlag // Pass the remove flag
             });
 
             if (result.success) {
@@ -360,6 +409,22 @@ const ItemsView = () => {
                             id="item-description"
                             value={newItemDescription}
                             onChange={(e) => setNewItemDescription(e.target.value)}
+                            disabled={loading}
+                        />
+                    </div>
+                     {/* Image Upload */}
+                    <div className="form-group">
+                        <label htmlFor="item-image">{intl.formatMessage({ id: 'items.addForm.imageLabel', defaultMessage: 'Image:' })}</label>
+                        {newItemImagePreview && (
+                            <div className="image-preview">
+                                <img src={newItemImagePreview} alt={intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' })} />
+                            </div>
+                        )}
+                        <input
+                            type="file"
+                            id="item-image"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, 'add')}
                             disabled={loading}
                         />
                     </div>
@@ -522,8 +587,15 @@ const ItemsView = () => {
                 <div className="items-list">
                     {filteredItems.map((item) => (
                         <div key={item.item_id} className="item-card">
-                            <div className="item-image-placeholder">
-                                {/* Placeholder - Image will go here later */}
+                            {/* Display image using data directly from item object */}
+                            <div className={`item-image-container ${!item.image_data ? 'placeholder' : ''}`}>
+                                {item.image_data && item.image_mimetype ? (
+                                    <img
+                                        src={`data:${item.image_mimetype};base64,${item.image_data}`}
+                                        alt={item.name}
+                                        className="item-image"
+                                    />
+                                ) : null /* Background handles placeholder */}
                             </div>
                             <div className="item-card-content">
                                 <h4>{item.name}</h4>
@@ -555,7 +627,12 @@ const ItemsView = () => {
             )}
 
             {/* Edit Item Modal */}
-            {editingItemId && (
+            {editingItemId && (() => {
+                const currentItem = items.find(i => i.item_id === editingItemId);
+                // Construct current image data URL directly from item data
+                const currentImageDataUrl = currentItem?.image_data && currentItem?.image_mimetype ? `data:${currentItem.image_mimetype};base64,${currentItem.image_data}` : null;
+                const displayImageUrl = editItemImagePreview || currentImageDataUrl; // Show preview if available, else current image
+                return (
                 <Modal show={!!editingItemId} onClose={handleCancelEdit} title={intl.formatMessage({ id: 'items.editModal.title', defaultMessage: 'Edit Item' })}>
                     <form onSubmit={handleUpdateItem} className="edit-item-form">
                         {updateError && <p className="status-error">Error: {updateError}</p>}
@@ -577,6 +654,33 @@ const ItemsView = () => {
                                 id="edit-item-description"
                                 value={editDescription}
                                 onChange={(e) => setEditDescription(e.target.value)}
+                                disabled={isUpdating || isDeleting}
+                            />
+                        </div>
+                        {/* Image Upload/Preview/Remove */}
+                        <div className="form-group">
+                            <label htmlFor="edit-item-image">{intl.formatMessage({ id: 'items.editForm.imageLabel', defaultMessage: 'Image:' })}</label>
+                            {displayImageUrl && (
+                                <div className="image-preview">
+                                    <img src={displayImageUrl} alt={intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' })} />
+                                </div>
+                            )}
+                            {/* Show remove button only if there's an image currently displayed (existing or preview) */}
+                            {displayImageUrl && typeof api.deleteItem === 'function' && ( // Assuming deleteItem implies image removal capability
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveEditImage}
+                                    className="remove-image-button"
+                                    disabled={isUpdating || isDeleting}
+                                >
+                                    {intl.formatMessage({ id: 'items.editForm.removeImage', defaultMessage: 'Remove Image' })}
+                                </button>
+                            )}
+                            <input
+                                type="file"
+                                id="edit-item-image"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, 'edit')}
                                 disabled={isUpdating || isDeleting}
                             />
                         </div>
@@ -655,7 +759,7 @@ const ItemsView = () => {
                         </div>
                     </form>
                 </Modal>
-            )}
+            );})()}
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
