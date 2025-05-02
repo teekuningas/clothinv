@@ -496,7 +496,7 @@ const ItemsView = () => {
                                 type="button"
                                 onClick={() => handleOpenWebcam('add')}
                                 disabled={loading}
-                                className="button-secondary" // Style as secondary button
+                                className="button-primary" // Change to primary style to match Choose File
                             >
                                 {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                             </button>
