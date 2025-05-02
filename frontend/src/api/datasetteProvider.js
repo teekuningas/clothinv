@@ -558,29 +558,75 @@ export const listItems = async (settings) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-    // Modify query to join with images and select image data/type
-    const sql = `
-        SELECT items.*, images.image_data, images.image_mimetype
-        FROM items
-        LEFT JOIN images ON items.image_id = images.image_id
-        ORDER BY items.created_at DESC;
-    `;
-    const queryUrl = `${baseUrl}.json?sql=${encodeURIComponent(sql)}&_shape=array`;
-    const res = await fetch(queryUrl, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-    });
+    try {
+        // 1. Fetch all items (basic data + image_id)
+        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`;
+        const itemsRes = await fetch(itemsUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!itemsRes.ok) {
+            const errorText = await itemsRes.text();
+            console.error(`Failed to fetch items: ${itemsRes.status} ${errorText}`, itemsRes);
+            throw new Error(`Failed to fetch items: ${itemsRes.status}`);
+        }
+        const itemsData = await itemsRes.json();
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`Failed to fetch items: ${res.status} ${errorText}`, res);
-        throw new Error(`Failed to fetch items: ${res.status}`);
+        // If no items, return early
+        if (!itemsData || itemsData.length === 0) {
+            console.log("Fetched 0 items.");
+            return [];
+        }
+
+        // 2. Fetch all images (only needed if there are items)
+        const imagesUrl = `${baseUrl}/images.json?_shape=array`;
+        const imagesRes = await fetch(imagesUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!imagesRes.ok) {
+            // Log warning but proceed, images might be missing
+            console.warn(`Failed to fetch images: ${imagesRes.status}. Items will be listed without images.`);
+            // Return items without image data attached
+             return itemsData;
+        }
+        const imagesData = await imagesRes.json();
+
+        // 3. Create a map of image_id -> { image_data, image_mimetype }
+        const imageMap = imagesData.reduce((map, img) => {
+            if (img.image_id) {
+                map[img.image_id] = {
+                    image_data: img.image_data,
+                    image_mimetype: img.image_mimetype
+                };
+            }
+            return map;
+        }, {});
+
+        // 4. Merge image data into items
+        const itemsWithImages = itemsData.map(item => {
+            if (item.image_id && imageMap[item.image_id]) {
+                return {
+                    ...item,
+                    image_data: imageMap[item.image_id].image_data,
+                    image_mimetype: imageMap[item.image_id].image_mimetype
+                };
+            }
+            // Return item as is if no image_id or image not found in map
+            return item;
+        });
+
+        console.log(`Fetched ${itemsWithImages.length} items and merged image data.`);
+        return itemsWithImages; // Returns array of item objects including image data/mimetype
+
+    } catch (error) {
+        // Log the error and re-throw or return empty array based on desired handling
+        console.error("Error in listItems:", error);
+        throw error; // Re-throw the error to be caught by the component
+        // Or return []; // To show an empty list in case of error
     }
-    const data = await res.json();
-    console.log(`Fetched ${data.length} items (with image data).`);
-    return data; // Returns array of item objects, potentially including image_data and image_mimetype
 };
 
 // addItem function (composite one) is also not needed based on current usage
 // export const addItem = async (settings, data) => { ... }
-import { Buffer } from 'buffer'; // May not be strictly needed if FileReader handles all, but good practice
+// import { Buffer } from 'buffer'; // Removed as FileReader is used

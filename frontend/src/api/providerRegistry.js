@@ -36,7 +36,7 @@ export const providers = {
         isConfiguredCheck: (settings) => !!settings?.datasetteBaseUrl,
         // List the API methods this provider implements (must match exports from the module)
         methods: [
-            'addItem',
+            // 'addItem', // Removed as addItemSimple is used
             'listLocations',
             'addLocation',
             'updateLocation',
