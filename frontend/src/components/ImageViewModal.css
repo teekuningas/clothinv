@@ -56,11 +56,15 @@
     color: white; /* White 'x' */
     border: 1px solid rgba(255, 255, 255, 0.4); /* Subtle border */
     border-radius: 50%; /* Circular button */
-    width: 36px;  /* Increased width */
-    height: 36px; /* Increased height */
-    font-size: 28px; /* Increased font size for the 'x' */
-    line-height: 34px; /* Adjust line-height to vertically center the larger 'x' */
+    width: 36px;  /* Keep width */
+    height: 36px; /* Keep height */
+    font-size: 32px; /* Further increase font size */
+    line-height: 36px; /* Match height for vertical centering */
     text-align: center;
+    /* Add flex centering for robustness */
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     padding: 0;
     z-index: 1051; /* Above the content */
