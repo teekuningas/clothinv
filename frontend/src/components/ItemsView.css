@@ -6,12 +6,12 @@
 
 /* --- Base Button Style --- */
 .items-view button,
-.modal-actions button { /* Apply broadly */
-    padding: 8px 15px;
+.modal-actions button,
+.button-file-input { /* Include label styled as button */
+    padding: 10px 15px; /* Consistent vertical padding for height */
     border: 1px solid transparent;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1em; /* Consistent font size */
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
     line-height: 1.5; /* Ensure text vertical alignment */
     text-align: center;
@@ -24,9 +24,11 @@
 }
 
 .items-view button:disabled,
-.modal-actions button:disabled {
+.modal-actions button:disabled,
+.button-file-input:disabled { /* Style disabled label */
     cursor: not-allowed;
     opacity: 0.65;
+    /* Ensure background/color don't change drastically */
 }
 
 /* --- Button Variants --- */
@@ -85,7 +87,7 @@
 
 /* Danger (Delete, Remove Image) */
 .button-danger,
-.delete-button, /* Keep existing class */
+.delete-button,
 .remove-image-button {
     background-color: #f8d7da; /* Light red */
     color: #721c24; /* Dark red text */
@@ -343,10 +345,12 @@
 /* Style the label to look like a button */
 .button-file-input {
     /* Explicitly apply secondary button styles for consistency */
-    background-color: #e9ecef;
-    color: #495057;
-    border: 1px solid #dee2e6;
+    /* Inherit from .button-secondary via cascade or explicitly set */
+    background-color: #e9ecef; /* Light grey */
+    color: #495057; /* Dark text */
+    border-color: #dee2e6; /* Grey border */
     display: inline-block; /* Allow setting padding/margins */
+    padding: 10px 15px; /* Match base button padding */
     cursor: pointer;
     /* vertical-align: middle; Removed, let flexbox handle alignment */
 }
@@ -356,7 +360,7 @@
     margin-top: 8px; /* Space above the action buttons */
     display: flex; /* Arrange buttons horizontally */
     gap: 10px; /* Space between buttons */
-    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+    flex-wrap: wrap; /* Allow wrapping */
     align-items: center; /* Vertically align items */
 }
 
@@ -372,18 +376,25 @@
 
 /* Adjust remove image button */
 .remove-image-button {
-    padding: 5px 10px; /* Slightly smaller padding */
+    /* Ensure it uses danger styles */
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    padding: 10px 15px; /* Match base button padding */
     font-size: 0.9em;
-    /* margin-top: 8px; Removed, use gap from flex container */
-    /* align-self: flex-start; Removed, let flexbox handle alignment */
-    /* Danger styles already applied */
 }
 
 /* Responsive stacking for image action buttons */
 @media (max-width: 600px) {
     .form-group-image-actions {
         flex-direction: column; /* Stack vertically */
-        align-items: flex-start; /* Align buttons to the left */
+        align-items: stretch; /* Make items fill the container width */
+    }
+    /* Ensure buttons and label take full width when stacked */
+    .form-group-image-actions .button-secondary,
+    .form-group-image-actions .button-file-input,
+    .form-group-image-actions .remove-image-button {
+        width: 100%;
     }
 }
 

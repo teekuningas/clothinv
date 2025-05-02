@@ -498,7 +498,7 @@ const ItemsView = () => {
                                 disabled={loading}
                                 className="button-secondary" // Style as secondary button
                             >
-                                {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
+                                {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                             </button>
                             {/* Show remove button only if there's a preview */}
                             {newItemImagePreview && (
@@ -777,7 +777,7 @@ const ItemsView = () => {
                                     disabled={isUpdating || isDeleting}
                                     className="button-secondary" // Style as secondary button
                                 >
-                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
+                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                                 </button>
                                 {/* Show remove button only if there's an image currently displayed (existing or preview) */}
                                 {displayImageUrl && typeof api.deleteItem === 'function' && ( // Assuming deleteItem implies image removal capability

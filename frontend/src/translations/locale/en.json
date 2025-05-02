@@ -132,6 +132,7 @@
     "items.addForm.imageLabel": "Image:",
     "items.addForm.imagePreviewAlt": "New item preview",
     "items.addForm.chooseFile": "Choose File",
+    "items.addForm.takePicture": "Take Picture",
     "items.addForm.button.add": "Add Item",
     "items.addForm.button.adding": "Adding...",
     "items.addForm.notSupported": "Adding or listing required data is not supported by the current API Provider.",
