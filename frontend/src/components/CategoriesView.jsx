@@ -57,7 +57,7 @@ const CategoriesView = () => {
     }, [fetchCategories]);
 
     // Function to handle adding a new category
-    const handleAddCategory = async (e) => {
+    const handleAddCategory = async (e) => { // Make async
         e.preventDefault(); // Prevent default form submission
 
         if (!newCategoryName.trim()) {
@@ -90,12 +90,19 @@ const CategoriesView = () => {
                 fetchCategories(); // Refresh the list
             } else {
                 // Should ideally not happen if addCategory throws errors, but handle just in case
-                setError(intl.formatMessage({ id: 'categories.error.add', defaultMessage: 'Failed to add category: {error}' }, { error: intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) })); // Add common.error.unknown key
+                setError(intl.formatMessage({ id: 'categories.error.add', defaultMessage: 'Failed to add category: {error}' }, { error: result.message || intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
             }
         } catch (err) {
             console.error("Failed to add category:", err); // Keep console error in English
-            setError(`Failed to add category: ${err.message}`);
+            // Use intl for consistency, even if the message might be technical
+            setError(intl.formatMessage({ id: 'categories.error.add', defaultMessage: 'Failed to add category: {error}' }, { error: err.message }));
         } finally {
+            // Add a small delay before resetting loading state if successful, allowing backend time
+            // Check if success message was set in the try block (use a local variable as state update is async)
+            const wasSuccessful = !!success; // Capture success state before potential async delay
+            if (wasSuccessful) {
+                 await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+            }
             setLoading(false);
         }
     };
@@ -117,7 +124,7 @@ const CategoriesView = () => {
         setUpdateError(null);
     };
 
-    const handleUpdateCategory = async (e) => {
+    const handleUpdateCategory = async (e) => { // Make async
         e.preventDefault();
         if (!editingCategoryId || !editName.trim() || typeof api.updateCategory !== 'function') {
             setUpdateError(intl.formatMessage({ id: 'categories.error.updateInvalid', defaultMessage: 'Cannot update. Invalid data or update function unavailable.' }));
@@ -140,12 +147,18 @@ const CategoriesView = () => {
                 fetchCategories(); // Refresh list
             } else {
                 // Should ideally not happen if updateCategory throws errors
-                setUpdateError(intl.formatMessage({ id: 'categories.error.update', defaultMessage: 'Failed to update category: {error}' }, { error: intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
+                setUpdateError(intl.formatMessage({ id: 'categories.error.update', defaultMessage: 'Failed to update category: {error}' }, { error: result.message || intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
             }
         } catch (err) {
             console.error("Failed to update category:", err); // Keep console error in English
-            setUpdateError(`Failed to update category: ${err.message}`);
+            // Use intl for consistency
+            setUpdateError(intl.formatMessage({ id: 'categories.error.update', defaultMessage: 'Failed to update category: {error}' }, { error: err.message }));
         } finally {
+            // Add a small delay before resetting loading state if successful
+            const wasSuccessful = !!success; // Capture success state before potential async delay
+            if (wasSuccessful) {
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+            }
             setIsUpdating(false);
         }
     };
@@ -164,7 +177,7 @@ const CategoriesView = () => {
         setDeleteError(null);
     };
 
-    const handleConfirmDelete = async () => {
+    const handleConfirmDelete = async () => { // Make async
         if (!deleteCandidateId || typeof api.deleteCategory !== 'function' || typeof api.listItems !== 'function') {
             setDeleteError(intl.formatMessage({ id: 'categories.error.deleteInvalid', defaultMessage: 'Cannot delete. Invalid data or required API functions unavailable.' }));
             return;
@@ -192,12 +205,23 @@ const CategoriesView = () => {
                 fetchCategories(); // Refresh list
             } else {
                 // Should ideally not happen if deleteCategory throws errors
-                setDeleteError(intl.formatMessage({ id: 'categories.error.delete', defaultMessage: 'Failed to delete category: {error}' }, { error: intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
+                setDeleteError(intl.formatMessage({ id: 'categories.error.delete', defaultMessage: 'Failed to delete category: {error}' }, { error: result.message || intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
             }
         } catch (err) { // err might already be translated if thrown above
             console.error("Failed to delete category:", err);
-            setDeleteError(`Failed to delete category: ${err.message}`);
+            // Use intl for consistency, check if message is already translated from the 'in use' check
+            // Simple check for keywords - adjust if needed for more robust language detection
+            const isAlreadyTranslated = ['assigned to one or more items', 'liitetty yhteen tai useampaan vaatteeseen'].some(phrase => err.message.includes(phrase));
+            const errorMessage = isAlreadyTranslated
+                ? err.message // Already translated
+                : intl.formatMessage({ id: 'categories.error.delete', defaultMessage: 'Failed to delete category: {error}' }, { error: err.message });
+            setDeleteError(errorMessage);
         } finally {
+            // Add a small delay before resetting loading state if successful
+            const wasSuccessful = !!success; // Capture success state before potential async delay
+            if (wasSuccessful) {
+                await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
+            }
             setIsDeleting(false);
         }
     };
