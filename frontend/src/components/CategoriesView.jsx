@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../api/ApiContext'; // Import useApi hook
+import { useIntl } from 'react-intl'; // Import useIntl
 import './CategoriesView.css'; // Import CSS
 import Modal from './Modal'; // Import the Modal component
 
@@ -21,13 +22,17 @@ const CategoriesView = () => {
     const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
 
     const api = useApi(); // Get API methods from context
+    const intl = useIntl(); // Get intl object
 
     // Function to fetch categories
     const fetchCategories = useCallback(async () => {
         // Only fetch if the provider is configured and listCategories exists
         if (!api.config.isConfigured || typeof api.listCategories !== 'function') {
             setCategories([]); // Clear categories if not configured or function missing
-            setError(api.config.isConfigured ? "listCategories method not available for this provider." : "API Provider not configured.");
+            setError(api.config.isConfigured
+                ? intl.formatMessage({ id: 'categories.list.notSupported', defaultMessage: 'Listing categories is not supported by the current API Provider.' })
+                : intl.formatMessage({ id: 'common.status.apiNotConfigured', defaultMessage: 'API Provider is not configured. Please configure it in Settings.' })
+            );
             return;
         }
 
@@ -39,12 +44,12 @@ const CategoriesView = () => {
             setCategories(data || []); // Ensure data is an array
         } catch (err) {
             console.error("Failed to fetch categories:", err);
-            setError(`Failed to fetch categories: ${err.message}`);
+            setError(intl.formatMessage({ id: 'categories.error.fetch', defaultMessage: 'Failed to fetch categories: {error}' }, { error: err.message }));
             setCategories([]); // Clear categories on error
         } finally {
             setLoading(false);
         }
-    }, [api]); // Dependency: re-run if api object (methods/config) changes
+    }, [api, intl]); // Add intl to dependencies
 
     // Fetch categories on component mount and when fetchCategories changes
     useEffect(() => {
@@ -56,12 +61,15 @@ const CategoriesView = () => {
         e.preventDefault(); // Prevent default form submission
 
         if (!newCategoryName.trim()) {
-            setError("Category name cannot be empty.");
+            setError(intl.formatMessage({ id: 'categories.error.nameEmpty', defaultMessage: 'Category name cannot be empty.' }));
             return;
         }
         // Only add if the provider is configured and addCategory exists
         if (!api.config.isConfigured || typeof api.addCategory !== 'function') {
-             setError(api.config.isConfigured ? "addCategory method not available for this provider." : "API Provider not configured.");
+             setError(api.config.isConfigured
+                ? intl.formatMessage({ id: 'categories.addForm.notSupported', defaultMessage: 'Adding categories is not supported by the current API Provider.' })
+                : intl.formatMessage({ id: 'common.status.apiNotConfigured', defaultMessage: 'API Provider is not configured. Please configure it in Settings.' })
+             );
             return;
         }
 
@@ -76,16 +84,16 @@ const CategoriesView = () => {
             });
 
             if (result.success) {
-                setSuccess(`Category "${newCategoryName}" added successfully!`);
+                setSuccess(intl.formatMessage({ id: 'categories.success.add', defaultMessage: 'Category "{name}" added successfully!' }, { name: newCategoryName.trim() }));
                 setNewCategoryName('');
                 setNewCategoryDescription('');
                 fetchCategories(); // Refresh the list
             } else {
                 // Should ideally not happen if addCategory throws errors, but handle just in case
-                setError("Failed to add category for an unknown reason.");
+                setError(intl.formatMessage({ id: 'categories.error.add', defaultMessage: 'Failed to add category: {error}' }, { error: intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) })); // Add common.error.unknown key
             }
         } catch (err) {
-            console.error("Failed to add category:", err);
+            console.error("Failed to add category:", err); // Keep console error in English
             setError(`Failed to add category: ${err.message}`);
         } finally {
             setLoading(false);
@@ -112,7 +120,7 @@ const CategoriesView = () => {
     const handleUpdateCategory = async (e) => {
         e.preventDefault();
         if (!editingCategoryId || !editName.trim() || typeof api.updateCategory !== 'function') {
-            setUpdateError("Cannot update. Invalid data or update function unavailable.");
+            setUpdateError(intl.formatMessage({ id: 'categories.error.updateInvalid', defaultMessage: 'Cannot update. Invalid data or update function unavailable.' }));
             return;
         }
 
@@ -127,15 +135,15 @@ const CategoriesView = () => {
             });
 
             if (result.success) {
-                setSuccess(`Category "${editName}" updated successfully!`);
+                setSuccess(intl.formatMessage({ id: 'categories.success.update', defaultMessage: 'Category "{name}" updated successfully!' }, { name: editName.trim() }));
                 handleCancelEdit(); // Close modal
                 fetchCategories(); // Refresh list
             } else {
                 // Should ideally not happen if updateCategory throws errors
-                setUpdateError("Failed to update category for an unknown reason.");
+                setUpdateError(intl.formatMessage({ id: 'categories.error.update', defaultMessage: 'Failed to update category: {error}' }, { error: intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
             }
         } catch (err) {
-            console.error("Failed to update category:", err);
+            console.error("Failed to update category:", err); // Keep console error in English
             setUpdateError(`Failed to update category: ${err.message}`);
         } finally {
             setIsUpdating(false);
@@ -158,7 +166,7 @@ const CategoriesView = () => {
 
     const handleConfirmDelete = async () => {
         if (!deleteCandidateId || typeof api.deleteCategory !== 'function' || typeof api.listItems !== 'function') {
-            setDeleteError("Cannot delete. Invalid data or required API functions unavailable.");
+            setDeleteError(intl.formatMessage({ id: 'categories.error.deleteInvalid', defaultMessage: 'Cannot delete. Invalid data or required API functions unavailable.' }));
             return;
         }
 
@@ -172,21 +180,21 @@ const CategoriesView = () => {
             const isCategoryInUse = items.some(item => item.category_id === deleteCandidateId);
 
             if (isCategoryInUse) {
-                throw new Error("Cannot delete category because it is currently assigned to one or more items.");
+                throw new Error(intl.formatMessage({ id: 'categories.error.deleteInUse', defaultMessage: 'Cannot delete category because it is currently assigned to one or more items.' }));
             }
 
             // 2. Proceed with deletion if not in use
             const result = await api.deleteCategory(deleteCandidateId);
             if (result.success) {
-                setSuccess(`Category deleted successfully!`);
+                setSuccess(intl.formatMessage({ id: 'categories.success.delete', defaultMessage: 'Category deleted successfully!' }));
                 handleCancelDelete(); // Close confirmation modal
                 handleCancelEdit(); // Close edit modal as well if open
                 fetchCategories(); // Refresh list
             } else {
                 // Should ideally not happen if deleteCategory throws errors
-                setDeleteError("Failed to delete category for an unknown reason.");
+                setDeleteError(intl.formatMessage({ id: 'categories.error.delete', defaultMessage: 'Failed to delete category: {error}' }, { error: intl.formatMessage({ id: 'common.error.unknown', defaultMessage: 'Unknown reason' }) }));
             }
-        } catch (err) {
+        } catch (err) { // err might already be translated if thrown above
             console.error("Failed to delete category:", err);
             setDeleteError(`Failed to delete category: ${err.message}`);
         } finally {
@@ -197,23 +205,23 @@ const CategoriesView = () => {
 
     return (
         <div className="categories-view"> {/* Use categories-view class */}
-            <h2>Categories Management</h2>
+            <h2>{intl.formatMessage({ id: 'categories.title', defaultMessage: 'Categories Management' })}</h2>
 
             {/* Status Messages */}
-            {loading && <p className="status-loading">Loading...</p>}
+            {loading && <p className="status-loading">{intl.formatMessage({ id: 'categories.loading', defaultMessage: 'Loading categories...' })}</p>}
             {error && <p className="status-error">Error: {error}</p>}
             {success && <p className="status-success">{success}</p>}
 
             {/* Add Category Form */}
             {!api.config.isConfigured ? (
-                 <p className="status-warning">API Provider is not configured. Please configure it in Settings.</p>
+                 <p className="status-warning">{intl.formatMessage({ id: 'common.status.apiNotConfigured' })}</p>
             ) : typeof api.addCategory !== 'function' ? (
-                 <p className="status-warning">Adding categories is not supported by the current API Provider.</p>
+                 <p className="status-warning">{intl.formatMessage({ id: 'categories.addForm.notSupported', defaultMessage: 'Adding categories is not supported by the current API Provider.' })}</p>
             ) : (
                 <form onSubmit={handleAddCategory} className="add-category-form"> {/* Use add-category-form class */}
-                    <h3>Add New Category</h3>
+                    <h3>{intl.formatMessage({ id: 'categories.addForm.title', defaultMessage: 'Add New Category' })}</h3>
                     <div className="form-group">
-                        <label htmlFor="category-name">Name:</label>
+                        <label htmlFor="category-name">{intl.formatMessage({ id: 'categories.addForm.nameLabel', defaultMessage: 'Name:' })}</label>
                         <input
                             type="text"
                             id="category-name"
@@ -224,7 +232,7 @@ const CategoriesView = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label htmlFor="category-description">Description:</label>
+                        <label htmlFor="category-description">{intl.formatMessage({ id: 'categories.addForm.descriptionLabel', defaultMessage: 'Description:' })}</label>
                         <input
                             type="text"
                             id="category-description"
@@ -234,19 +242,19 @@ const CategoriesView = () => {
                         />
                     </div>
                     <button type="submit" disabled={loading || !newCategoryName.trim()}>
-                        {loading ? 'Adding...' : 'Add Category'}
+                        {loading ? intl.formatMessage({ id: 'categories.addForm.button.adding', defaultMessage: 'Adding...' }) : intl.formatMessage({ id: 'categories.addForm.button.add', defaultMessage: 'Add Category' })}
                     </button>
                 </form>
             )}
 
 
             {/* Categories List */}
-            <h3>Existing Categories</h3>
+            <h3>{intl.formatMessage({ id: 'categories.list.title', defaultMessage: 'Existing Categories' })}</h3>
             {typeof api.listCategories !== 'function' && api.config.isConfigured && (
-                 <p className="status-warning">Listing categories is not supported by the current API Provider.</p>
+                 <p className="status-warning">{intl.formatMessage({ id: 'categories.list.notSupported', defaultMessage: 'Listing categories is not supported by the current API Provider.' })}</p>
             )}
             {typeof api.listCategories === 'function' && !loading && categories.length === 0 && !error && api.config.isConfigured && (
-                <p>No categories found. Add one above!</p>
+                <p>{intl.formatMessage({ id: 'categories.list.empty', defaultMessage: 'No categories found. Add one above!' })}</p>
             )}
             {typeof api.listCategories === 'function' && categories.length > 0 && (
                 <div className="categories-list"> {/* Use div for card container */}
@@ -259,10 +267,10 @@ const CategoriesView = () => {
                                 <button
                                     onClick={() => handleEditClick(cat)}
                                     className="edit-button"
-                                    aria-label={`Edit ${cat.name}`}
+                                    aria-label={intl.formatMessage({ id: 'categories.editButton.label', defaultMessage: 'Edit {name}' }, { name: cat.name })}
                                     disabled={loading || isUpdating || isDeleting} // Disable if any operation is in progress
                                 >
-                                    Edit
+                                    {intl.formatMessage({ id: 'common.edit', defaultMessage: 'Edit' })}
                                 </button>
                             )}
                         </div>
@@ -272,11 +280,11 @@ const CategoriesView = () => {
 
             {/* Edit Category Modal */}
             {editingCategoryId && (
-                <Modal show={!!editingCategoryId} onClose={handleCancelEdit} title="Edit Category">
+                <Modal show={!!editingCategoryId} onClose={handleCancelEdit} title={intl.formatMessage({ id: 'categories.editModal.title', defaultMessage: 'Edit Category' })}>
                     <form onSubmit={handleUpdateCategory} className="edit-category-form">
                         {updateError && <p className="status-error">Error: {updateError}</p>}
                         <div className="form-group">
-                            <label htmlFor="edit-category-name">Name:</label>
+                            <label htmlFor="edit-category-name">{intl.formatMessage({ id: 'categories.addForm.nameLabel', defaultMessage: 'Name:' })}</label>
                             <input
                                 type="text"
                                 id="edit-category-name"
@@ -298,7 +306,7 @@ const CategoriesView = () => {
                         </div>
                         <div className="modal-actions">
                              <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()}>
-                                {isUpdating ? 'Saving...' : 'Save Changes'}
+                                {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
                             {/* Show Delete button only if provider configured and delete/listItems methods exist */}
                             {api.config.isConfigured && typeof api.deleteCategory === 'function' && typeof api.listItems === 'function' && (
@@ -308,11 +316,11 @@ const CategoriesView = () => {
                                     onClick={() => handleDeleteClick(editingCategoryId)}
                                     disabled={isUpdating || isDeleting} // Disable during update or delete
                                 >
-                                    Delete Category
+                                    {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                                 </button>
                             )}
                             <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting}>
-                                Cancel
+                                {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
                     </form>
@@ -321,17 +329,19 @@ const CategoriesView = () => {
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
-                <Modal show={showDeleteConfirm} onClose={handleCancelDelete} title="Confirm Deletion">
+                <Modal show={showDeleteConfirm} onClose={handleCancelDelete} title={intl.formatMessage({ id: 'categories.deleteModal.title', defaultMessage: 'Confirm Deletion' })}>
                     <div className="delete-confirm-content">
                         {deleteError && <p className="status-error">Error: {deleteError}</p>}
-                        <p>Are you sure you want to delete the category "{categories.find(c => c.category_id === deleteCandidateId)?.name}"?</p>
-                        <p>This action cannot be undone.</p>
+                        <p>
+                            {intl.formatMessage({ id: 'categories.deleteModal.confirmMessage', defaultMessage: 'Are you sure you want to delete the category "{name}"? This action cannot be undone.' }, { name: categories.find(c => c.category_id === deleteCandidateId)?.name || '' })}
+                        </p>
+                        {/* Removed redundant "This action cannot be undone." as it's included above */}
                         <div className="modal-actions">
                             <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
-                                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                                {isDeleting ? intl.formatMessage({ id: 'common.deleting', defaultMessage: 'Deleting...' }) : intl.formatMessage({ id: 'common.confirmDelete', defaultMessage: 'Confirm Delete' })}
                             </button>
                             <button onClick={handleCancelDelete} disabled={isDeleting}>
-                                Cancel
+                                {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
                     </div>
@@ -343,3 +353,8 @@ const CategoriesView = () => {
 };
 
 export default CategoriesView;
+
+// Add missing common key to en.json/fi.json if not already present:
+/*
+    "common.error.unknown": "Unknown reason" / "Tuntematon syy"
+*/

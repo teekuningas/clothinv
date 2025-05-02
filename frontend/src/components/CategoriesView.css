@@ -127,6 +127,15 @@
     border-top: 1px solid #eee;
 }
 
+/* Responsive Modal Actions */
+@media (max-width: 480px) { /* Adjust breakpoint as needed */
+    .modal-actions {
+        flex-direction: column; /* Stack buttons vertically */
+        align-items: stretch; /* Make buttons full width */
+        gap: 8px; /* Adjust gap for vertical layout */
+    }
+}
+
 /* General button styling within modal actions */
 .modal-actions button {
     padding: 8px 15px;
