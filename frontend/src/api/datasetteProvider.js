@@ -356,33 +356,75 @@ export const deleteOwner = async (settings, ownerId) => {
     return handleResponse(res, 'delete', `owner ID ${ownerId}`);
 };
 
-export const listItems = async (settings) => {
+// --- Image Handling ---
+
+/**
+ * Internal: Inserts image data and returns the new ID.
+ */
+const _insertImage = async (settings, base64Data, mimeType) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-    // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/items.json?_shape=array`; // Get all items
-    const res = await fetch(queryUrl, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-    });
+    const imageData = {
+        row: {
+            image_data: base64Data, // Store base64 string directly
+            image_mimetype: mimeType,
+        }
+    };
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        console.error(`Failed to fetch items: ${res.status} ${errorText}`, res);
-        throw new Error(`Failed to fetch items: ${res.status}`);
-    }
-    const data = await res.json();
-    console.log("Fetched items:", data);
-    return data; // Returns array of item objects
+    const insertRes = await fetch(`${baseUrl}/images/-/insert`, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(imageData),
+    });
+    await handleResponse(insertRes, 'insert', 'image'); // Check for success
+
+    // Fetch the latest image ID
+    const queryUrl = `${baseUrl}/images.json?_sort_desc=image_id&_size=1&_shape=array`;
+    const queryRes = await fetch(queryUrl, { headers: { 'Accept': 'application/json' } });
+    if (!queryRes.ok) throw new Error(`Failed to fetch latest image ID after insert: ${queryRes.status}`);
+    const queryData = await queryRes.json();
+    if (!queryData || queryData.length === 0 || !queryData[0].image_id) throw new Error("Failed to retrieve image_id after insert.");
+
+    return queryData[0].image_id;
 };
 
+/**
+ * Internal: Updates image data for an existing image ID.
+ */
+const _updateImage = async (settings, imageId, base64Data, mimeType) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-// Add functions for updateItem, deleteItem operations here later
+    const updateUrl = `${baseUrl}/images/${imageId}/-/update`;
+    const payload = {
+        update: {
+            image_data: base64Data,
+            image_mimetype: mimeType,
+        }
+    };
+    const res = await fetch(updateUrl, { method: 'POST', headers: defaultHeaders(settings), body: JSON.stringify(payload) });
+    return handleResponse(res, 'update', `image ID ${imageId}`);
+};
+
+/**
+ * Internal: Deletes an image record by ID.
+ */
+const _deleteImage = async (settings, imageId) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    const deleteUrl = `${baseUrl}/images/${imageId}/-/delete`;
+    const res = await fetch(deleteUrl, { method: 'POST', headers: defaultHeaders(settings) });
+    // We might ignore the response slightly, as the foreign key constraint handles item linking
+    // But good to check for errors.
+    return handleResponse(res, 'delete', `image ID ${imageId}`);
+};
 
 /**
  * Adds a single item record with basic details.
- * Expects data like { name, description, location_id, category_id }
+ * Expects data like { name, description, location_id, category_id, owner_id }
+ * and optionally `imageFile` (a File object).
  */
 export const addItemSimple = async (settings, data) => {
     const baseUrl = settings?.datasetteBaseUrl;
@@ -391,14 +433,25 @@ export const addItemSimple = async (settings, data) => {
         throw new Error("Item name, location ID, category ID, and owner ID are required.");
     }
 
+    let imageId = null;
+    if (data.imageFile) {
+        try {
+            const base64Data = await readFileAsBase64(data.imageFile);
+            imageId = await _insertImage(settings, base64Data, data.imageFile.type);
+        } catch (error) {
+            console.error("Failed to process or insert image:", error);
+            throw new Error(`Failed to handle image upload: ${error.message}`);
+        }
+    }
+
     // Prepare the row data, ensuring description is null if empty
     const itemRowData = {
         name: data.name,
         description: data.description || null,
         location_id: data.location_id,
         category_id: data.category_id,
-        owner_id: data.owner_id,
-        image_id: null // Explicitly set image_id to null for now
+        owner_id: data.owner_id, // Add owner_id
+        image_id: imageId // Use the inserted image ID or null
     };
     const itemPayload = { row: itemRowData };
 
