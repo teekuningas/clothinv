@@ -79,5 +79,14 @@
     "locations.success.delete": "Location deleted successfully!",
     "locations.error.delete": "Failed to delete location: {error}",
     "locations.error.deleteInUse": "Cannot delete location because it is currently assigned to one or more items.",
-    "locations.error.deleteInvalid": "Cannot delete. Invalid data or required API functions unavailable."
+    "locations.error.deleteInvalid": "Cannot delete. Invalid data or required API functions unavailable.",
+    "settings.title": "Settings",
+    "settings.language.legend": "Language",
+    "settings.language.label": "Display Language:",
+    "settings.api.legend": "API Configuration",
+    "settings.api.providerLabel": "API Provider:",
+    "settings.api.saveButton": "Save API Config",
+    "settings.api.saveButton.saving": "Saving API Config...",
+    "settings.api.saveSuccess": "API configuration saved successfully!",
+    "settings.api.saveError": "API Save Error: {error}"
 }

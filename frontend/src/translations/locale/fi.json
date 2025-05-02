@@ -79,5 +79,14 @@
     "locations.success.delete": "Sijainti poistettu onnistuneesti!",
     "locations.error.delete": "Sijainnin poisto epäonnistui: {error}",
     "locations.error.deleteInUse": "Sijaintia ei voi poistaa, koska se on liitetty yhteen tai useampaan vaatteeseen.",
-    "locations.error.deleteInvalid": "Poisto epäonnistui. Virheelliset tiedot tai vaaditut API-toiminnot eivät ole käytettävissä."
+    "locations.error.deleteInvalid": "Poisto epäonnistui. Virheelliset tiedot tai vaaditut API-toiminnot eivät ole käytettävissä.",
+    "settings.title": "Asetukset",
+    "settings.language.legend": "Kieli",
+    "settings.language.label": "Näytön kieli:",
+    "settings.api.legend": "API-määritykset",
+    "settings.api.providerLabel": "API-palvelu:",
+    "settings.api.saveButton": "Tallenna API-määritys",
+    "settings.api.saveButton.saving": "Tallennetaan API-määritystä...",
+    "settings.api.saveSuccess": "API-määritys tallennettu onnistuneesti!",
+    "settings.api.saveError": "API-tallennusvirhe: {error}"
 }

@@ -1,17 +1,30 @@
-/* Settings View Styles (No longer a modal) */
-.settings-view-container { /* Use this class in SettingsView.jsx */
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  width: 90%;
-  max-width: 500px; /* Limit maximum width */
-  position: relative; /* For positioning the close button */
-  color: #333; /* Dark text for readability */
-  padding: 20px; /* Add padding */
-  margin: 20px auto; /* Center the container */
+/* Settings View Styles */
+.settings-view { /* Renamed from .settings-view-container */
+  padding: 20px; /* Consistent padding */
+  /* Remove background, border, shadow, width, max-width, position, color, margin - handled by App structure or not needed */
 }
 
-/* Generic .form-group and label styles removed - now in index.css */
+.settings-view h2 {
+    margin-bottom: 20px; /* Space below title */
+}
+
+.settings-fieldset {
+    margin-bottom: 25px; /* Space between fieldsets */
+    padding: 20px;
+    border: 1px solid #dee2e6; /* Consistent border */
+    border-radius: 4px; /* Consistent radius */
+    background-color: #f8f9fa; /* Slightly off-white background */
+}
+
+.settings-fieldset legend {
+    font-weight: bold;
+    padding: 0 10px; /* Padding around legend text */
+    margin-left: 10px; /* Align with content */
+    font-size: 1.1em;
+    color: #495057; /* Darker grey text */
+}
+
+/* Generic .form-group and label styles are in main.css */
 
 .form-group input[type="text"],
 .form-group input[type="password"],
@@ -20,6 +33,7 @@
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box; /* Include padding/border in width */
   font-size: 1rem;
 }
 
@@ -30,29 +44,39 @@
 
 
 .form-actions {
-  margin-top: 25px;
+  margin-top: 20px; /* Reduced margin */
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-/* General Button Styling */
-.settings-view-container button { /* Apply to buttons within the view */
+/* General Button Styling (Scoped to this view) */
+.settings-view button { /* Apply to buttons within the view */
   padding: 10px 20px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease; /* Match App.css */
 }
 
 .save-button {
-  background-color: #28a745; /* Green */
-  color: white;
+  /* Match App.css nav buttons */
+  background-color: #cddaea;
+  color: #343a40;
+  border: 1px solid #b8c8d8;
+}
+
+.save-button:disabled {
+    /* Match App.css disabled nav buttons */
+    background-color: #a3b6c7;
+    color: #ffffff;
+    border-color: #8fa6b9;
+    cursor: not-allowed;
 }
 
 .save-button:hover {
-  background-color: #218838; /* Darker green on hover */
+    /* Match App.css nav button hover */
+    background-color: #b8c8d8;
+    border-color: #a3b6c7;
 }
-
-/* Add hover styles if desired */

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useIntl } from 'react-intl'; // Import useIntl
 import { getProviderIds, getProviderById, getProviderDisplayNames } from '../api/providerRegistry';
 import { useApi } from '../api/ApiContext'; // Import useApi hook
 import { useTranslationContext } from '../translations/TranslationContext'; // Import translation hook
 import './SettingsView.css';
-
 // SettingsView now gets its state and save functions from context
 const SettingsView = () => {
     const { config: apiConfig, updateConfiguration: saveApiConfig } = useApi(); // Get API context
@@ -14,6 +14,7 @@ const SettingsView = () => {
     const [saveStatus, setSaveStatus] = useState('idle'); // 'idle', 'saving', 'success', 'error'
     const [saveError, setSaveError] = useState(null);
     const [providerDisplayNames, setProviderDisplayNames] = useState({});
+    const intl = useIntl(); // Get intl object
     // Removed duplicate state declarations for saveStatus and saveError
 
     // Populate provider display names once
@@ -112,15 +113,15 @@ const SettingsView = () => {
     const availableProviderIds = getProviderIds(); // Get all available provider IDs
 
     return (
-        <div className="settings-view-container">
-            <h2>Settings</h2>
+        <div className="settings-view"> {/* Changed class name */}
+            <h2>{intl.formatMessage({ id: 'settings.title', defaultMessage: 'Settings' })}</h2>
             <form onSubmit={(e) => e.preventDefault()}>
 
                 {/* --- Language Settings --- */}
                 <fieldset className="settings-fieldset">
-                    <legend>Language</legend>
+                    <legend>{intl.formatMessage({ id: 'settings.language.legend', defaultMessage: 'Language' })}</legend>
                     <div className="form-group">
-                        <label htmlFor="locale">Display Language:</label>
+                        <label htmlFor="locale">{intl.formatMessage({ id: 'settings.language.label', defaultMessage: 'Display Language:' })}</label>
                         <select
                             id="locale"
                             name="locale" // Informational name
@@ -139,9 +140,9 @@ const SettingsView = () => {
 
                 {/* --- API Settings --- */}
                 <fieldset className="settings-fieldset">
-                    <legend>API Configuration</legend>
+                    <legend>{intl.formatMessage({ id: 'settings.api.legend', defaultMessage: 'API Configuration' })}</legend>
                     <div className="form-group">
-                        <label htmlFor="providerType">API Provider:</label>
+                        <label htmlFor="providerType">{intl.formatMessage({ id: 'settings.api.providerLabel', defaultMessage: 'API Provider:' })}</label>
                         <select
                             id="providerType"
                             name="providerType" // Name matches key in localApiSettings state
@@ -180,14 +181,19 @@ const SettingsView = () => {
                             className="save-button"
                             disabled={saveStatus === 'saving' || saveStatus === 'success'} // Disable if saving or just succeeded
                         >
-                            {saveStatus === 'saving' ? 'Saving API Config...' : 'Save API Config'}
+                            {saveStatus === 'saving'
+                                ? intl.formatMessage({ id: 'settings.api.saveButton.saving', defaultMessage: 'Saving API Config...' })
+                                : intl.formatMessage({ id: 'settings.api.saveButton', defaultMessage: 'Save API Config' })
+                            }
                         </button>
                     </div>
 
                     {/* Save Status Feedback for API Settings */}
-                    <div className="save-feedback" style={{ marginTop: '10px', minHeight: '20px' }}>
-                        {saveStatus === 'success' && <p style={{ color: 'green' }}>API configuration saved successfully!</p>}
-                        {saveStatus === 'error' && <p style={{ color: 'red' }}>API Save Error: {saveError}</p>}
+                    {/* Use common status classes */}
+                    <div className="save-feedback" style={{ minHeight: '20px' }}> {/* Remove margin-top, handled by status class */}
+                        {saveStatus === 'success' && <p className="status-success">{intl.formatMessage({ id: 'settings.api.saveSuccess', defaultMessage: 'API configuration saved successfully!' })}</p>}
+                        {/* Use status-error class */}
+                        {saveStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.api.saveError', defaultMessage: 'API Save Error: {error}' }, { error: saveError })}</p>}
                     </div>
                 </fieldset>
             </form>
