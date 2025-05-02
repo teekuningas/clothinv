@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useIntl } from 'react-intl'; // Import useIntl hook
 import { useApi } from './api/ApiContext'; // Import the custom hook
 // Import the view components
 import ItemsView from './components/ItemsView';
