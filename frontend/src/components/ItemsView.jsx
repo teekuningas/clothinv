@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApi } from '../api/ApiContext';
 import { useIntl } from 'react-intl';
 import Modal from './Modal';
-import ImageViewModal from './ImageViewModal'; // Import the new component
+import ImageViewModal from './ImageViewModal';
+import WebcamCapture from './WebcamCapture'; // Import the webcam component
 import './ItemsView.css'; // Import the CSS file
 import './ImageViewModal.css'; // Import the CSS for the image modal
+import './WebcamCapture.css'; // Import the CSS for the webcam modal
 
 const ItemsView = () => {
     // --- State ---
@@ -50,6 +53,10 @@ const ItemsView = () => {
     const [isImageViewModalOpen, setIsImageViewModalOpen] = useState(false);
     const [imageViewModalUrl, setImageViewModalUrl] = useState(null);
     const [imageViewModalAlt, setImageViewModalAlt] = useState('');
+
+    // Webcam Modal State
+    const [isWebcamOpen, setIsWebcamOpen] = useState(false);
+    const [webcamTarget, setWebcamTarget] = useState('add'); // 'add' or 'edit'
 
     // Filter state
     const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -396,6 +403,33 @@ const ItemsView = () => {
         }, 200); // Match CSS transition duration
     };
 
+    // --- Webcam Handlers ---
+    const handleOpenWebcam = (target) => { // target is 'add' or 'edit'
+        setWebcamTarget(target);
+        setIsWebcamOpen(true);
+    };
+
+    const handleWebcamCapture = useCallback(async (imageFile) => {
+        if (!imageFile) return;
+
+        // Create a preview URL (Data URL) for consistency
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const imagePreviewUrl = reader.result;
+            if (webcamTarget === 'add') {
+                setNewItemImageFile(imageFile);
+                setNewItemImagePreview(imagePreviewUrl);
+            } else if (webcamTarget === 'edit') {
+                setEditItemImageFile(imageFile);
+                setEditItemImagePreview(imagePreviewUrl);
+                setImageMarkedForRemoval(false); // Captured new image
+            }
+        };
+        reader.readAsDataURL(imageFile);
+
+        setIsWebcamOpen(false); // Close the modal
+    }, [webcamTarget]); // Dependency: webcamTarget
+
     // --- Render ---
     return (
         <div className="items-view">
@@ -455,6 +489,16 @@ const ItemsView = () => {
                             onChange={(e) => handleFileChange(e, 'add')}
                             disabled={loading}
                         />
+                    </div>
+                    <div className="form-group form-group-image-actions">
+                        <button
+                            type="button"
+                            onClick={() => handleOpenWebcam('add')}
+                            disabled={loading}
+                            className="button-secondary" // Style as secondary button
+                        >
+                            {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
+                        </button>
                     </div>
                     <div className="form-group">
                         <label htmlFor="item-location">{intl.formatMessage({ id: 'items.addForm.locationLabel', defaultMessage: 'Location:' })}</label>
@@ -721,6 +765,16 @@ const ItemsView = () => {
                                 onChange={(e) => handleFileChange(e, 'edit')}
                                 disabled={isUpdating || isDeleting}
                             />
+                            <div className="form-group-image-actions">
+                                 <button
+                                    type="button"
+                                    onClick={() => handleOpenWebcam('edit')}
+                                    disabled={isUpdating || isDeleting}
+                                    className="button-secondary" // Style as secondary button
+                                >
+                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
+                                </button>
+                            </div>
                         </div>
                         {/* Location Dropdown */}
                         <div className="form-group">

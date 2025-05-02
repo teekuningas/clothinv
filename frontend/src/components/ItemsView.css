@@ -338,8 +338,17 @@
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 0.9em;
-    max-width: 350px; /* Limit width */
+    max-width: 350px; /* Limit width, adjust as needed */
     margin-top: 0; /* Remove default margin, use gap */
+    /* Allow button to sit next to it */
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 10px; /* Space between file input and button */
+}
+
+.form-group-image-actions {
+    /* Container for buttons related to image input */
+    margin-top: 5px; /* Space above the button(s) */
 }
 
 .edit-item-form .form-group {
