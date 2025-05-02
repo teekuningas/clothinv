@@ -1,8 +1,7 @@
-// Defines available languages, their display names, and the default fallback locale.
+// Defines available languages and their display names
 export const availableLocales = [
     { code: 'en', name: 'English' },
     { code: 'fi', name: 'Suomi' },
-    // Future languages: { code: 'es', name: 'Español' }, etc.
 ];
 
 // The ultimate fallback language if detection or loading fails.
