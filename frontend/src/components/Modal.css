@@ -1,5 +1,3 @@
-/* Create file: frontend/src/components/Modal.css */
-
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -7,10 +5,10 @@
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
-    display: flex;
-    align-items: center; /* Vertically center */
-    justify-content: center; /* Horizontally center */
-    z-index: 1000; /* Ensure it's on top */
+    display: flex; /* Use flexbox for centering */
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
     padding: 15px; /* Padding for smaller screens */
 }
 
@@ -22,7 +20,7 @@
     width: 90%; /* Responsive width */
     max-height: 90vh; /* Max height */
     overflow-y: auto; /* Allow scrolling if content overflows */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
     position: relative; /* For positioning close button */
 }
 
@@ -56,5 +54,4 @@
 
 .modal-body {
     /* Content styles are handled by the component using the modal */
-    /* e.g., .edit-category-form, .delete-confirm-content */
 }
