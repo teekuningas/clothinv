@@ -1,7 +1,10 @@
 import React from 'react';
+import { useIntl } from 'react-intl'; // Import useIntl
 import './Modal.css'; // Create corresponding CSS file
 
 const Modal = ({ show, onClose, title, children }) => {
+    const intl = useIntl(); // Get intl object
+
     if (!show) {
         return null;
     }
@@ -16,7 +19,11 @@ const Modal = ({ show, onClose, title, children }) => {
             <div className="modal-content" onClick={handleContentClick}>
                 <div className="modal-header">
                     {title && <h3 className="modal-title">{title}</h3>}
-                    <button onClick={onClose} className="modal-close-button" aria-label="Close modal">&times;</button>
+                    <button
+                        onClick={onClose}
+                        className="modal-close-button"
+                        aria-label={intl.formatMessage({ id: 'modal.closeButton.label', defaultMessage: 'Close modal' })} /* Add modal. key */
+                    >&times;</button>
                 </div>
                 <div className="modal-body">
                     {children}
