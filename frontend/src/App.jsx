@@ -98,7 +98,11 @@ function App() {
       <header className="App-header">
         <h1>{intl.formatMessage({ id: 'app.title', defaultMessage: 'Inventory Management' })}</h1>
         {/* Hamburger button - shown only on small screens via CSS */}
-        <button className="hamburger-button" onClick={toggleMobileMenu}>
+        <button
+            className="hamburger-button"
+            onClick={toggleMobileMenu}
+            aria-label={intl.formatMessage({ id: 'nav.toggleMobileMenu', defaultMessage: 'Toggle navigation menu' })} // Add aria-label
+        >
             ☰ {/* Simple hamburger icon */}
         </button>
         {/* Simple Navigation - hidden on small screens via CSS */}
@@ -120,7 +124,11 @@ function App() {
       {/* Mobile Menu Overlay - shown when isMobileMenuOpen is true */}
       {isMobileMenuOpen && (
           <div className="mobile-menu-overlay">
-              <button className="close-menu-button" onClick={toggleMobileMenu}>
+              <button
+                  className="close-menu-button"
+                  onClick={toggleMobileMenu}
+                  aria-label={intl.formatMessage({ id: 'nav.closeMobileMenu', defaultMessage: 'Close navigation menu' })} // Add aria-label
+              >
                   &times; {/* Simple close icon */}
               </button>
               <nav className="mobile-nav">

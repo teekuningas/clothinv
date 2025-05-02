@@ -18,10 +18,14 @@
 .App-header p {
   font-size: 1.2rem;
 }
-/* Remove old settings button style */
+/* --- General App Styles --- */
+/* (App class already exists) */
 
+/* --- App Header --- */
+/* (App-header class already exists) */
+/* position: relative; Added via media query */
 
-/* Basic Navigation Styles */
+/* --- Desktop Navigation --- */
 .app-nav {
   margin-top: 15px;
   padding-bottom: 10px;
@@ -37,6 +41,7 @@
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
+  transition: background-color 0.2s ease; /* Add transition */
 }
 
 .app-nav button:hover {
@@ -50,15 +55,18 @@
   border-color: #0056b3;
 }
 
-/* Global Warnings Area */
+/* --- Global Warnings Area --- */
+.global-warnings {
+    /* Add some styling if needed, e.g., */
+    /* text-align: left; */ /* Align warnings left if preferred */
+}
+
 .global-warnings p {
     margin: 5px 0;
     font-size: 0.9em;
 }
 
-/* --- Hamburger Menu Styles --- */
-
-/* Hamburger Button - Hidden by default on larger screens */
+/* --- Hamburger Menu Button (Mobile) --- */
 .hamburger-button {
     display: none; /* Hidden by default */
     background: none;
@@ -70,6 +78,8 @@
     top: 15px; /* Adjust as needed */
     right: 20px; /* Adjust as needed */
     z-index: 1100; /* Ensure it's above other header content if needed */
+    padding: 5px; /* Add some padding for easier interaction */
+    line-height: 1; /* Prevent extra spacing */
 }
 
 /* Mobile Menu Overlay */
@@ -85,9 +95,20 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    /* Add transitions for smoother open/close if desired */
-    /* transition: opacity 0.3s ease, visibility 0.3s ease; */
+    /* Add transitions for smoother open/close */
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+
+/* Style for when overlay is hidden (can be added/removed via JS/React state if needed,
+   but for now, we rely on conditional rendering in React which is simpler) */
+/*
+.mobile-menu-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+*/
 
 /* Close button inside the overlay */
 .close-menu-button {
@@ -100,6 +121,7 @@
     font-size: 2.5rem; /* Large and easy to tap */
     cursor: pointer;
     line-height: 1; /* Prevent extra spacing */
+    padding: 5px; /* Add some padding */
 }
 
 /* Navigation within the mobile overlay */
@@ -107,6 +129,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%; /* Ensure nav takes width for button alignment */
 }
 
 .mobile-nav button {
@@ -119,7 +142,9 @@
     font-size: 1.5rem; /* Larger text */
     border-radius: 4px;
     width: 80%; /* Make buttons wider */
+    max-width: 300px; /* Optional: prevent buttons getting too wide */
     text-align: center;
+    transition: background-color 0.2s ease; /* Add transition */
 }
 
 .mobile-nav button:hover {
@@ -136,9 +161,12 @@
 /* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
 @media (max-width: 768px) {
     .App-header {
-        /* Ensure header has relative positioning if needed for absolute children */
+        /* Ensure header has relative positioning for absolute children */
         position: relative;
-        padding-right: 60px; /* Add padding to prevent overlap with hamburger */
+        padding-right: 70px; /* Increased padding to ensure space for hamburger */
+        padding-left: 15px; /* Adjust left padding if needed */
+        padding-top: 15px; /* Adjust top/bottom padding */
+        padding-bottom: 5px;
     }
 
     /* Hide the standard desktop navigation */
@@ -149,10 +177,20 @@
     /* Show the hamburger button */
     .hamburger-button {
         display: block; /* Or 'inline-block' if preferred */
+        top: 10px; /* Adjust position slightly */
+        right: 15px;
     }
 
     /* Adjust header title if needed */
     .App-header h1 {
         font-size: 1.8rem; /* Slightly smaller title on mobile */
+        text-align: left; /* Align title left on mobile */
+    }
+
+     /* Adjust header paragraph if needed */
+    .App-header p {
+        font-size: 1rem; /* Slightly smaller text */
+        text-align: left; /* Align left */
+        margin-bottom: 5px; /* Reduce bottom margin */
     }
 }
