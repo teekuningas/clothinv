@@ -25,6 +25,8 @@ const ItemsView = () => {
     const [editingItemId, setEditingItemId] = useState(null);
     const [editName, setEditName] = useState('');
     const [editDescription, setEditDescription] = useState('');
+    const [editLocationId, setEditLocationId] = useState(''); // Add state for edit location
+    const [editCategoryId, setEditCategoryId] = useState(''); // Add state for edit category
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
 
@@ -146,6 +148,8 @@ const ItemsView = () => {
         setEditingItemId(item.item_id);
         setEditName(item.name);
         setEditDescription(item.description || '');
+        setEditLocationId(item.location_id || ''); // Set initial location ID
+        setEditCategoryId(item.category_id || ''); // Set initial category ID
         setUpdateError(null);
         setSuccess(null);
         setError(null);
@@ -155,12 +159,14 @@ const ItemsView = () => {
         setEditingItemId(null);
         setEditName('');
         setEditDescription('');
+        setEditLocationId(''); // Reset edit location ID
+        setEditCategoryId(''); // Reset edit category ID
         setUpdateError(null);
     };
 
     const handleUpdateItem = async (e) => {
         e.preventDefault();
-        if (!editingItemId || !editName.trim() || typeof api.updateItem !== 'function') {
+        if (!editingItemId || !editName.trim() || !editLocationId || !editCategoryId || typeof api.updateItem !== 'function') {
             setUpdateError(intl.formatMessage({ id: 'items.error.updateInvalid', defaultMessage: 'Cannot update. Invalid data or update function unavailable.' }));
             return;
         }
@@ -172,7 +178,9 @@ const ItemsView = () => {
         try {
             const result = await api.updateItem(editingItemId, {
                 name: editName.trim(),
-                description: editDescription.trim() || null
+                description: editDescription.trim() || null,
+                location_id: parseInt(editLocationId, 10), // Include location_id
+                category_id: parseInt(editCategoryId, 10)  // Include category_id
             });
 
             if (result.success) {
@@ -378,9 +386,45 @@ const ItemsView = () => {
                                 disabled={isUpdating || isDeleting}
                             />
                         </div>
-                        {/* Location/Category dropdowns are NOT included in edit for now */}
+                        {/* Location Dropdown */}
+                        <div className="form-group">
+                            <label htmlFor="edit-item-location">{intl.formatMessage({ id: 'items.addForm.locationLabel', defaultMessage: 'Location:' })}</label>
+                            <select
+                                id="edit-item-location"
+                                value={editLocationId}
+                                onChange={(e) => setEditLocationId(e.target.value)}
+                                required
+                                disabled={isUpdating || isDeleting || locations.length === 0}
+                            >
+                                <option value="">{intl.formatMessage({ id: 'items.addForm.selectLocationDefault', defaultMessage: '-- Select Location --' })}</option>
+                                {locations.map(loc => (
+                                    <option key={loc.location_id} value={loc.location_id}>
+                                        {loc.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* Category Dropdown */}
+                        <div className="form-group">
+                            <label htmlFor="edit-item-category">{intl.formatMessage({ id: 'items.addForm.categoryLabel', defaultMessage: 'Category:' })}</label>
+                            <select
+                                id="edit-item-category"
+                                value={editCategoryId}
+                                onChange={(e) => setEditCategoryId(e.target.value)}
+                                required
+                                disabled={isUpdating || isDeleting || categories.length === 0}
+                            >
+                                <option value="">{intl.formatMessage({ id: 'items.addForm.selectCategoryDefault', defaultMessage: '-- Select Category --' })}</option>
+                                {categories.map(cat => (
+                                    <option key={cat.category_id} value={cat.category_id}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* Location/Category dropdowns are NOT included in edit for now - REMOVED */}
                         <div className="modal-actions">
-                            <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()}>
+                            <button type="submit" disabled={isUpdating || isDeleting || !editName.trim() || !editLocationId || !editCategoryId}>
                                 {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
                             {api.config.isConfigured && typeof api.deleteItem === 'function' && (

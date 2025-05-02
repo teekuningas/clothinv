@@ -411,14 +411,19 @@ export const updateItem = async (settings, itemId, data) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!itemId) throw new Error("Item ID is required for update.");
-    if (!data || !data.name) throw new Error("Item name is required for update.");
+    // Add checks for location_id and category_id if they are mandatory for update
+    if (!data || !data.name || !data.location_id || !data.category_id) {
+        throw new Error("Item name, location ID, and category ID are required for update.");
+    }
 
     const updateUrl = `${baseUrl}/items/${itemId}/-/update`;
     // Prepare update payload, ensuring description is null if empty
     const payload = {
         update: {
             name: data.name,
-            description: data.description || null
+            description: data.description || null, // Keep description handling
+            location_id: data.location_id, // Add location_id
+            category_id: data.category_id  // Add category_id
         }
     };
 
