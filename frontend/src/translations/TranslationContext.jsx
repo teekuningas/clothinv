@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { IntlProvider } from 'react-intl';
-import { availableLocales, defaultLocale, getLocaleCodes, LS_LOCALE_KEY } from '../config/i18n';
+import { availableLocales, defaultLocale, getLocaleCodes, LS_LOCALE_KEY, ENV_DEFAULT_LOCALE_KEY } from '../config/i18n';
 
 // --- Helper: Load Messages Dynamically ---
 async function loadMessages(locale) {
@@ -30,6 +30,11 @@ function getInitialLocale() {
     const savedLocale = localStorage.getItem(LS_LOCALE_KEY);
     if (savedLocale && getLocaleCodes().includes(savedLocale)) {
         return savedLocale;
+    }
+    // 2. Check Environment Variable
+    const envLocale = import.meta.env[ENV_DEFAULT_LOCALE_KEY];
+    if (envLocale && getLocaleCodes().includes(envLocale)) {
+        return envLocale;
     }
     // Use navigator.languages for better browser support
     const browserLangs = navigator.languages || [navigator.language];

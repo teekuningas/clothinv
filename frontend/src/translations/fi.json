@@ -1,0 +1,10 @@
+{
+    "app.title": "Varastonhallinta",
+    "nav.items": "Tavarat",
+    "nav.locations": "Sijainnit",
+    "nav.categories": "Kategoriat",
+    "nav.settings": "Asetukset",
+    "warning.datasetteTokenMissing": "Varoitus: Datasette-palvelu on määritetty, mutta valinnainen API-tunniste puuttuu. Todennusta vaativat toiminnot voivat epäonnistua.",
+    "warning.providerNotConfigured": "Varoitus: Valittu API-palvelu ({providerType}) ei ole täysin määritetty. Tarkista Asetukset.",
+    "info.noProviderSelected": "API-palvelua ei ole valittu. Määritä palvelu Asetuksissa."
+}

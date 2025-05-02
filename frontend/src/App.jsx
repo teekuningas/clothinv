@@ -10,6 +10,7 @@ import './App.css';
 
 function App() {
   // Remove loading, error, success state - moved to ItemsView
+  const intl = useIntl(); // Get intl object
   // Remove isSettingsOpen state
 
   const [activeView, setActiveView] = useState('items'); // Default view
@@ -82,13 +83,21 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Inventory Management</h1>
+        <h1>{intl.formatMessage({ id: 'app.title', defaultMessage: 'Inventory Management' })}</h1>
         {/* Simple Navigation */}
         <nav className="app-nav">
-            <button onClick={() => setActiveView('items')} disabled={activeView === 'items'}>Items</button>
-            <button onClick={() => setActiveView('locations')} disabled={activeView === 'locations'}>Locations</button>
-            <button onClick={() => setActiveView('categories')} disabled={activeView === 'categories'}>Categories</button>
-            <button onClick={() => setActiveView('settings')} disabled={activeView === 'settings'}>Settings</button>
+            <button onClick={() => setActiveView('items')} disabled={activeView === 'items'}>
+                {intl.formatMessage({ id: 'nav.items', defaultMessage: 'Items' })}
+            </button>
+            <button onClick={() => setActiveView('locations')} disabled={activeView === 'locations'}>
+                {intl.formatMessage({ id: 'nav.locations', defaultMessage: 'Locations' })}
+            </button>
+            <button onClick={() => setActiveView('categories')} disabled={activeView === 'categories'}>
+                {intl.formatMessage({ id: 'nav.categories', defaultMessage: 'Categories' })}
+            </button>
+            <button onClick={() => setActiveView('settings')} disabled={activeView === 'settings'}>
+                {intl.formatMessage({ id: 'nav.settings', defaultMessage: 'Settings' })}
+            </button>
         </nav>
       </header>
       <main className="app-main-content" style={{ padding: '20px' }}>
@@ -100,18 +109,24 @@ function App() {
               {/* Update Datasette token warning */}
               {api.config.providerType === 'datasette' && api.config.isConfigured && !api.config.settings?.datasetteApiToken &&
                   <p style={{ color: 'orange' }}>
-                      Warning: Datasette provider is configured but the optional API Token is not set. Operations requiring authentication may fail.
+                      {intl.formatMessage({
+                          id: 'warning.datasetteTokenMissing',
+                          defaultMessage: 'Warning: Datasette provider is configured but the optional API Token is not set. Operations requiring authentication may fail.'
+                      })}
                   </p>}
               {/* General configuration warning */}
               {api.config.providerType !== 'none' && !api.config.isConfigured &&
                   <p style={{ color: 'red' }}>
-                      Warning: The selected API provider ({api.config.providerType}) is not fully configured. Please check Settings.
+                      {intl.formatMessage({
+                          id: 'warning.providerNotConfigured',
+                          defaultMessage: 'Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.'
+                      }, { providerType: api.config.providerType })}
                   </p>
               }
                {/* Informational message if no provider is selected */}
                {api.config.providerType === 'none' &&
                   <p style={{ color: 'grey' }}>
-                      No API provider selected. Please configure one in Settings.
+                      {intl.formatMessage({ id: 'info.noProviderSelected', defaultMessage: 'No API provider selected. Please configure one in Settings.' })}
                   </p>
               }
           </div>
