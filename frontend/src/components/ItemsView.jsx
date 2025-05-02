@@ -881,6 +881,13 @@ const ItemsView = () => {
                imageAlt={imageViewModalAlt}
            />
 
+           {/* Webcam Capture Modal */}
+           <WebcamCapture
+               show={isWebcamOpen}
+               onCapture={handleWebcamCapture}
+               onClose={() => setIsWebcamOpen(false)}
+           />
+
         </div>
     );
 };
