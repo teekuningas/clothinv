@@ -370,3 +370,82 @@ export const listItems = async (settings) => {
 
 
 // Add functions for updateItem, deleteItem operations here later
+
+/**
+ * Adds a single item record with basic details.
+ * Expects data like { name, description, location_id, category_id }
+ */
+export const addItemSimple = async (settings, data) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!data || !data.name || !data.location_id || !data.category_id) {
+        throw new Error("Item name, location ID, and category ID are required.");
+    }
+
+    // Prepare the row data, ensuring description is null if empty
+    const itemRowData = {
+        name: data.name,
+        description: data.description || null,
+        location_id: data.location_id,
+        category_id: data.category_id,
+        image_id: null // Explicitly set image_id to null for now
+    };
+    const itemPayload = { row: itemRowData };
+
+    const itemRes = await fetch(`${baseUrl}/items/-/insert`, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(itemPayload),
+    });
+
+    // Use handleResponse for the item insert result
+    return handleResponse(itemRes, 'add', 'item');
+};
+
+
+/**
+ * Updates an item's name and description.
+ * Expects itemId and data like { name, description }
+ */
+export const updateItem = async (settings, itemId, data) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!itemId) throw new Error("Item ID is required for update.");
+    if (!data || !data.name) throw new Error("Item name is required for update.");
+
+    const updateUrl = `${baseUrl}/items/${itemId}/-/update`;
+    // Prepare update payload, ensuring description is null if empty
+    const payload = {
+        update: {
+            name: data.name,
+            description: data.description || null
+        }
+    };
+
+    const res = await fetch(updateUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(payload),
+    });
+
+    return handleResponse(res, 'update', `item ID ${itemId}`);
+};
+
+/**
+ * Deletes an item record.
+ */
+export const deleteItem = async (settings, itemId) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!itemId) throw new Error("Item ID is required for deletion.");
+
+    const deleteUrl = `${baseUrl}/items/${itemId}/-/delete`;
+
+    const res = await fetch(deleteUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        // No body needed
+    });
+
+    return handleResponse(res, 'delete', `item ID ${itemId}`);
+};

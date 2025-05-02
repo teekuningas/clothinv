@@ -41,12 +41,15 @@ export const providers = {
             'addLocation',
             'updateLocation',
             'deleteLocation',
-            'listCategories', // Add this
-            'addCategory',    // Add this
-            'updateCategory', // Add this (for future use)
-            'deleteCategory', // Add this (for future use)
-            'listItems'       // Add this
-            /*, 'getItems', 'updateItem', 'deleteItem' */
+            'listCategories',
+            'addCategory',
+            'updateCategory',
+            'deleteCategory',
+            'listItems',
+            // Add the following:
+            'addItemSimple', // New: For adding items from the form
+            'updateItem',    // New: For editing item name/description
+            'deleteItem'     // New: For deleting items
         ]
     },
 
