@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useApi } from '../api/ApiContext';
 import { useIntl } from 'react-intl';
 import Modal from './Modal';
@@ -38,6 +38,14 @@ const ItemsView = () => {
     const [deleteCandidateId, setDeleteCandidateId] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState(null);
+
+    // Filter state
+    const [isFilterVisible, setIsFilterVisible] = useState(false);
+    const [filterName, setFilterName] = useState('');
+    const [filterDescription, setFilterDescription] = useState('');
+    const [filterLocationIds, setFilterLocationIds] = useState([]); // Array of selected location_id
+    const [filterCategoryIds, setFilterCategoryIds] = useState([]); // Array of selected category_id
+    const [filterOwnerIds, setFilterOwnerIds] = useState([]); // Array of selected owner_id
 
     // --- Hooks ---
     const api = useApi();
@@ -93,6 +101,36 @@ const ItemsView = () => {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Calculate filtered items based on current filters
+    const filteredItems = useMemo(() => {
+        const lowerFilterName = filterName.toLowerCase();
+        const lowerFilterDescription = filterDescription.toLowerCase();
+
+        return items.filter(item => {
+            // Name filter (case-insensitive includes)
+            if (lowerFilterName && !item.name.toLowerCase().includes(lowerFilterName)) {
+                return false;
+            }
+            // Description filter (case-insensitive includes, handle null)
+            if (lowerFilterDescription && !(item.description || '').toLowerCase().includes(lowerFilterDescription)) {
+                return false;
+            }
+            // Location filter (must match one of the selected IDs if any are selected)
+            if (filterLocationIds.length > 0 && !filterLocationIds.includes(item.location_id)) {
+                return false;
+            }
+            // Category filter (must match one of the selected IDs if any are selected)
+            if (filterCategoryIds.length > 0 && !filterCategoryIds.includes(item.category_id)) {
+                return false;
+            }
+            // Owner filter (must match one of the selected IDs if any are selected)
+            if (filterOwnerIds.length > 0 && !filterOwnerIds.includes(item.owner_id)) {
+                return false;
+            }
+            return true; // Item passes all active filters
+        });
+    }, [items, filterName, filterDescription, filterLocationIds, filterCategoryIds, filterOwnerIds]);
 
     // --- Helper Functions ---
     const getLocationNameById = (id) => locations.find(loc => loc.location_id === id)?.name || intl.formatMessage({ id: 'items.card.noLocation', defaultMessage: 'N/A' });
@@ -157,6 +195,38 @@ const ItemsView = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // --- Filter Handlers ---
+    const handleFilterToggle = () => {
+        setIsFilterVisible(!isFilterVisible);
+    };
+
+    const handleCheckboxFilterChange = (filterType, id) => {
+        const idNum = parseInt(id, 10); // Ensure it's a number
+        const updater = (prevIds) => {
+            if (prevIds.includes(idNum)) {
+                return prevIds.filter(existingId => existingId !== idNum); // Remove ID
+            } else {
+                return [...prevIds, idNum]; // Add ID
+            }
+        };
+
+        if (filterType === 'location') {
+            setFilterLocationIds(updater);
+        } else if (filterType === 'category') {
+            setFilterCategoryIds(updater);
+        } else if (filterType === 'owner') {
+            setFilterOwnerIds(updater);
+        }
+    };
+
+    const handleResetFilters = () => {
+        setFilterName('');
+        setFilterDescription('');
+        setFilterLocationIds([]);
+        setFilterCategoryIds([]);
+        setFilterOwnerIds([]);
     };
 
     // --- Edit Handlers ---
@@ -357,15 +427,116 @@ const ItemsView = () => {
 
             {/* Items List */}
             <h3>{intl.formatMessage({ id: 'items.list.title', defaultMessage: 'Existing Items' })}</h3>
+
+            {/* Filter Toggle Button */}
+            {api.config.isConfigured && typeof api.listItems === 'function' && items.length > 0 && (
+                <button
+                    onClick={handleFilterToggle}
+                    className="filter-toggle-button"
+                    aria-controls="filters-container"
+                    aria-expanded={isFilterVisible}
+                >
+                    {/* Basic Filter Icon (replace with SVG/Icon library if available) */}
+                    <span role="img" aria-hidden="true">⚙️</span>{' '}
+                    {intl.formatMessage({ id: 'items.filter.toggleButton', defaultMessage: 'Filters' })}
+                    ({filteredItems.length}/{items.length}) {/* Show filtered/total count */}
+                </button>
+            )}
+
+            {/* Collapsible Filter Container */}
+            {isFilterVisible && (
+                <div id="filters-container" className="filters-container">
+                    <h4>{intl.formatMessage({ id: 'items.filter.title', defaultMessage: 'Filter Items' })}</h4>
+                    <div className="filter-group">
+                        <label htmlFor="filter-name">{intl.formatMessage({ id: 'items.filter.nameLabel', defaultMessage: 'Name contains:' })}</label>
+                        <input
+                            type="text"
+                            id="filter-name"
+                            value={filterName}
+                            onChange={(e) => setFilterName(e.target.value)}
+                            placeholder={intl.formatMessage({ id: 'items.filter.namePlaceholder', defaultMessage: 'e.g., Shirt' })}
+                        />
+                    </div>
+                    <div className="filter-group">
+                        <label htmlFor="filter-description">{intl.formatMessage({ id: 'items.filter.descriptionLabel', defaultMessage: 'Description contains:' })}</label>
+                        <input
+                            type="text"
+                            id="filter-description"
+                            value={filterDescription}
+                            onChange={(e) => setFilterDescription(e.target.value)}
+                            placeholder={intl.formatMessage({ id: 'items.filter.descriptionPlaceholder', defaultMessage: 'e.g., Cotton' })}
+                        />
+                    </div>
+
+                    {/* Location Filter */}
+                    <fieldset className="filter-group checkbox-group">
+                        <legend>{intl.formatMessage({ id: 'items.filter.locationLabel', defaultMessage: 'Location:' })}</legend>
+                        {locations.map(loc => (
+                            <div key={loc.location_id} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id={`loc-${loc.location_id}`}
+                                    value={loc.location_id}
+                                    checked={filterLocationIds.includes(loc.location_id)}
+                                    onChange={(e) => handleCheckboxFilterChange('location', e.target.value)}
+                                />
+                                <label htmlFor={`loc-${loc.location_id}`}>{loc.name}</label>
+                            </div>
+                        ))}
+                    </fieldset>
+
+                    {/* Category Filter */}
+                    <fieldset className="filter-group checkbox-group">
+                        <legend>{intl.formatMessage({ id: 'items.filter.categoryLabel', defaultMessage: 'Category:' })}</legend>
+                        {categories.map(cat => (
+                            <div key={cat.category_id} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id={`cat-${cat.category_id}`}
+                                    value={cat.category_id}
+                                    checked={filterCategoryIds.includes(cat.category_id)}
+                                    onChange={(e) => handleCheckboxFilterChange('category', e.target.value)}
+                                />
+                                <label htmlFor={`cat-${cat.category_id}`}>{cat.name}</label>
+                            </div>
+                        ))}
+                    </fieldset>
+
+                    {/* Owner Filter */}
+                    <fieldset className="filter-group checkbox-group">
+                        <legend>{intl.formatMessage({ id: 'items.filter.ownerLabel', defaultMessage: 'Owner:' })}</legend>
+                        {owners.map(owner => (
+                            <div key={owner.owner_id} className="checkbox-item">
+                                <input
+                                    type="checkbox"
+                                    id={`owner-${owner.owner_id}`}
+                                    value={owner.owner_id}
+                                    checked={filterOwnerIds.includes(owner.owner_id)}
+                                    onChange={(e) => handleCheckboxFilterChange('owner', e.target.value)}
+                                />
+                                <label htmlFor={`owner-${owner.owner_id}`}>{owner.name}</label>
+                            </div>
+                        ))}
+                    </fieldset>
+
+                    <button onClick={handleResetFilters} className="reset-filters-button">
+                        {intl.formatMessage({ id: 'items.filter.resetButton', defaultMessage: 'Reset Filters' })}
+                    </button>
+                </div>
+            )}
+
             {typeof api.listItems !== 'function' && api.config.isConfigured && (
                 <p className="status-warning">{intl.formatMessage({ id: 'items.list.notSupported', defaultMessage: 'Listing items is not supported by the current API Provider.' })}</p>
+            )}
+            {typeof api.listItems === 'function' && !loading && filteredItems.length === 0 && items.length > 0 && !error && api.config.isConfigured && (
+                <p>{intl.formatMessage({ id: 'items.list.emptyFiltered', defaultMessage: 'No items match the current filters.' })}</p>
             )}
             {typeof api.listItems === 'function' && !loading && items.length === 0 && !error && api.config.isConfigured && (
                 <p>{intl.formatMessage({ id: 'items.list.empty', defaultMessage: 'No items found. Add one above!' })}</p>
             )}
-            {typeof api.listItems === 'function' && items.length > 0 && (
+            {typeof api.listItems === 'function' && filteredItems.length > 0 && (
                 <div className="items-list">
-                    {items.map((item) => (
+                    {filteredItems.map((item) => (
                         <div key={item.item_id} className="item-card">
                             <div className="item-image-placeholder">
                                 {/* Placeholder - Image will go here later */}

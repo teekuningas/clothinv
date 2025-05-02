@@ -257,3 +257,122 @@
 .delete-confirm-content p:first-of-type {
     font-weight: bold;
 }
+
+/* --- Filters --- */
+.filter-toggle-button {
+    display: inline-flex; /* Align icon and text */
+    align-items: center;
+    gap: 5px;
+    padding: 8px 12px;
+    margin-bottom: 15px; /* Space below button */
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.95em;
+    color: #495057;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.filter-toggle-button:hover {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.filter-toggle-button[aria-expanded="true"] {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+}
+
+.filters-container {
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px; /* Space below filters */
+    background-color: #f8f9fa;
+}
+
+.filters-container h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group label,
+.filter-group legend { /* Style legend like label */
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #495057;
+}
+
+.filter-group input[type="text"] {
+    width: calc(100% - 22px); /* Match add form style */
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.checkbox-group {
+    border: none; /* Remove default fieldset border */
+    padding: 0;
+    margin: 0;
+    margin-bottom: 15px; /* Keep margin */
+}
+
+.checkbox-group legend {
+    padding: 0; /* Remove default legend padding */
+    margin-bottom: 8px; /* Space below legend */
+}
+
+.checkbox-item {
+    display: flex; /* Align checkbox and label */
+    align-items: center;
+    margin-bottom: 5px; /* Space between checkbox lines */
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 8px; /* Space between checkbox and label */
+    cursor: pointer;
+    /* Optional: Style checkbox appearance */
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-item label {
+    margin-bottom: 0; /* Reset margin from .filter-group label */
+    font-weight: normal; /* Normal weight for checkbox labels */
+    font-size: 0.95em;
+    cursor: pointer;
+    color: #343a40;
+}
+
+.reset-filters-button {
+    padding: 8px 15px;
+    background-color: #e9ecef;
+    color: #495057;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    margin-top: 10px; /* Space above reset button */
+}
+
+.reset-filters-button:hover {
+    background-color: #e2e6ea;
+}
+
+/* Responsive adjustments for filters if needed */
+@media (max-width: 600px) {
+    .checkbox-group {
+        /* Could add columns here if many options, but vertical is usually fine */
+    }
+}
