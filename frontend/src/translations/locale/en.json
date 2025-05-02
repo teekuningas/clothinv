@@ -1,6 +1,6 @@
 {
-    "app.title": "Inventory Management",
-    "nav.items": "Items",
+    "app.title": "ClothInventory",
+    "nav.items": "Clothes",
     "nav.locations": "Locations",
     "nav.categories": "Categories",
     "nav.settings": "Settings",
