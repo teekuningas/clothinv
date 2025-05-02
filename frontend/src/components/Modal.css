@@ -1,0 +1,60 @@
+/* Create file: frontend/src/components/Modal.css */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    display: flex;
+    align-items: center; /* Vertically center */
+    justify-content: center; /* Horizontally center */
+    z-index: 1000; /* Ensure it's on top */
+    padding: 15px; /* Padding for smaller screens */
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 500px; /* Max width */
+    width: 90%; /* Responsive width */
+    max-height: 90vh; /* Max height */
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative; /* For positioning close button */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 5px;
+    color: #888;
+}
+
+.modal-close-button:hover {
+    color: #000;
+}
+
+.modal-body {
+    /* Content styles are handled by the component using the modal */
+    /* e.g., .edit-category-form, .delete-confirm-content */
+}

@@ -44,7 +44,8 @@ export const providers = {
             'listCategories', // Add this
             'addCategory',    // Add this
             'updateCategory', // Add this (for future use)
-            'deleteCategory'  // Add this (for future use)
+            'deleteCategory', // Add this (for future use)
+            'listItems'       // Add this
             /*, 'getItems', 'updateItem', 'deleteItem' */
         ]
     },

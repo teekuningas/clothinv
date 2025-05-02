@@ -11,14 +11,14 @@ const defaultHeaders = (settings) => {
     return headers;
 };
 
-// handleResponse remains the same conceptually
-const handleResponse = async (res, entityName) => {
+// handleResponse updated to be more generic
+const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {
         const errorText = await res.text();
-        console.error(`Failed to add ${entityName}: ${res.status} ${errorText}`, res);
-        throw new Error(`Failed to add ${entityName}: ${res.status} ${errorText}`);
+        console.error(`Failed to ${operation} ${entityDescription}: ${res.status} ${errorText}`, res);
+        throw new Error(`Failed to ${operation} ${entityDescription}: ${res.status} ${errorText}`);
     }
-    console.log(`${entityName} add response status:`, res.status);
+    console.log(`${entityDescription} ${operation} response status:`, res.status);
     // Datasette insert API doesn't return the created object by default,
     // but you could potentially parse the response if needed or configured.
     // For now, just return success status or basic info.
@@ -43,7 +43,8 @@ export const addCategory = async (settings, data) => { // Rename to addCategory 
         headers: defaultHeaders(settings),
         body: JSON.stringify(categoryData),
     });
-    const insertResult = await handleResponse(insertRes, 'category');
+    // Use updated handleResponse
+    const insertResult = await handleResponse(insertRes, 'add', 'category');
      if (!insertResult.success) {
          throw new Error(`Category insert failed with status ${insertRes.status}`);
     }
@@ -90,7 +91,8 @@ const addImageInternal = async (settings, data) => {
         headers: defaultHeaders(settings),
         body: JSON.stringify(imageData),
     });
-     const insertResult = await handleResponse(insertRes, 'image');
+     // Use updated handleResponse
+     const insertResult = await handleResponse(insertRes, 'add', 'image');
      if (!insertResult.success) {
          throw new Error(`Image insert failed with status ${insertRes.status}`);
     }
@@ -138,7 +140,8 @@ export const addLocation = async (settings, data) => {
         body: JSON.stringify(locationData),
     });
     // Use handleResponse for initial check, but we need the ID later
-    const insertResult = await handleResponse(insertRes, 'location');
+    // Use updated handleResponse
+    const insertResult = await handleResponse(insertRes, 'add', 'location');
     if (!insertResult.success) {
          // Error already thrown by handleResponse, but be explicit
          throw new Error(`Location insert failed with status ${insertRes.status}`);
@@ -215,7 +218,8 @@ export const addItem = async (settings, data) => {
         });
 
         // Use handleResponse for the final item insert result
-        return handleResponse(itemRes, 'item');
+        // Use updated handleResponse
+        return handleResponse(itemRes, 'add', 'item');
 
     } catch (error) {
         // Log the specific error that occurred during the multi-step process
@@ -288,20 +292,61 @@ export const listCategories = async (settings) => {
 };
 
 export const updateCategory = async (settings, categoryId, data) => {
-    console.warn('updateCategory is not yet implemented for datasetteProvider.');
-    // Simulate success for now, or throw an error
-    // throw new Error('updateCategory not implemented');
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async
-    return { success: true, message: 'Update not implemented' };
+    // Expects data like { name, description }
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!categoryId) throw new Error("Category ID is required for update.");
+
+    const updateUrl = `${baseUrl}/categories/${categoryId}/-/update`;
+    const payload = { update: data }; // Datasette expects update data under the 'update' key
+
+    const res = await fetch(updateUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(payload),
+    });
+
+    // Use handleResponse, customizing operation and entity description
+    return handleResponse(res, 'update', `category ID ${categoryId}`);
 };
 
 export const deleteCategory = async (settings, categoryId) => {
-    console.warn('deleteCategory is not yet implemented for datasetteProvider.');
-    // Simulate success for now, or throw an error
-    // throw new Error('deleteCategory not implemented');
-    await new Promise(resolve => setTimeout(resolve, 100)); // Simulate async
-    return { success: true, message: 'Delete not implemented' };
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+    if (!categoryId) throw new Error("Category ID is required for deletion.");
+
+    const deleteUrl = `${baseUrl}/categories/${categoryId}/-/delete`;
+
+    const res = await fetch(deleteUrl, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        // No body needed for Datasette delete
+    });
+
+    // Use handleResponse, customizing operation and entity description
+    return handleResponse(res, 'delete', `category ID ${categoryId}`);
+};
+
+export const listItems = async (settings) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    // Use _shape=array for a simpler response structure (array of objects)
+    const queryUrl = `${baseUrl}/items.json?_shape=array`; // Get all items
+    const res = await fetch(queryUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Failed to fetch items: ${res.status} ${errorText}`, res);
+        throw new Error(`Failed to fetch items: ${res.status}`);
+    }
+    const data = await res.json();
+    console.log("Fetched items:", data);
+    return data; // Returns array of item objects
 };
 
 
-// Add functions for getItems, updateItem, deleteItem operations here later
+// Add functions for updateItem, deleteItem operations here later

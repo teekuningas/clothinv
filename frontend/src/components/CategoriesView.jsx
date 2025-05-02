@@ -1,21 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../api/ApiContext'; // Import useApi hook
-import './CategoriesView.css'; // Import CSS (create this file next)
+import './CategoriesView.css'; // Import CSS
+import Modal from './Modal'; // Import the Modal component
 
 const CategoriesView = () => {
     const [categories, setCategories] = useState([]);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [newCategoryDescription, setNewCategoryDescription] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(null);
+    const [loading, setLoading] = useState(false); // For initial list loading and adding
+    const [error, setError] = useState(null); // For list loading and adding errors
+    const [success, setSuccess] = useState(null); // For general success messages (add, update, delete)
+    const [editingCategoryId, setEditingCategoryId] = useState(null); // ID of category being edited
+    const [editName, setEditName] = useState(''); // Name in edit form
+    const [editDescription, setEditDescription] = useState(''); // Description in edit form
+    const [isUpdating, setIsUpdating] = useState(false); // Loading state for update operation
+    const [updateError, setUpdateError] = useState(null); // Error specific to update operation
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // Show delete confirmation modal
+    const [deleteCandidateId, setDeleteCandidateId] = useState(null); // ID of category to potentially delete
+    const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
+    const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
+
     const api = useApi(); // Get API methods from context
 
     // Function to fetch categories
     const fetchCategories = useCallback(async () => {
         // Only fetch if the provider is configured and listCategories exists
         if (!api.config.isConfigured || typeof api.listCategories !== 'function') {
-            setCategories([]); // Clear categories if not configured
+            setCategories([]); // Clear categories if not configured or function missing
             setError(api.config.isConfigured ? "listCategories method not available for this provider." : "API Provider not configured.");
             return;
         }
@@ -81,6 +92,109 @@ const CategoriesView = () => {
         }
     };
 
+    // --- Edit Handlers ---
+    const handleEditClick = (category) => {
+        setEditingCategoryId(category.category_id);
+        setEditName(category.name);
+        setEditDescription(category.description || ''); // Handle null description
+        setUpdateError(null); // Clear previous edit errors
+        setSuccess(null); // Clear success messages
+        setError(null); // Clear general errors
+    };
+
+    const handleCancelEdit = () => {
+        setEditingCategoryId(null);
+        setEditName('');
+        setEditDescription('');
+        setUpdateError(null);
+    };
+
+    const handleUpdateCategory = async (e) => {
+        e.preventDefault();
+        if (!editingCategoryId || !editName.trim() || typeof api.updateCategory !== 'function') {
+            setUpdateError("Cannot update. Invalid data or update function unavailable.");
+            return;
+        }
+
+        setIsUpdating(true);
+        setUpdateError(null);
+        setSuccess(null);
+
+        try {
+            const result = await api.updateCategory(editingCategoryId, {
+                name: editName.trim(),
+                description: editDescription.trim() || null
+            });
+
+            if (result.success) {
+                setSuccess(`Category "${editName}" updated successfully!`);
+                handleCancelEdit(); // Close modal
+                fetchCategories(); // Refresh list
+            } else {
+                // Should ideally not happen if updateCategory throws errors
+                setUpdateError("Failed to update category for an unknown reason.");
+            }
+        } catch (err) {
+            console.error("Failed to update category:", err);
+            setUpdateError(`Failed to update category: ${err.message}`);
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    // --- Delete Handlers ---
+    const handleDeleteClick = (categoryId) => {
+        // Open confirmation modal (can be called from within edit modal)
+        setDeleteCandidateId(categoryId);
+        setShowDeleteConfirm(true);
+        setDeleteError(null); // Clear previous delete errors
+    };
+
+    const handleCancelDelete = () => {
+        setShowDeleteConfirm(false);
+        setDeleteCandidateId(null);
+        setDeleteError(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteCandidateId || typeof api.deleteCategory !== 'function' || typeof api.listItems !== 'function') {
+            setDeleteError("Cannot delete. Invalid data or required API functions unavailable.");
+            return;
+        }
+
+        setIsDeleting(true);
+        setDeleteError(null);
+        setSuccess(null);
+
+        try {
+            // 1. Check if any items use this category
+            const items = await api.listItems();
+            const isCategoryInUse = items.some(item => item.category_id === deleteCandidateId);
+
+            if (isCategoryInUse) {
+                throw new Error("Cannot delete category because it is currently assigned to one or more items.");
+            }
+
+            // 2. Proceed with deletion if not in use
+            const result = await api.deleteCategory(deleteCandidateId);
+            if (result.success) {
+                setSuccess(`Category deleted successfully!`);
+                handleCancelDelete(); // Close confirmation modal
+                handleCancelEdit(); // Close edit modal as well if open
+                fetchCategories(); // Refresh list
+            } else {
+                // Should ideally not happen if deleteCategory throws errors
+                setDeleteError("Failed to delete category for an unknown reason.");
+            }
+        } catch (err) {
+            console.error("Failed to delete category:", err);
+            setDeleteError(`Failed to delete category: ${err.message}`);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+
     return (
         <div className="categories-view"> {/* Use categories-view class */}
             <h2>Categories Management</h2>
@@ -128,23 +242,101 @@ const CategoriesView = () => {
 
             {/* Categories List */}
             <h3>Existing Categories</h3>
-             {typeof api.listCategories === 'function' && !loading && categories.length === 0 && !error && (
-                 <p>No categories found.</p>
-             )}
-             {typeof api.listCategories === 'function' && categories.length > 0 && (
-                <ul className="categories-list"> {/* Use categories-list class */}
-                    {categories.map((cat) => (
-                        <li key={cat.category_id}>
-                            <strong>{cat.name}</strong>
-                            {cat.description && <span> - {cat.description}</span>}
-                            {/* Add Edit/Delete buttons here later */}
-                        </li>
-                    ))}
-                </ul>
-             )}
-             {typeof api.listCategories !== 'function' && api.config.isConfigured && (
+            {typeof api.listCategories !== 'function' && api.config.isConfigured && (
                  <p className="status-warning">Listing categories is not supported by the current API Provider.</p>
-             )}
+            )}
+            {typeof api.listCategories === 'function' && !loading && categories.length === 0 && !error && api.config.isConfigured && (
+                <p>No categories found. Add one above!</p>
+            )}
+            {typeof api.listCategories === 'function' && categories.length > 0 && (
+                <div className="categories-list"> {/* Use div for card container */}
+                    {categories.map((cat) => (
+                        <div key={cat.category_id} className="category-card">
+                            <h4>{cat.name}</h4>
+                            {cat.description && <p>{cat.description}</p>}
+                            {/* Show Edit button only if provider configured and update method exists */}
+                            {api.config.isConfigured && typeof api.updateCategory === 'function' && (
+                                <button
+                                    onClick={() => handleEditClick(cat)}
+                                    className="edit-button"
+                                    aria-label={`Edit ${cat.name}`}
+                                    disabled={loading || isUpdating || isDeleting} // Disable if any operation is in progress
+                                >
+                                    Edit
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Edit Category Modal */}
+            {editingCategoryId && (
+                <Modal show={!!editingCategoryId} onClose={handleCancelEdit} title="Edit Category">
+                    <form onSubmit={handleUpdateCategory} className="edit-category-form">
+                        {updateError && <p className="status-error">Error: {updateError}</p>}
+                        <div className="form-group">
+                            <label htmlFor="edit-category-name">Name:</label>
+                            <input
+                                type="text"
+                                id="edit-category-name"
+                                value={editName}
+                                onChange={(e) => setEditName(e.target.value)}
+                                required
+                                disabled={isUpdating || isDeleting} // Disable during update or delete
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label htmlFor="edit-category-description">Description:</label>
+                            <input
+                                type="text"
+                                id="edit-category-description"
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                disabled={isUpdating || isDeleting} // Disable during update or delete
+                            />
+                        </div>
+                        <div className="modal-actions">
+                             <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()}>
+                                {isUpdating ? 'Saving...' : 'Save Changes'}
+                            </button>
+                            {/* Show Delete button only if provider configured and delete/listItems methods exist */}
+                            {api.config.isConfigured && typeof api.deleteCategory === 'function' && typeof api.listItems === 'function' && (
+                                <button
+                                    type="button"
+                                    className="delete-button"
+                                    onClick={() => handleDeleteClick(editingCategoryId)}
+                                    disabled={isUpdating || isDeleting} // Disable during update or delete
+                                >
+                                    Delete Category
+                                </button>
+                            )}
+                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting}>
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </Modal>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+                <Modal show={showDeleteConfirm} onClose={handleCancelDelete} title="Confirm Deletion">
+                    <div className="delete-confirm-content">
+                        {deleteError && <p className="status-error">Error: {deleteError}</p>}
+                        <p>Are you sure you want to delete the category "{categories.find(c => c.category_id === deleteCandidateId)?.name}"?</p>
+                        <p>This action cannot be undone.</p>
+                        <div className="modal-actions">
+                            <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
+                                {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                            </button>
+                            <button onClick={handleCancelDelete} disabled={isDeleting}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
 
         </div>
     );

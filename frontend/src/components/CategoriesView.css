@@ -1,13 +1,9 @@
-/* Create this file: frontend/src/components/CategoriesView.css */
-
-.categories-view { /* Changed from .locations-view */
+.categories-view {
     padding: 20px;
 }
 
-/* Status message styles removed - now in index.css */
 
-
-.add-category-form { /* Changed from .add-location-form */
+.add-category-form {
     margin-bottom: 20px;
     padding: 15px;
     border: 1px solid #ccc;
@@ -19,9 +15,9 @@
     margin-top: 0;
 }
 
-/* Generic .form-group and label styles removed - now in index.css */
-
-.form-group input[type="text"] {
+/* Input styling within forms in this view */
+.add-category-form .form-group input[type="text"],
+.edit-category-form .form-group input[type="text"] { /* Apply to edit form too */
     width: calc(100% - 22px); /* Adjust for padding/border */
     padding: 8px 10px;
     border: 1px solid #ccc;
@@ -47,20 +43,129 @@
     background-color: #0056b3;
 }
 
-.categories-list { /* Changed from .locations-list */
-    list-style: none;
+/* --- Category Card Styles --- */
+.categories-list { /* Container for cards */
     padding: 0;
+    margin-top: 20px;
+    /* Optional: Use grid for layout */
+    /* display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px; */
 }
 
-.categories-list li { /* Changed from .locations-list */
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
+.category-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 15px; /* Use margin if not using grid gap */
+    background-color: #fff;
+    position: relative; /* For positioning the edit button */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding-right: 60px; /* Make space for the edit button */
 }
 
-.categories-list li:last-child { /* Changed from .locations-list */
-    border-bottom: none;
+.category-card h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
 }
 
-.categories-list strong { /* Changed from .locations-list */
-    margin-right: 5px;
+.category-card p {
+    margin-bottom: 10px;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.edit-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    background-color: #6c757d; /* Grey */
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.edit-button:hover:not(:disabled) {
+    background-color: #5a6268;
+}
+
+.edit-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+
+/* --- Edit/Delete Modal Styles --- */
+/* Assumes a Modal component provides overlay and basic box */
+.edit-category-form { /* Styles specific to the form inside the edit modal */
+    padding: 10px 0 0 0; /* Add padding top, remove others */
+}
+
+/* Styles for action buttons container within the modal */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Space between buttons */
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* General button styling within modal actions */
+.modal-actions button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-actions button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Specific style for delete buttons */
+.delete-button {
+    background-color: #dc3545; /* Red */
+    color: white;
+}
+
+.delete-button:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+/* Style for primary action (Save/Confirm) */
+.modal-actions button[type="submit"],
+.modal-actions button:first-of-type:not(.delete-button) { /* Target save/confirm */
+     background-color: #007bff; /* Blue */
+     color: white;
+}
+.modal-actions button[type="submit"]:hover:not(:disabled),
+.modal-actions button:first-of-type:not(.delete-button):hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+/* Style for cancel button */
+.modal-actions button:last-of-type { /* Target cancel */
+    background-color: #f8f9fa; /* Light grey */
+    color: #333;
+    border: 1px solid #ccc;
+}
+.modal-actions button:last-of-type:hover:not(:disabled) {
+    background-color: #e2e6ea;
+}
+
+
+/* Styles for delete confirmation content */
+.delete-confirm-content p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+.delete-confirm-content p:first-of-type {
+    font-weight: bold; /* Emphasize the question */
 }
