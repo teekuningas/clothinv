@@ -161,7 +161,7 @@
     "items.filter.toggleButton": "Filters",
     "items.filter.title": "Filter Clothes",
     "items.filter.textLabel": "Text contains:",
-    "items.filter.textPlaceholder": "e.g., Blue Shirt or Cotton",
+    "items.filter.textPlaceholder": "e.g., blue shirt",
     "items.filter.locationLabel": "Location:",
     "items.filter.categoryLabel": "Category:",
     "items.filter.ownerLabel": "Owner:",
