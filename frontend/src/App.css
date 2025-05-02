@@ -55,3 +55,104 @@
     margin: 5px 0;
     font-size: 0.9em;
 }
+
+/* --- Hamburger Menu Styles --- */
+
+/* Hamburger Button - Hidden by default on larger screens */
+.hamburger-button {
+    display: none; /* Hidden by default */
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem; /* Make it large enough to tap */
+    cursor: pointer;
+    position: absolute; /* Position relative to header */
+    top: 15px; /* Adjust as needed */
+    right: 20px; /* Adjust as needed */
+    z-index: 1100; /* Ensure it's above other header content if needed */
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    position: fixed; /* Cover the whole screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(40, 44, 52, 0.95); /* Semi-transparent dark background */
+    z-index: 1050; /* Ensure it's above page content */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* Add transitions for smoother open/close if desired */
+    /* transition: opacity 0.3s ease, visibility 0.3s ease; */
+}
+
+/* Close button inside the overlay */
+.close-menu-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem; /* Large and easy to tap */
+    cursor: pointer;
+    line-height: 1; /* Prevent extra spacing */
+}
+
+/* Navigation within the mobile overlay */
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.mobile-nav button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    padding: 15px 30px; /* Larger tap targets */
+    margin: 10px 0;
+    cursor: pointer;
+    font-size: 1.5rem; /* Larger text */
+    border-radius: 4px;
+    width: 80%; /* Make buttons wider */
+    text-align: center;
+}
+
+.mobile-nav button:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Subtle hover effect */
+}
+
+.mobile-nav button:disabled {
+    color: #007bff; /* Highlight active view */
+    background-color: rgba(0, 123, 255, 0.2); /* Slight background for active */
+    cursor: default;
+}
+
+/* --- Media Query for Responsiveness --- */
+/* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
+@media (max-width: 768px) {
+    .App-header {
+        /* Ensure header has relative positioning if needed for absolute children */
+        position: relative;
+        padding-right: 60px; /* Add padding to prevent overlap with hamburger */
+    }
+
+    /* Hide the standard desktop navigation */
+    .app-nav {
+        display: none;
+    }
+
+    /* Show the hamburger button */
+    .hamburger-button {
+        display: block; /* Or 'inline-block' if preferred */
+    }
+
+    /* Adjust header title if needed */
+    .App-header h1 {
+        font-size: 1.8rem; /* Slightly smaller title on mobile */
+    }
+}

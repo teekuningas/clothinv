@@ -15,6 +15,7 @@ function App() {
   // Remove isSettingsOpen state
 
   const [activeView, setActiveView] = useState('items'); // Default view
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
   const api = useApi(); // Use the API context hook
 
   // Remove handleAddDefaults function - moved to ItemsView
@@ -61,6 +62,17 @@ function App() {
       }
 */
 
+    // Toggle mobile menu visibility
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    // Handle navigation from mobile menu (sets view and closes menu)
+    const handleMobileNavClick = (view) => {
+        setActiveView(view);
+        setIsMobileMenuOpen(false);
+    };
+
   // Helper function to render the active view
   const renderActiveView = () => {
       switch (activeView) {
@@ -85,7 +97,11 @@ function App() {
     <div className="App">
       <header className="App-header">
         <h1>{intl.formatMessage({ id: 'app.title', defaultMessage: 'Inventory Management' })}</h1>
-        {/* Simple Navigation */}
+        {/* Hamburger button - shown only on small screens via CSS */}
+        <button className="hamburger-button" onClick={toggleMobileMenu}>
+            ☰ {/* Simple hamburger icon */}
+        </button>
+        {/* Simple Navigation - hidden on small screens via CSS */}
         <nav className="app-nav">
             <button onClick={() => setActiveView('items')} disabled={activeView === 'items'}>
                 {intl.formatMessage({ id: 'nav.items', defaultMessage: 'Items' })}
@@ -101,6 +117,28 @@ function App() {
             </button>
         </nav>
       </header>
+      {/* Mobile Menu Overlay - shown when isMobileMenuOpen is true */}
+      {isMobileMenuOpen && (
+          <div className="mobile-menu-overlay">
+              <button className="close-menu-button" onClick={toggleMobileMenu}>
+                  &times; {/* Simple close icon */}
+              </button>
+              <nav className="mobile-nav">
+                  <button onClick={() => handleMobileNavClick('items')} disabled={activeView === 'items'}>
+                      {intl.formatMessage({ id: 'nav.items', defaultMessage: 'Items' })}
+                  </button>
+                  <button onClick={() => handleMobileNavClick('locations')} disabled={activeView === 'locations'}>
+                      {intl.formatMessage({ id: 'nav.locations', defaultMessage: 'Locations' })}
+                  </button>
+                  <button onClick={() => handleMobileNavClick('categories')} disabled={activeView === 'categories'}>
+                      {intl.formatMessage({ id: 'nav.categories', defaultMessage: 'Categories' })}
+                  </button>
+                  <button onClick={() => handleMobileNavClick('settings')} disabled={activeView === 'settings'}>
+                      {intl.formatMessage({ id: 'nav.settings', defaultMessage: 'Settings' })}
+                  </button>
+              </nav>
+          </div>
+      )}
       <main className="app-main-content" style={{ padding: '20px' }}>
           {/* Render the active view component */}
           {renderActiveView()}
