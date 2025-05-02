@@ -10,7 +10,6 @@
     "warning.providerNotConfigured": "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
     "info.noProviderSelected": "No API provider selected. Please configure one in Settings.",
     "modal.closeButton.label": "Close modal",
-    /* Common UI elements */
     "common.add": "Add",
     "common.edit": "Edit",
     "common.delete": "Delete",
@@ -27,7 +26,6 @@
     "common.error.unknown": "Unknown reason",
     "common.status.apiNotConfigured": "API Provider is not configured. Please configure it in Settings.",
     "common.status.methodUnsupported": "{methodName} is not supported by the current API Provider.",
-    /* Categories View Specific */
     "categories.title": "Categories Management",
     "categories.loading": "Loading categories...",
     "categories.error.fetch": "Failed to fetch categories: {error}",
@@ -50,8 +48,8 @@
     "categories.error.updateInvalid": "Cannot update. Invalid data or update function unavailable.",
     "categories.deleteModal.title": "Confirm Deletion",
     "categories.deleteModal.confirmMessage": "Are you sure you want to delete the category \"{name}\"? This action cannot be undone.",
-    "categories.common.deleting": "Deleting...", /* Note: common.deleting exists, maybe rename this? Using common for now */
-    "categories.common.confirmDelete": "Confirm Delete", /* Note: common.confirmDelete exists, maybe rename this? Using common for now */
+    "categories.common.deleting": "Deleting...",
+    "categories.common.confirmDelete": "Confirm Delete",
     "categories.success.delete": "Category deleted successfully!",
     "categories.error.delete": "Failed to delete category: {error}",
     "categories.error.deleteInUse": "Cannot delete category because it is currently assigned to one or more items.",
