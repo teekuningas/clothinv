@@ -155,7 +155,8 @@ function App() {
           <div className="global-warnings" style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
               {/* Update Datasette token warning */}
               {api.config.providerType === 'datasette' && api.config.isConfigured && !api.config.settings?.datasetteApiToken &&
-                  <p style={{ color: 'orange' }}>
+                  /* Use status-warning class instead of inline style */
+                  <p className="status-warning">
                       {intl.formatMessage({
                           id: 'warning.datasetteTokenMissing',
                           defaultMessage: 'Warning: Datasette provider is configured but the optional API Token is not set. Operations requiring authentication may fail.'
@@ -163,7 +164,8 @@ function App() {
                   </p>}
               {/* General configuration warning */}
               {api.config.providerType !== 'none' && !api.config.isConfigured &&
-                  <p style={{ color: 'red' }}>
+                  /* Use status-error class instead of inline style */
+                  <p className="status-error">
                       {intl.formatMessage({
                           id: 'warning.providerNotConfigured',
                           defaultMessage: 'Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.'
@@ -172,7 +174,8 @@ function App() {
               }
                {/* Informational message if no provider is selected */}
                {api.config.providerType === 'none' &&
-                  <p style={{ color: 'grey' }}>
+                  /* Use status-loading class (or create a status-info) instead of inline style */
+                  <p className="status-loading"> {/* Using loading style for info, adjust if needed */}
                       {intl.formatMessage({ id: 'info.noProviderSelected', defaultMessage: 'No API provider selected. Please configure one in Settings.' })}
                   </p>
               }
