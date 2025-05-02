@@ -26,6 +26,14 @@ CREATE TABLE IF NOT EXISTS images (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table for item owners
+CREATE TABLE IF NOT EXISTS owners (
+    owner_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Table for inventory items
 CREATE TABLE IF NOT EXISTS items (
     item_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,12 +49,4 @@ CREATE TABLE IF NOT EXISTS items (
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
     FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL,
     FOREIGN KEY (owner_id) REFERENCES owners(owner_id) ON DELETE SET NULL
-);
-
--- Table for item owners
-CREATE TABLE IF NOT EXISTS owners (
-    owner_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
