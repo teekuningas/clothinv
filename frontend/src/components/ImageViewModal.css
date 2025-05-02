@@ -50,16 +50,16 @@
 
 .image-view-modal-close {
     position: absolute;
-    top: -10px; /* Position slightly outside the top-right */
-    right: -10px;
+    top: -15px; /* Adjust position for larger size */
+    right: -15px; /* Adjust position for larger size */
     background-color: white; /* White background */
     color: #333; /* Darker text/icon */
     border: 1px solid #ccc; /* Light grey border */
     border-radius: 50%; /* Circular button */
-    width: 30px;
-    height: 30px;
-    font-size: 24px;
-    line-height: 28px; /* Center the 'x' */
+    width: 36px;  /* Increased width */
+    height: 36px; /* Increased height */
+    font-size: 28px; /* Increased font size for the 'x' */
+    line-height: 34px; /* Adjust line-height to vertically center the larger 'x' */
     text-align: center;
     cursor: pointer;
     padding: 0;
