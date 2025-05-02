@@ -51,23 +51,37 @@ export const ApiProvider = ({ children }) => {
             }
         }
 
-        // If no saved config or parsing failed, use defaults + ENV vars
+        // If no saved config or parsing failed, determine defaults based on ENV -> Hardcoded
         if (!initialConfig) {
-            const defaultProviderType = import.meta.env.VITE_API_PROVIDER || 'none';
+            // Determine default provider type: ENV ('VITE_API_PROVIDER') or fallback to 'datasette'
+            const envProviderType = import.meta.env.VITE_API_PROVIDER;
+            const hardcodedDefaultProviderType = 'datasette'; // Explicitly set the fallback default
+            let defaultProviderType = hardcodedDefaultProviderType; // Start with the hardcoded default
+
+            // Check if ENV var specifies a valid provider
+            if (envProviderType && getProviderById(envProviderType)) {
+                defaultProviderType = envProviderType; // Use ENV var if valid
+            } else if (envProviderType) {
+                console.warn(`Environment variable VITE_API_PROVIDER specifies an invalid provider type "${envProviderType}". Falling back to default "${hardcodedDefaultProviderType}".`);
+            }
+
+            // Initialize config structure
             initialConfig = {
-                providerType: getProviderById(defaultProviderType) ? defaultProviderType : 'none', // Validate ENV var provider
+                providerType: defaultProviderType,
                 settings: {},
                 isConfigured: false, // Will be recalculated below
             };
-            // Load initial settings from ENV vars if defined in registry for the default provider
+
+            // Load initial settings from ENV vars if defined in registry for the chosen default provider
             const provider = getProviderById(initialConfig.providerType);
             if (provider && provider.configFields) {
                 provider.configFields.forEach(field => {
+                    // Check if the field has an associated ENV var and if that ENV var is set
                     if (field.envVar && import.meta.env[field.envVar]) {
                         initialConfig.settings[field.key] = import.meta.env[field.envVar];
                     } else {
                         // Initialize with empty string if not set by ENV var
-                        initialConfig.settings[field.key] = initialConfig.settings[field.key] ?? '';
+                        initialConfig.settings[field.key] = ''; // Ensure key exists
                     }
                 });
             }

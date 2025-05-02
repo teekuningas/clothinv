@@ -26,6 +26,7 @@ async function loadMessages(locale) {
 
 // --- Helper: Determine Initial Locale ---
 function getInitialLocale() {
+    // 1. Check Local Storage
     const savedLocale = localStorage.getItem(LS_LOCALE_KEY);
     if (savedLocale && getLocaleCodes().includes(savedLocale)) {
         return savedLocale;
@@ -35,15 +36,8 @@ function getInitialLocale() {
     if (envLocale && getLocaleCodes().includes(envLocale)) {
         return envLocale;
     }
-    // Use navigator.languages for better browser support
-    const browserLangs = navigator.languages || [navigator.language];
-    for (const lang of browserLangs) {
-        const baseLang = lang?.split(/[-_]/)[0];
-        if (baseLang && getLocaleCodes().includes(baseLang)) {
-            return baseLang;
-        }
-    }
-    return defaultLocale;
+    // 3. Fallback to Hardcoded Default
+    return defaultLocale; // defaultLocale is 'en' as defined in i18n.js
 }
 
 // Create the context
