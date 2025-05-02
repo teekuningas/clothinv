@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { IntlProvider } from 'react-intl';
 import { availableLocales, defaultLocale, getLocaleCodes, LS_LOCALE_KEY, ENV_DEFAULT_LOCALE_KEY } from './i18n'; // Updated path
 
-// --- Helper: Load Messages Dynamically ---
 async function loadMessages(locale) {
     const validLocale = getLocaleCodes().includes(locale) ? locale : defaultLocale;
     if (locale !== validLocale) {
@@ -19,12 +18,11 @@ async function loadMessages(locale) {
             return loadMessages(defaultLocale);
         } else {
             console.error(`FATAL: Failed to load default messages for locale "${defaultLocale}".`);
-            return {}; // Return empty messages to prevent app crash
+            return {};
         }
     }
 }
 
-// --- Helper: Determine Initial Locale ---
 function getInitialLocale() {
     // 1. Check Local Storage
     const savedLocale = localStorage.getItem(LS_LOCALE_KEY);
@@ -37,7 +35,7 @@ function getInitialLocale() {
         return envLocale;
     }
     // 3. Fallback to Hardcoded Default
-    return defaultLocale; // defaultLocale is 'en' as defined in i18n.js
+    return defaultLocale;
 }
 
 // Create the context
@@ -71,7 +69,7 @@ export const TranslationProvider = ({ children }) => {
                 // Error is already logged in loadMessages, but we can set state here if needed
                 console.error("Error caught in TranslationProvider useEffect:", error);
                 setLoadError("Failed to load language data."); // Set user-facing error message
-                setMessages({}); // Ensure messages are empty on error
+                setMessages({});
             })
             .finally(() => {
                 setLoadingMessages(false);
@@ -86,7 +84,7 @@ export const TranslationProvider = ({ children }) => {
         } else if (!getLocaleCodes().includes(newLocale)) {
             console.warn(`Attempted to change to invalid locale: ${newLocale}`);
         }
-    }, [locale]); // Include locale in dependency array
+    }, [locale]);
 
     // The context value
     const value = {
@@ -94,7 +92,7 @@ export const TranslationProvider = ({ children }) => {
         changeLocale,
         availableLocales,
         loadingMessages,
-        loadError, // Expose load error state
+        loadError,
     };
 
     // Display loading or error state, or render children within IntlProvider
