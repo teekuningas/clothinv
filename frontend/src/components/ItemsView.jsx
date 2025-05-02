@@ -481,23 +481,29 @@ const ItemsView = () => {
                                 />
                             </div>
                         )}
+                        {/* Action buttons for image */}
+                        <div className="form-group-image-actions">
+                            <label htmlFor="item-image" className="button-secondary button-file-input">
+                                {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => handleOpenWebcam('add')}
+                                disabled={loading}
+                                className="button-secondary" // Style as secondary button
+                            >
+                                {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
+                            </button>
+                        </div>
+                        {/* Hidden actual file input */}
                         <input
                             type="file"
                             id="item-image"
                             accept="image/*"
                             onChange={(e) => handleFileChange(e, 'add')}
                             disabled={loading}
+                            className="hidden-file-input" // Class to hide it
                         />
-                    </div>
-                    <div className="form-group form-group-image-actions">
-                        <button
-                            type="button"
-                            onClick={() => handleOpenWebcam('add')}
-                            disabled={loading}
-                            className="button-secondary" // Style as secondary button
-                        >
-                            {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
-                        </button>
                     </div>
                     <div className="form-group">
                         <label htmlFor="item-location">{intl.formatMessage({ id: 'items.addForm.locationLabel', defaultMessage: 'Location:' })}</label>
@@ -746,6 +752,36 @@ const ItemsView = () => {
                                     />
                                 </div>
                             )}
+                            <input
+                                type="file"
+                                id="edit-item-image"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, 'edit')}
+                                disabled={isUpdating || isDeleting}
+                            />
+                            {/* Action buttons for image */}
+                            <div className="form-group-image-actions">
+                                <label htmlFor="edit-item-image" className="button-secondary button-file-input">
+                                    {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenWebcam('edit')}
+                                    disabled={isUpdating || isDeleting}
+                                    className="button-secondary" // Style as secondary button
+                                >
+                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
+                                </button>
+                            </div>
+                            {/* Hidden actual file input */}
+                            <input
+                                type="file"
+                                id="edit-item-image"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(e, 'edit')}
+                                disabled={isUpdating || isDeleting}
+                                className="hidden-file-input" // Class to hide it
+                            />
                             {/* Show remove button only if there's an image currently displayed (existing or preview) */}
                             {displayImageUrl && typeof api.deleteItem === 'function' && ( // Assuming deleteItem implies image removal capability
                                 <button
@@ -757,23 +793,6 @@ const ItemsView = () => {
                                     {intl.formatMessage({ id: 'items.editForm.removeImage', defaultMessage: 'Remove Image' })}
                                 </button>
                             )}
-                            <input
-                                type="file"
-                                id="edit-item-image"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(e, 'edit')}
-                                disabled={isUpdating || isDeleting}
-                            />
-                            <div className="form-group-image-actions">
-                                 <button
-                                    type="button"
-                                    onClick={() => handleOpenWebcam('edit')}
-                                    disabled={isUpdating || isDeleting}
-                                    className="button-secondary" // Style as secondary button
-                                >
-                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
-                                </button>
-                            </div>
                         </div>
                         {/* Location Dropdown */}
                         <div className="form-group">

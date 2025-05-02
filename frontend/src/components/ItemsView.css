@@ -330,25 +330,30 @@
     font-weight: bold;
 }
 
-/* Style file input */
-.add-item-form input[type="file"],
-.edit-item-form input[type="file"] {
-    /* Basic styling, can be enhanced further if needed */
-    padding: 5px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 0.9em;
-    max-width: 350px; /* Limit width, adjust as needed */
-    margin-top: 0; /* Remove default margin, use gap */
-    /* Allow button to sit next to it */
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 10px; /* Space between file input and button */
+/* Hide the actual file input element */
+.hidden-file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+/* Style the label to look like a button */
+.button-file-input {
+    /* Inherits styles from .button-secondary */
+    display: inline-block; /* Allow setting padding/margins */
+    cursor: pointer;
+    vertical-align: middle; /* Align with other buttons */
 }
 
 .form-group-image-actions {
     /* Container for buttons related to image input */
-    margin-top: 5px; /* Space above the button(s) */
+    margin-top: 8px; /* Space above the action buttons */
+    display: flex; /* Arrange buttons horizontally */
+    gap: 10px; /* Space between buttons */
+    align-items: center; /* Vertically align items if heights differ */
 }
 
 .edit-item-form .form-group {
@@ -365,7 +370,7 @@
 .remove-image-button {
     padding: 5px 10px; /* Slightly smaller padding */
     font-size: 0.9em;
-    margin: 0; /* Remove default margin, use gap */
+    margin-top: 8px; /* Space above remove button */
     align-self: flex-start; /* Align with preview */
     /* Danger styles already applied */
 }

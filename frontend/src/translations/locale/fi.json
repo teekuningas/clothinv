@@ -131,6 +131,7 @@
     "items.addForm.ownerLabel": "Omistaja:",
     "items.addForm.imageLabel": "Kuva:",
     "items.addForm.imagePreviewAlt": "Uuden vaatteen esikatselu",
+    "items.addForm.chooseFile": "Valitse tiedosto",
     "items.addForm.button.add": "Lisää vaate",
     "items.addForm.button.adding": "Lisätään...",
     "items.addForm.notSupported": "Vaatteiden lisäämistä tai vaadittujen tietojen listausta ei tueta nykyisellä API-palvelulla.",
