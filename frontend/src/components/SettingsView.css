@@ -20,16 +20,6 @@
     color: var(--color-text-label);
 }
 
-/* Generic .form-group and label styles are in main.css */
-
-/* Ensure inputs take full width within form groups */
-/* This is default in main.css, removing */
-/* .form-group input[type="text"],
-.form-group input[type="password"],
-.form-group select {
-  width: 100%;
-} */
-
 
 .form-actions {
   margin-top: 20px; /* Reduced margin */
