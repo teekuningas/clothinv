@@ -180,7 +180,7 @@
 }
 
 /* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
-@media (width <= 768px) {
+@media (max-width: 768px) {
     .app-header {
         /* Ensure header has relative positioning for absolute children */
         position: relative;
