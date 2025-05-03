@@ -94,6 +94,46 @@
     border-top: none; /* No top border for the first section */
 }
 
+/* Hide the actual file input element */
+.hidden-file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+/* Style the label to look like a button */
+.button-file-input {
+    /* Inherit general button styles from .settings-view button */
+    display: inline-block; /* Allow setting width/padding */
+    padding: 10px 20px; /* Match other settings buttons */
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle; /* Align with text if needed */
+    margin-top: 5px; /* Add some space above */
+    margin-bottom: 5px; /* Add some space below */
+}
+
+/* Style for the disabled state on the label */
+.button-file-input.disabled {
+  /* Use styles similar to .import-button:disabled */
+  background-color: #e9ecef;
+  color: #6c757d;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+  opacity: 0.65; /* Add opacity */
+  pointer-events: none; /* Prevent clicks */
+}
+
+.selected-file-name {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #495057;
+    word-break: break-all; /* Prevent long filenames from overflowing */
+}
+
 .data-management-section h4 {
     margin-bottom: 10px;
     font-size: 1.05em;
