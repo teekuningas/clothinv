@@ -400,7 +400,12 @@ export const listLocations = async (settings) => { // eslint-disable-line no-unu
 export const addLocation = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addLocation called with data:', data);
     const newId = _getNextId('locations');
-    const newLocation = { ...data, location_id: newId };
+    const newLocation = {
+        ...data,
+        location_id: newId,
+        created_at: new Date().toISOString(),
+        updated_at: null // Set updated_at to null on creation
+    };
     await addToStore(STORES.locations, newLocation);
     return { success: true, newId: newId };
 };
@@ -409,7 +414,11 @@ export const updateLocation = async (settings, locationId, data) => { // eslint-
     console.log(`IndexedDBProvider: updateLocation called for ID ${locationId} with data:`, data);
     const existing = await getFromStore(STORES.locations, locationId);
     if (!existing) return { success: false, message: 'Location not found' };
-    const updatedLocation = { ...existing, ...data };
+    const updatedLocation = {
+        ...existing,
+        ...data,
+        updated_at: new Date().toISOString() // Set updated_at on update
+    };
     await updateInStore(STORES.locations, updatedLocation);
     return { success: true };
 };
@@ -439,7 +448,12 @@ export const listCategories = async (settings) => { // eslint-disable-line no-un
 export const addCategory = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addCategory called with data:', data);
     const newId = _getNextId('categories');
-    const newCategory = { ...data, category_id: newId };
+    const newCategory = {
+        ...data,
+        category_id: newId,
+        created_at: new Date().toISOString(),
+        updated_at: null
+    };
     await addToStore(STORES.categories, newCategory);
     return { success: true, newId: newId };
 };
@@ -448,7 +462,11 @@ export const updateCategory = async (settings, categoryId, data) => { // eslint-
     console.log(`IndexedDBProvider: updateCategory called for ID ${categoryId} with data:`, data);
     const existing = await getFromStore(STORES.categories, categoryId);
     if (!existing) return { success: false, message: 'Category not found' };
-    const updatedCategory = { ...existing, ...data };
+    const updatedCategory = {
+        ...existing,
+        ...data,
+        updated_at: new Date().toISOString()
+    };
     await updateInStore(STORES.categories, updatedCategory);
     return { success: true };
 };
@@ -475,7 +493,12 @@ export const listOwners = async (settings) => { // eslint-disable-line no-unused
 export const addOwner = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addOwner called with data:', data);
     const newId = _getNextId('owners');
-    const newOwner = { ...data, owner_id: newId };
+    const newOwner = {
+        ...data,
+        owner_id: newId,
+        created_at: new Date().toISOString(),
+        updated_at: null
+    };
     await addToStore(STORES.owners, newOwner);
     return { success: true, newId: newId };
 };
@@ -484,7 +507,11 @@ export const updateOwner = async (settings, ownerId, data) => { // eslint-disabl
     console.log(`IndexedDBProvider: updateOwner called for ID ${ownerId} with data:`, data);
     const existing = await getFromStore(STORES.owners, ownerId);
     if (!existing) return { success: false, message: 'Owner not found' };
-    const updatedOwner = { ...existing, ...data };
+    const updatedOwner = {
+        ...existing,
+        ...data,
+        updated_at: new Date().toISOString()
+    };
     await updateInStore(STORES.owners, updatedOwner);
     return { success: true };
 };
@@ -535,7 +562,7 @@ export const addItem = async (settings, data) => { // eslint-disable-line no-unu
         ...restOfData,
         item_id: newId,
         created_at: new Date().toISOString(),
-        updated_at: null
+        updated_at: null // Explicitly set updated_at to null on creation
     };
 
     // Use transaction for atomicity (add metadata and image together)

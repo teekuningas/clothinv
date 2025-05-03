@@ -88,7 +88,10 @@ const handleResponse = async (res, operation, entityDescription) => {
 
 // Rename and export this function
 export const addCategory = async (settings, data) => { // Rename to addCategory and export
-    const categoryData = { row: data }; // Expects { name, description }
+    const categoryData = {
+        row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
+        // created_at should be handled by DB default
+    };
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
@@ -137,7 +140,10 @@ export const addCategory = async (settings, data) => { // Rename to addCategory 
 // They receive the 'settings' object as the first argument from ApiContext.
 
 export const addLocation = async (settings, data) => {
-    const locationData = { row: data }; // Expects { name, description }
+    const locationData = {
+        row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
+        // created_at should be handled by DB default
+    };
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
@@ -213,7 +219,9 @@ export const updateLocation = async (settings, locationId, data) => {
     if (!locationId) throw new Error("Location ID is required for update.");
 
     const updateUrl = `${baseUrl}/locations/${locationId}/-/update`;
-    const payload = { update: data }; // Datasette expects update data under the 'update' key
+    const payload = {
+        update: { ...data, updated_at: new Date().toISOString() } // Set updated_at on update
+    };
 
     const res = await fetch(updateUrl, {
         method: 'POST',
@@ -272,7 +280,9 @@ export const updateCategory = async (settings, categoryId, data) => {
     if (!categoryId) throw new Error("Category ID is required for update.");
 
     const updateUrl = `${baseUrl}/categories/${categoryId}/-/update`;
-    const payload = { update: data }; // Datasette expects update data under the 'update' key
+    const payload = {
+        update: { ...data, updated_at: new Date().toISOString() } // Set updated_at on update
+    };
 
     const res = await fetch(updateUrl, {
         method: 'POST',
@@ -325,7 +335,10 @@ export const listOwners = async (settings) => {
 };
 
 export const addOwner = async (settings, data) => { // Rename to addOwner and export
-    const ownerData = { row: data }; // Expects { name, description }
+    const ownerData = {
+        row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
+        // created_at should be handled by DB default
+    };
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
@@ -376,7 +389,9 @@ export const updateOwner = async (settings, ownerId, data) => {
     if (!ownerId) throw new Error("Owner ID is required for update.");
 
     const updateUrl = `${baseUrl}/owners/${ownerId}/-/update`;
-    const payload = { update: data }; // Datasette expects update data under the 'update' key
+    const payload = {
+        update: { ...data, updated_at: new Date().toISOString() } // Set updated_at on update
+    };
 
     const res = await fetch(updateUrl, {
         method: 'POST',
@@ -503,7 +518,8 @@ export const addItem = async (settings, data) => {
         location_id: data.location_id,
         category_id: data.category_id,
         owner_id: data.owner_id, // Add owner_id
-        image_id: imageId // Use the inserted image ID or null
+        image_id: imageId, // Use the inserted image ID or null
+        updated_at: null // Explicitly set updated_at to null on creation
     };
     const itemPayload = { row: itemRowData };
 
@@ -567,7 +583,7 @@ export const updateItem = async (settings, itemId, data) => {
             location_id: data.location_id, category_id: data.category_id, owner_id: data.owner_id,
             image_id: newImageId, // Set the potentially updated image ID
             updated_at: new Date().toISOString() // Add the current timestamp
-        }
+        } // created_at is not updated
     };
 
     const res = await fetch(updateUrl, {
@@ -714,13 +730,13 @@ export const exportData = async (settings) => {
         const items = await listItems(settings); // This includes imageFile objects
 
         // 2. Create CSVs
-        const locationHeaders = ['location_id', 'name', 'description'];
+        const locationHeaders = ['location_id', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('locations.csv', createCSV(locationHeaders, locations));
 
-        const categoryHeaders = ['category_id', 'name', 'description'];
+        const categoryHeaders = ['category_id', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('categories.csv', createCSV(categoryHeaders, categories));
 
-        const ownerHeaders = ['owner_id', 'name', 'description'];
+        const ownerHeaders = ['owner_id', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('owners.csv', createCSV(ownerHeaders, owners));
 
         const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
@@ -798,7 +814,10 @@ export const importData = async (settings, zipFile) => {
         const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
         for (const loc of locations) {
             const { location_id: exportedId, ...locData } = loc;
-            const result = await addLocation(settings, locData);
+            // Pass timestamps from CSV to preserve them
+            const result = await addLocation(settings, {
+                name: locData.name, description: locData.description, created_at: locData.created_at, updated_at: locData.updated_at
+            });
             if (result.success) locationMap[exportedId] = result.newId;
             else throw new Error(`Failed to import location: ${loc.name}`);
         }
@@ -806,7 +825,9 @@ export const importData = async (settings, zipFile) => {
         const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
         for (const cat of categories) {
             const { category_id: exportedId, ...catData } = cat;
-            const result = await addCategory(settings, catData);
+            const result = await addCategory(settings, {
+                name: catData.name, description: catData.description, created_at: catData.created_at, updated_at: catData.updated_at
+            });
             if (result.success) categoryMap[exportedId] = result.newId;
             else throw new Error(`Failed to import category: ${cat.name}`);
         }
@@ -814,7 +835,9 @@ export const importData = async (settings, zipFile) => {
         const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
         for (const owner of owners) {
             const { owner_id: exportedId, ...ownerData } = owner;
-            const result = await addOwner(settings, ownerData);
+            const result = await addOwner(settings, {
+                name: ownerData.name, description: ownerData.description, created_at: ownerData.created_at, updated_at: ownerData.updated_at
+            });
             if (result.success) ownerMap[exportedId] = result.newId;
             else throw new Error(`Failed to import owner: ${owner.name}`);
         }
@@ -834,7 +857,9 @@ export const importData = async (settings, zipFile) => {
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
                 owner_id: ownerMap[owner_id],       // Map to new ID
-                imageFile: imageFile
+                imageFile: imageFile,
+                created_at: itemMetadata.created_at, // Preserve timestamp
+                updated_at: itemMetadata.updated_at  // Preserve timestamp
             };
 
             // Ensure mapped IDs are valid before adding
