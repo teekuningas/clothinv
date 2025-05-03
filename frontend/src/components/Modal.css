@@ -1,9 +1,6 @@
 .modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background-color: var(--color-backdrop); /* CHANGE */
     display: flex;
     align-items: center;
@@ -20,7 +17,7 @@
     width: 90%; /* Responsive width */
     max-height: 90vh; /* Max height */
     overflow-y: auto; /* Allow scrolling if content overflows */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); /* Add subtle shadow */
+    box-shadow: 0 5px 15px rgb(0 0 0 / 20%); /* Add subtle shadow */
     position: relative; /* For positioning close button */
 }
 

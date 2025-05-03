@@ -18,7 +18,7 @@
     background-color: var(--color-overlay-dark-bg); /* CHANGE */
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 15px rgb(0 0 0 / 40%);
     cursor: default;
     max-width: 90vw;
     max-height: 90vh;
@@ -58,6 +58,7 @@
     background-color: var(--color-error-bg); /* CHANGE */
     border: 1px solid var(--color-error-bg); /* Add border */
 }
+
 .webcam-error p {
     margin: 0; /* Reset paragraph margin */
 }
@@ -81,6 +82,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover; /* Fill the container */
+
     /* Visibility is controlled inline */
 }
 
@@ -106,6 +108,7 @@
 .webcam-capture-button:hover {
     background-color: var(--color-overlay-button-hover); /* CHANGE */
 }
+
 .webcam-capture-button:active {
      transform: translateX(-50%) scale(0.95); /* Slight shrink on click */
 }

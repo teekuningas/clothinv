@@ -30,7 +30,7 @@
     background-color: var(--color-bg-container); /* CHANGE */
     padding: 5px;
     border-radius: 4px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 5px 15px rgb(0 0 0 / 30%);
     display: flex; /* Helps center image if smaller than max */
     justify-content: center;
     align-items: center;
@@ -59,6 +59,7 @@
     font-size: 32px; /* Further increase font size */
     line-height: 36px; /* Match height for vertical centering */
     text-align: center;
+
     /* Add flex centering for robustness */
     display: flex;
     align-items: center;
@@ -67,7 +68,7 @@
     padding: 0;
     z-index: 1051; /* Above the content */
     transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; /* Added color/shadow transition */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3); /* Slightly softer shadow */
+    box-shadow: 0 1px 3px rgb(0 0 0 / 30%); /* Slightly softer shadow */
 }
 
 .image-view-modal-close:hover,

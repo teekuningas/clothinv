@@ -98,7 +98,7 @@
 
 
 /* --- Responsive Adjustments --- */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .form-actions {
     flex-wrap: wrap; /* Allow buttons to wrap */
     justify-content: flex-start; /* Align wrapped buttons to the start */
