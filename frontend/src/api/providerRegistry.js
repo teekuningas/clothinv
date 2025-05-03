@@ -1,5 +1,6 @@
 import * as datasetteProvider from './datasetteProvider';
 // Import other provider modules here when added
+import * as localStorageProvider from './localStorageProvider'; // Add this import
 // import * as homeboxProvider from './homeboxProvider';
 
 /**
@@ -88,15 +89,33 @@ export const providers = {
     },
     */
 
-    // --- None Provider Definition ---
-    'none': {
-        id: 'none',
-        displayName: 'None',
-        module: null,
+    // --- Local Storage Provider Definition ---
+    'localStorage': {
+        id: 'localStorage',
+        displayName: 'Local Storage (Browser)',
+        module: localStorageProvider, // Reference the new module
         configFields: [],
-        isConfiguredCheck: () => false,
-        methods: []
-    }
+        isConfiguredCheck: () => true, // Always configured as it needs no settings
+        // Ensure this list matches the methods provided by datasetteProvider
+        methods: [
+            'listLocations',
+            'addLocation',
+            'updateLocation',
+            'deleteLocation',
+            'listCategories',
+            'addCategory',
+            'updateCategory',
+            'deleteCategory',
+            'listItems',
+            'addItemSimple',
+            'updateItem',
+            'deleteItem',
+            'listOwners',
+            'addOwner',
+            'updateOwner',
+            'deleteOwner',
+        ]
+    },
 };
 
 /**

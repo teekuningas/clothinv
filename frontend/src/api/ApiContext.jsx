@@ -54,8 +54,8 @@ export const ApiProvider = ({ children }) => {
         // If no saved config or parsing failed, determine defaults based on ENV -> Hardcoded
         if (!initialConfig) {
             // Determine default provider type: ENV ('VITE_API_PROVIDER') or fallback to 'datasette'
-            const envProviderType = import.meta.env.VITE_API_PROVIDER;
-            const hardcodedDefaultProviderType = 'datasette'; // Explicitly set the fallback default
+            const envProviderType = import.meta.env.VITE_API_PROVIDER; // Check ENV first
+            const hardcodedDefaultProviderType = 'localStorage'; // <<< CHANGE THIS to 'localStorage'
             let defaultProviderType = hardcodedDefaultProviderType; // Start with the hardcoded default
 
             // Check if ENV var specifies a valid provider
@@ -89,9 +89,6 @@ export const ApiProvider = ({ children }) => {
 
         // Always recalculate isConfigured based on loaded/default provider and settings
         initialConfig.isConfigured = checkConfiguration(initialConfig.providerType, initialConfig.settings);
-        if (initialConfig.providerType !== 'none' && !initialConfig.isConfigured) {
-             console.warn(`${getProviderById(initialConfig.providerType)?.displayName || initialConfig.providerType} provider is selected, but it's not fully configured based on current settings.`);
-        }
 
         return initialConfig;
     });
