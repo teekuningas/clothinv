@@ -8,6 +8,8 @@ import LocationsView from './components/LocationsView';
 import CategoriesView from './components/CategoriesView';
 import OwnersView from './components/OwnersView';
 import SettingsView from './components/SettingsView'; // Settings is now a view
+import ConfigureFromUrl from './components/ConfigureFromUrl'; // Import new component
+import ExportConfigurationLink from './components/ExportConfigurationLink'; // Import new component
 import './App.css';
 // Consider adding a new CSS file for navigation styles if needed
 
@@ -196,6 +198,8 @@ function App() {
                       onSave={api.updateConfiguration}
                   />
               } />
+              <Route path="/configure" element={<ConfigureFromUrl />} />
+              <Route path="/export-configuration" element={<ExportConfigurationLink />} />
               {/* Optional: Add a catch-all 404 route */}
               {/* <Route path="*" element={<div>Page Not Found</div>} /> */}
           </Routes>

@@ -38,6 +38,7 @@ export const ApiProvider = ({ children }) => {
                 initialConfig = JSON.parse(savedConfig);
                 // Basic validation and defaults for older formats
                 initialConfig.providerType = initialConfig.providerType || 'none';
+                // Ensure settings is an object, even if null/undefined was saved
                 initialConfig.settings = initialConfig.settings || {};
                 // Ensure provider exists
                 if (!getProviderById(initialConfig.providerType)) {
@@ -45,6 +46,8 @@ export const ApiProvider = ({ children }) => {
                     initialConfig.providerType = 'none';
                     initialConfig.settings = {};
                 }
+                // Remove isConfigured if it exists from older format
+                delete initialConfig.isConfigured;
             } catch (e) {
                 console.error("Failed to parse saved API config, using defaults.", e);
                 initialConfig = null; // Reset if parsing failed
@@ -69,7 +72,6 @@ export const ApiProvider = ({ children }) => {
             initialConfig = {
                 providerType: defaultProviderType,
                 settings: {},
-                isConfigured: false, // Will be recalculated below
             };
 
             // Load initial settings from ENV vars if defined in registry for the chosen default provider
@@ -87,7 +89,7 @@ export const ApiProvider = ({ children }) => {
             }
         }
 
-        // Always recalculate isConfigured based on loaded/default provider and settings
+        // Always calculate isConfigured based on loaded/default provider and settings
         initialConfig.isConfigured = checkConfiguration(initialConfig.providerType, initialConfig.settings);
 
         return initialConfig;
@@ -162,9 +164,14 @@ export const ApiProvider = ({ children }) => {
         // 4. Update state - this will trigger the useEffect to re-bind methods
         setConfig(updatedFullConfig);
 
-        // 5. Persist the updated API config to the single localStorage key
+        // 5. Prepare the object to save (without isConfigured)
+        const configToSave = {
+            providerType: updatedFullConfig.providerType,
+            settings: updatedFullConfig.settings,
+        };
+        // 6. Persist only providerType and settings to localStorage
         try {
-            localStorage.setItem(LS_API_PROVIDER_CONFIG_KEY, JSON.stringify(updatedFullConfig));
+            localStorage.setItem(LS_API_PROVIDER_CONFIG_KEY, JSON.stringify(configToSave));
         } catch (error) {
             console.error("Failed to save API config to localStorage:", error);
             // Optionally notify the user
