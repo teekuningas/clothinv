@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT,
     image_data BLOB NOT NULL,
     image_mimetype TEXT NOT NULL,
+    image_filename TEXT, -- Add filename column
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -21,7 +21,7 @@ const ItemsView = () => {
     const [newItemLocationId, setNewItemLocationId] = useState(''); // Store ID
     const [newItemCategoryId, setNewItemCategoryId] = useState(''); // Store ID
     const [newItemImageFile, setNewItemImageFile] = useState(null); // Store File object
-    const [newItemImagePreview, setNewItemImagePreview] = useState(null); // Store Data URL for preview
+    // REMOVED: const [newItemImagePreview, setNewItemImagePreview] = useState(null);
     const [newItemOwnerId, setNewItemOwnerId] = useState(''); // Store ID
 
     // General status state
@@ -36,7 +36,7 @@ const ItemsView = () => {
     const [editLocationId, setEditLocationId] = useState(''); // Add state for edit location
     const [editCategoryId, setEditCategoryId] = useState(''); // Add state for edit category
     const [editItemImageFile, setEditItemImageFile] = useState(null); // Store File object for edit
-    const [editItemImagePreview, setEditItemImagePreview] = useState(null); // Store Data URL for edit preview
+    // REMOVED: const [editItemImagePreview, setEditItemImagePreview] = useState(null);
     const [editOwnerId, setEditOwnerId] = useState(''); // Add state for edit owner
     const [isUpdating, setIsUpdating] = useState(false);
     const [updateError, setUpdateError] = useState(null);
@@ -56,6 +56,11 @@ const ItemsView = () => {
     // Webcam Modal State
     const [isWebcamOpen, setIsWebcamOpen] = useState(false);
     const [webcamTarget, setWebcamTarget] = useState('add'); // 'add' or 'edit'
+
+    // State for managing temporary Blob URLs for display
+    const [itemImageUrls, setItemImageUrls] = useState({}); // Map itemId -> blobUrl
+    const [addImageUrl, setAddImageUrl] = useState(null); // Blob URL for add form preview
+    const [editImageUrl, setEditImageUrl] = useState(null); // Blob URL for edit form preview
 
     // Filter state
     const [isFilterVisible, setIsFilterVisible] = useState(false);
@@ -119,6 +124,23 @@ const ItemsView = () => {
         fetchData();
     }, [fetchData]);
 
+   // Effect to create/revoke Blob URLs for item list display
+   useEffect(() => {
+       const newItemImageUrls = {};
+       filteredItems.forEach(item => {
+           if (item.imageFile instanceof File) {
+               newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
+           }
+       });
+       setItemImageUrls(newItemImageUrls);
+
+       // Cleanup function to revoke URLs when component unmounts or items change
+       return () => {
+           Object.values(newItemImageUrls).forEach(url => URL.revokeObjectURL(url));
+           setItemImageUrls({}); // Clear the state on cleanup
+       };
+   }, [filteredItems]); // Re-run when filteredItems changes
+
     // Calculate filtered items based on current filters
     const filteredItems = useMemo(() => {
         const lowerFilterName = filterName.toLowerCase();
@@ -151,22 +173,22 @@ const ItemsView = () => {
     const getCategoryNameById = (id) => categories.find(cat => cat.category_id === id)?.name || intl.formatMessage({ id: 'items.card.noCategory', defaultMessage: 'N/A' });
     const getOwnerNameById = (id) => owners.find(owner => owner.owner_id === id)?.name || intl.formatMessage({ id: 'items.card.noOwner', defaultMessage: 'N/A' });
 
-    // --- Image File Handling ---
+    // --- Image File Handling & Blob URL Management ---
     const handleFileChange = (event, type) => {
         const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (type === 'add') {
-                    setNewItemImageFile(file);
-                    setNewItemImagePreview(reader.result);
-                } else if (type === 'edit') {
-                    setEditItemImageFile(file);
-                    setEditItemImagePreview(reader.result);
-                    setImageMarkedForRemoval(false); // New file selected, so don't mark for removal
-                }
-            };
-            reader.readAsDataURL(file);
+        if (file instanceof File) {
+            if (type === 'add') {
+                // Revoke previous add form blob URL if exists
+                if (addImageUrl) URL.revokeObjectURL(addImageUrl);
+                setNewItemImageFile(file);
+                setAddImageUrl(URL.createObjectURL(file)); // Create new blob URL for preview
+            } else if (type === 'edit') {
+                 // Revoke previous edit form blob URL if exists
+                if (editImageUrl) URL.revokeObjectURL(editImageUrl);
+                setEditItemImageFile(file);
+                setEditImageUrl(URL.createObjectURL(file)); // Create new blob URL for preview
+                setImageMarkedForRemoval(false); // New file selected, so don't mark for removal
+            }
         }
         // Clear the input value to allow selecting the same file again
         event.target.value = null;
@@ -174,8 +196,9 @@ const ItemsView = () => {
 
     // Handler for removing image in Add form
     const handleRemoveNewImage = () => {
+        if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke URL
         setNewItemImageFile(null);
-        setNewItemImagePreview(null);
+        setAddImageUrl(null);
     };
 
     // --- Add Item Handler ---
@@ -225,8 +248,9 @@ const ItemsView = () => {
                 setNewItemDescription('');
                 setNewItemLocationId('');
                 setNewItemCategoryId('');
-                setNewItemImageFile(null); // Clear file state
-                setNewItemImagePreview(null); // Clear preview
+                if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke URL on success
+                setNewItemImageFile(null);
+                setAddImageUrl(null);
                 setNewItemOwnerId('');
                 await new Promise(resolve => setTimeout(resolve, 250)); // Add delay before refetch
                 fetchData(); // Refresh the list
@@ -279,11 +303,18 @@ const ItemsView = () => {
         setEditDescription(item.description || '');
         setEditLocationId(item.location_id || ''); // Set initial location ID
         setEditCategoryId(item.category_id || ''); // Set initial category ID
-        // Don't need to fetch image separately, it's already in the item object from listItems
-        // Set preview based on existing item data if available
-        setEditItemImageFile(null); // Clear any previously selected file
-        setEditItemImagePreview(null); // Clear previous preview
         setEditOwnerId(item.owner_id || ''); // Set initial owner ID
+
+        // Handle image state for edit modal
+        if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous edit preview URL
+        if (item.imageFile instanceof File) {
+            setEditItemImageFile(item.imageFile); // Set the actual File object
+            setEditImageUrl(URL.createObjectURL(item.imageFile)); // Create blob URL for preview
+        } else {
+            setEditItemImageFile(null);
+            setEditImageUrl(null);
+        }
+
         setImageMarkedForRemoval(false); // Reset removal flag
         setUpdateError(null);
         setSuccess(null);
@@ -296,19 +327,22 @@ const ItemsView = () => {
         setEditDescription('');
         setEditLocationId(''); // Reset edit location ID
         setEditCategoryId(''); // Reset edit category ID
-        // Clear image state on cancel
-        // No need to clear preview specifically if it's derived from item data
-        setEditItemImageFile(null); // Clear file state on cancel
-        setEditItemImagePreview(null); // Clear preview on cancel
         setEditOwnerId(''); // Reset edit owner ID
+
+        // Clear image state and revoke URL on cancel
+        if (editImageUrl) URL.revokeObjectURL(editImageUrl);
+        setEditItemImageFile(null);
+        setEditImageUrl(null);
+
         setImageMarkedForRemoval(false); // Reset removal flag
         setUpdateError(null);
     };
 
     // Handler for the "Remove Image" button in the edit modal
     const handleRemoveEditImage = () => {
-        setEditItemImageFile(null); // Clear selected file
-        setEditItemImagePreview(null); // Clear preview
+        if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke URL
+        setEditItemImageFile(null);
+        setEditImageUrl(null);
         setImageMarkedForRemoval(true); // Mark the image for removal on save
     };
 
@@ -392,16 +426,21 @@ const ItemsView = () => {
     };
 
     // --- Image View Modal Handlers ---
-    const handleImageClick = (imageUrl, imageAlt) => {
-        if (!imageUrl) return; // Don't open if no URL
-        setImageViewModalUrl(imageUrl);
-        setImageViewModalAlt(imageAlt || 'Image view'); // Provide default alt
+    const handleImageClick = (imageFile, imageAlt) => {
+        if (!(imageFile instanceof File)) return; // Only handle File objects
+        const blobUrl = URL.createObjectURL(imageFile);
+        setImageViewModalUrl(blobUrl); // Use the temporary blob URL
+        setImageViewModalAlt(imageAlt || 'Image view');
         setIsImageViewModalOpen(true);
     };
 
     const handleCloseImageViewModal = () => {
         setIsImageViewModalOpen(false);
-        // Optional: Delay clearing URL slightly for fade-out transition
+        // Revoke the blob URL when the modal closes to free memory
+        if (imageViewModalUrl && imageViewModalUrl.startsWith('blob:')) {
+            URL.revokeObjectURL(imageViewModalUrl);
+        }
+        // Optional: Delay clearing state slightly for fade-out transition
         setTimeout(() => {
             setImageViewModalUrl(null);
             setImageViewModalAlt('');
@@ -417,20 +456,16 @@ const ItemsView = () => {
     const handleWebcamCapture = useCallback(async (imageFile) => {
         if (!imageFile) return;
 
-        // Create a preview URL (Data URL) for consistency
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const imagePreviewUrl = reader.result;
-            if (webcamTarget === 'add') {
-                setNewItemImageFile(imageFile);
-                setNewItemImagePreview(imagePreviewUrl);
-            } else if (webcamTarget === 'edit') {
-                setEditItemImageFile(imageFile);
-                setEditItemImagePreview(imagePreviewUrl);
-                setImageMarkedForRemoval(false); // Captured new image
-            }
-        };
-        reader.readAsDataURL(imageFile);
+        if (webcamTarget === 'add') {
+            if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke previous
+            setNewItemImageFile(imageFile);
+            setAddImageUrl(URL.createObjectURL(imageFile)); // Set new blob URL
+        } else if (webcamTarget === 'edit') {
+            if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous
+            setEditItemImageFile(imageFile);
+            setEditImageUrl(URL.createObjectURL(imageFile)); // Set new blob URL
+            setImageMarkedForRemoval(false); // Captured new image
+        }
 
         setIsWebcamOpen(false); // Close the modal
     }, [webcamTarget]); // Dependency: webcamTarget
@@ -477,12 +512,14 @@ const ItemsView = () => {
                      {/* Image Upload */}
                     <div className="form-group form-group-image">
                         <label htmlFor="item-image">{intl.formatMessage({ id: 'items.addForm.imageLabel', defaultMessage: 'Image:' })}</label>
-                        {newItemImagePreview && (
+                        {/* Use addImageUrl for preview */}
+                        {addImageUrl && (
                             <div className="image-preview">
                                 <img
-                                    src={newItemImagePreview}
+                                    src={addImageUrl}
                                     alt={intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' })}
-                                    onClick={() => handleImageClick(newItemImagePreview, intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' }))}
+                                    // Pass the File object to handleImageClick
+                                    onClick={() => handleImageClick(newItemImageFile, intl.formatMessage({ id: 'items.addForm.imagePreviewAlt', defaultMessage: 'New item preview' }))}
                                     style={{ cursor: 'pointer' }} // Indicate it's clickable
                                 />
                             </div>
@@ -500,8 +537,8 @@ const ItemsView = () => {
                             >
                                 {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                             </button>
-                            {/* Show remove button only if there's a preview */}
-                            {newItemImagePreview && (
+                            {/* Show remove button only if there's a preview URL */}
+                            {addImageUrl && (
                                 <button
                                     type="button"
                                     onClick={handleRemoveNewImage}
@@ -678,15 +715,16 @@ const ItemsView = () => {
                 <div className="items-list">
                     {filteredItems.map((item) => (
                         <div key={item.item_id} className="item-card">
-                            {/* Display image using data directly from item object */}
+                            {/* Display image using Blob URL from state */}
                             <div
-                                className={`item-image-container ${!item.image_data ? 'placeholder' : ''} ${item.image_data ? 'clickable' : ''}`}
-                                onClick={() => item.image_data && item.image_mimetype && handleImageClick(`data:${item.image_mimetype};base64,${item.image_data}`, item.name)}
-                                title={item.image_data ? intl.formatMessage({ id: 'items.card.viewImageTooltip', defaultMessage: 'Click to view full image' }) : ''}
+                                className={`item-image-container ${!itemImageUrls[item.item_id] ? 'placeholder' : ''} ${itemImageUrls[item.item_id] ? 'clickable' : ''}`}
+                                // Pass the File object to handleImageClick
+                                onClick={() => item.imageFile && handleImageClick(item.imageFile, item.name)}
+                                title={itemImageUrls[item.item_id] ? intl.formatMessage({ id: 'items.card.viewImageTooltip', defaultMessage: 'Click to view full image' }) : ''}
                             >
-                                {item.image_data && item.image_mimetype ? (
+                                {itemImageUrls[item.item_id] ? (
                                     <img
-                                        src={`data:${item.image_mimetype};base64,${item.image_data}`}
+                                        src={itemImageUrls[item.item_id]} // Use Blob URL from state
                                         alt={item.name}
                                         className="item-image"
                                     />
@@ -722,17 +760,16 @@ const ItemsView = () => {
             )}
 
             {/* Edit Item Modal */}
-            {editingItemId && (() => {
-                const currentItem = items.find(i => i.item_id === editingItemId);
-                // Construct current image data URL directly from item data
-                const currentImageDataUrl = currentItem?.image_data && currentItem?.image_mimetype ? `data:${currentItem.image_mimetype};base64,${currentItem.image_data}` : null;
-                // Show preview if available, else current image, unless marked for removal
-                const displayImageUrl = imageMarkedForRemoval ? null : (editItemImagePreview || currentImageDataUrl);
-                return (
+            {editingItemId && (
                 <Modal show={!!editingItemId} onClose={handleCancelEdit} title={intl.formatMessage({ id: 'items.editModal.title', defaultMessage: 'Edit Item' })}>
-                    <form onSubmit={handleUpdateItem} className="edit-item-form">
-                        {updateError && <p className="status-error">Error: {updateError}</p>}
-                        <div className="form-group">
+                    {(() => { // IIFE to manage displayImageUrl logic cleanly
+                        // Use editImageUrl (derived from editItemImageFile or original item.imageFile)
+                        // If marked for removal, show nothing.
+                        const displayImageUrl = imageMarkedForRemoval ? null : editImageUrl;
+                        return (
+                            <form onSubmit={handleUpdateItem} className="edit-item-form">
+                                {updateError && <p className="status-error">Error: {updateError}</p>}
+                                <div className="form-group">
                             <label htmlFor="edit-item-name">{intl.formatMessage({ id: 'items.addForm.nameLabel', defaultMessage: 'Name:' })}</label>
                             <input
                                 type="text"
@@ -756,12 +793,14 @@ const ItemsView = () => {
                         {/* Image Upload/Preview/Remove */}
                         <div className="form-group form-group-image">
                             <label htmlFor="edit-item-image">{intl.formatMessage({ id: 'items.editForm.imageLabel', defaultMessage: 'Image:' })}</label>
+                            {/* Use displayImageUrl derived from editImageUrl */}
                             {displayImageUrl && (
                                 <div className="image-preview">
                                     <img
                                         src={displayImageUrl}
                                         alt={intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' })}
-                                        onClick={() => handleImageClick(displayImageUrl, editName || intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' }))}
+                                        // Pass the File object to handleImageClick
+                                        onClick={() => handleImageClick(editItemImageFile, editName || intl.formatMessage({ id: 'items.editForm.imagePreviewAlt', defaultMessage: 'Item image preview' }))}
                                         style={{ cursor: 'pointer' }} // Indicate it's clickable
                                     />
                                 </div>
@@ -779,8 +818,8 @@ const ItemsView = () => {
                                 >
                                     {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                                 </button>
-                                {/* Show remove button only if there's an image currently displayed (existing or preview) */}
-                                {displayImageUrl && typeof api.deleteItem === 'function' && ( // Assuming deleteItem implies image removal capability
+                                {/* Show remove button only if there's an image currently displayed */}
+                                {displayImageUrl && typeof api.deleteItem === 'function' && (
                                     <button
                                         type="button"
                                         onClick={handleRemoveEditImage}
@@ -875,8 +914,9 @@ const ItemsView = () => {
                             </button>
                         </div>
                     </form>
+                    );})()}
                 </Modal>
-            );})()}
+            )}
 
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (

@@ -359,9 +359,9 @@ export const deleteOwner = async (settings, ownerId) => {
 // --- Image Handling ---
 
 /**
- * Internal: Inserts image data and returns the new ID.
+ * Internal: Inserts image data and filename, returns the new ID.
  */
-const _insertImage = async (settings, base64Data, mimeType) => {
+const _insertImage = async (settings, base64Data, mimeType, filename) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
@@ -369,6 +369,7 @@ const _insertImage = async (settings, base64Data, mimeType) => {
         row: {
             image_data: base64Data, // Store base64 string directly
             image_mimetype: mimeType,
+            image_filename: filename || 'image', // Store filename, provide default
         }
     };
 
@@ -390,9 +391,9 @@ const _insertImage = async (settings, base64Data, mimeType) => {
 };
 
 /**
- * Internal: Updates image data for an existing image ID.
+ * Internal: Updates image data and filename for an existing image ID.
  */
-const _updateImage = async (settings, imageId, base64Data, mimeType) => {
+const _updateImage = async (settings, imageId, base64Data, mimeType, filename) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
@@ -401,6 +402,7 @@ const _updateImage = async (settings, imageId, base64Data, mimeType) => {
         update: {
             image_data: base64Data,
             image_mimetype: mimeType,
+            image_filename: filename || 'image', // Update filename too
         }
     };
     const res = await fetch(updateUrl, { method: 'POST', headers: defaultHeaders(settings), body: JSON.stringify(payload) });
@@ -434,10 +436,11 @@ export const addItem = async (settings, data) => {
     }
 
     let imageId = null;
-    if (data.imageFile) {
+    if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
-            imageId = await _insertImage(settings, base64Data, data.imageFile.type);
+            // Pass filename to _insertImage
+            imageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
         } catch (error) {
             console.error("Failed to process or insert image:", error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
@@ -494,12 +497,12 @@ export const updateItem = async (settings, itemId, data) => {
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
             if (existingImageId) {
-                // Update existing image record
-                await _updateImage(settings, existingImageId, base64Data, data.imageFile.type);
+                // Update existing image record, pass filename
+                await _updateImage(settings, existingImageId, base64Data, data.imageFile.type, data.imageFile.name);
                 newImageId = existingImageId; // ID remains the same
             } else {
-                // Insert new image record
-                newImageId = await _insertImage(settings, base64Data, data.imageFile.type);
+                // Insert new image record, pass filename
+                newImageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
             }
         } catch (error) {
             console.error("Failed to process or update/insert image:", error);
@@ -578,46 +581,67 @@ export const listItems = async (settings) => {
             return [];
         }
 
-        // 2. Fetch all images (only needed if there are items)
+        // Helper function to convert base64 to Blob
+        const base64ToBlob = (base64, mimeType) => {
+            try {
+                const byteCharacters = atob(base64);
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                return new Blob([byteArray], { type: mimeType });
+            } catch (e) {
+                console.error("Error converting base64 to Blob:", e);
+                return null;
+            }
+        };
+
+        // 2. Fetch all images (including filename)
         const imagesUrl = `${baseUrl}/images.json?_shape=array`;
         const imagesRes = await fetch(imagesUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         });
-        if (!imagesRes.ok) {
-            // Log warning but proceed, images might be missing
+        let imageMap = {};
+        if (imagesRes.ok) {
+            const imagesData = await imagesRes.json();
+            // 3. Create a map of image_id -> { blob, filename }
+            imageMap = imagesData.reduce((map, img) => {
+                if (img.image_id && img.image_data && img.image_mimetype) {
+                    const blob = base64ToBlob(img.image_data, img.image_mimetype);
+                    if (blob) {
+                        map[img.image_id] = {
+                            blob: blob,
+                            filename: img.image_filename || `image_${img.image_id}` // Use stored filename or generate one
+                        };
+                    }
+                }
+                return map;
+            }, {});
+        } else {
             console.warn(`Failed to fetch images: ${imagesRes.status}. Items will be listed without images.`);
-            // Return items without image data attached
-             return itemsData;
         }
-        const imagesData = await imagesRes.json();
 
-        // 3. Create a map of image_id -> { image_data, image_mimetype }
-        const imageMap = imagesData.reduce((map, img) => {
-            if (img.image_id) {
-                map[img.image_id] = {
-                    image_data: img.image_data,
-                    image_mimetype: img.image_mimetype
-                };
-            }
-            return map;
-        }, {});
 
-        // 4. Merge image data into items
-        const itemsWithImages = itemsData.map(item => {
+        // 4. Merge image File object into items
+        const itemsWithFiles = itemsData.map(item => {
+            let imageFile = null;
             if (item.image_id && imageMap[item.image_id]) {
-                return {
-                    ...item,
-                    image_data: imageMap[item.image_id].image_data,
-                    image_mimetype: imageMap[item.image_id].image_mimetype
-                };
+                const { blob, filename } = imageMap[item.image_id];
+                // Create a File object from the Blob
+                imageFile = new File([blob], filename, { type: blob.type });
             }
-            // Return item as is if no image_id or image not found in map
-            return item;
+            // Remove old image properties and add imageFile
+            const { image_data, image_mimetype, ...restOfItem } = item; // eslint-disable-line no-unused-vars
+            return {
+                ...restOfItem,
+                imageFile: imageFile // Add the File object (or null)
+            };
         });
 
-        console.log(`Fetched ${itemsWithImages.length} items and merged image data.`);
-        return itemsWithImages; // Returns array of item objects including image data/mimetype
+        console.log(`Fetched ${itemsWithFiles.length} items and converted images to File objects.`);
+        return itemsWithFiles; // Returns array of item objects including imageFile property
 
     } catch (error) {
         // Log the error and re-throw or return empty array based on desired handling
