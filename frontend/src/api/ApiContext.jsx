@@ -6,7 +6,7 @@ const ApiContext = createContext();
 export const useApi = () => useContext(ApiContext);
 
 // Define localStorage key for API provider configuration
-const LS_API_PROVIDER_CONFIG_KEY = 'apiProviderConfig';
+export const LS_API_PROVIDER_CONFIG_KEY = 'apiProviderConfig';
 
 // --- Helper: Calculate Configuration Status --- (Moved before ApiProvider for clarity)
 // Determines if the provider is configured based on its registry definition
