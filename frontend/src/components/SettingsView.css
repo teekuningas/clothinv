@@ -104,6 +104,7 @@
     color: #495057;
     margin-bottom: 15px;
     line-height: 1.5;
+    overflow-wrap: break-word; /* Ensure long text wraps */
 }
 
 .warning-text {
@@ -113,6 +114,7 @@
     padding: 10px 15px;
     border-radius: 4px;
     font-weight: bold;
+    overflow-wrap: break-word; /* Ensure long text wraps */
 }
 
 .data-management-section .form-group input[type="file"] {
@@ -159,4 +161,25 @@
   border-color: #f1b0b7;
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+  .form-actions {
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    justify-content: flex-start; /* Align wrapped buttons to the start */
+    gap: 8px; /* Optional: Adjust gap for wrapped buttons */
+  }
+
+  /* Optional: Reduce padding on fieldsets for very small screens if needed */
+  /*
+  .settings-fieldset {
+    padding: 15px;
+  }
+  */
+
+  /* Optional: Ensure file input doesn't cause overflow */
+  .data-management-section .form-group input[type="file"] {
+    max-width: 100%; /* Prevent file input from exceeding container width */
+  }
 }
