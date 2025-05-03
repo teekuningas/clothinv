@@ -1,28 +1,12 @@
 /* frontend/src/components/ItemsView.css */
 
-/* .items-view padding handled by main.css */
 
-/* Base button styles handled by main.css button */
-/* Base button focus styles handled by main.css button:focus-visible */
-/* Base button disabled styles handled by main.css button:disabled */
-
-/* Button variant definitions (.button-primary, .button-secondary, .button-danger) handled by main.css */
-
-/* Apply .button-primary class in JSX for add/save buttons */
-/* Apply .button-secondary class in JSX for edit/filter/reset/cancel buttons */
-/* Apply .button-danger class in JSX for delete/remove buttons */
-/* Apply .button-danger-strong class in JSX for main delete confirmation button */
-
-/* Specific override for main delete confirmation button (keep selector for specificity) */
-/* Apply .button-danger-strong class in JSX */
+/* Specific override for main delete confirmation button */
 .delete-confirm-content .delete-button {
-    /* Styles defined by .button-danger-strong */
 }
 .delete-confirm-content .delete-button:hover:not(:disabled) {
-    /* Styles defined by .button-danger-strong:hover */
 }
  .delete-confirm-content .delete-button:disabled {
-    /* Styles defined by .button-danger-strong:disabled */
 }
 
 /* --- Add Item Form --- */
@@ -48,26 +32,20 @@
     font-weight: bold;
 }
 
-/* Apply specific width override */
+/* Specific width override for text inputs in this view */
 .add-item-form .form-group input[type="text"],
 .edit-item-form .form-group input[type="text"] {
-    width: calc(100% - 22px); /* Adjust for padding/border */
-    /* Base styles (padding, border, radius, font-size) handled by main.css */
+    width: calc(100% - 22px); /* Adjust for main.css padding/border */
 }
 
-/* Base select styles handled by main.css .form-group select */
 .add-item-form .form-group select {
-     /* Base styles (width, padding, border, radius, font-size) handled by main.css */
-     /* Arrow styles handled by main.css */
 }
 
-/* Basic styling for file input - often hidden and triggered by a label/button */
 .add-item-form .form-group input[type="file"],
 .edit-item-form .form-group input[type="file"] {
     margin-top: 5px; /* Space above file input */
 }
 
-/* .add-item-form button styling handled by .button-primary class in JSX */
 
 /* Image Preview Styles */
 .image-preview {
@@ -180,12 +158,8 @@
     background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
     color: #343a40;
     border: 1px solid #b8c8d8;
-    border-radius: 4px;
+    border-radius: 4px; /* Keep radius override if different from base button */
     cursor: pointer;
-    /* transition: background-color 0.2s ease, border-color 0.2s ease; */ /* Handled by base button */
-    background-color: rgba(255, 255, 255, 0.9); /* Less transparent */
-    /* color: #343a40; */ /* Handled by button-secondary */
-    /* Keep specific overrides */
     background-color: rgba(255, 255, 255, 0.9); /* Less transparent */
     color: #343a40;
     border: 1px solid #b8c8d8;
@@ -195,13 +169,10 @@
 
 
 /* --- Edit/Delete Modal Styles --- */
-/* Base modal styles provided by Modal.css */
-/* Modal action layout/styles handled by main.css .modal-actions */
 .edit-item-form {
     padding: 10px 0 0 0;
 }
 
-/* Apply to both add and edit forms */
 .add-item-form .form-group-image,
 .edit-item-form .form-group-image {
     display: flex;
@@ -217,13 +188,8 @@
     font-weight: bold;
 }
 
-/* .hidden-file-input handled by main.css */
 
-/* Apply .button-secondary class in JSX */
-/* Base .button-file-input styles handled by main.css */
 .button-file-input {
-    /* Base styles (padding, cursor) handled by main.css */
-    /* Visual styles (background, color, border) handled by .button-secondary */
 }
 
 .form-group-image-actions {
@@ -244,11 +210,8 @@
     font-weight: bold;
 }
 
-/* Apply .button-danger class in JSX */
+/* Specific font-size override for remove image button */
 .remove-image-button {
-    /* Base styles (padding) handled by main.css button */
-    /* Visual styles (background, color, border) handled by .button-danger */
-    /* Keep specific font-size override */
     font-size: 0.9em;
 }
 
@@ -260,20 +223,13 @@
     }
 }
 
-/* .modal-actions layout handled by main.css */
-/* Responsive .modal-actions handled by main.css */
-/* .delete-confirm-content p styles handled by main.css */
-/* .delete-confirm-content p:first-of-type styles handled by main.css */
 
 /* --- Filters --- */
-/* Apply .button-secondary class in JSX */
 .filter-toggle-button {
-    /* Base styles handled by .button-secondary */
     margin-bottom: 15px; /* Keep specific margin */
 }
 
 .filter-toggle-button[aria-expanded="true"] {
-    /* Keep hover state when open - handled by :hover */
 }
 
 .filters-container {
@@ -347,9 +303,7 @@
     color: #343a40;
 }
 
-/* Apply .button-secondary class in JSX */
 .reset-filters-button {
-    /* Base styles handled by .button-secondary */
     margin-top: 10px; /* Keep specific margin */
 }
 

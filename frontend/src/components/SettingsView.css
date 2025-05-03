@@ -1,5 +1,4 @@
 /* Settings View Styles */
-/* .settings-view padding handled by main.css */
 
 .settings-view h2 {
     margin-bottom: 20px; /* Space below title */
@@ -23,15 +22,12 @@
 
 /* Generic .form-group and label styles are in main.css */
 
-/* Base input/select styles handled by main.css */
+/* Ensure inputs take full width within form groups */
 .form-group input[type="text"],
 .form-group input[type="password"],
 .form-group select {
-  width: 100%; /* Keep width override */
-  /* Base styles (padding, border, radius, box-sizing, font-size) handled by main.css */
+  width: 100%;
 }
-
-/* .form-group select[disabled] handled by main.css */
 
 
 .form-actions {
@@ -41,11 +37,6 @@
   gap: 10px;
 }
 
-/* Base button styles handled by main.css button */
-/* Apply .button-primary class in JSX for save button */
-/* .save-button styling handled by .button-primary */
-/* .save-button:disabled styling handled by .button-primary:disabled */
-/* .save-button:hover styling handled by .button-primary:hover */
 
 /* --- Data Management Section --- */
 .data-management-section {
@@ -61,17 +52,12 @@
     border-top: none; /* No top border for the first section */
 }
 
-/* .hidden-file-input handled by main.css */
 
-/* Apply .button-secondary class in JSX */
-/* Base .button-file-input styles handled by main.css */
+/* Specific margin for file input label button */
 .button-file-input {
-    /* Base styles (display, padding, cursor, text-align, vertical-align) handled by main.css */
-    /* Visual styles (background, color, border) handled by .button-secondary */
-    margin-bottom: 5px; /* Keep specific margin */
+    margin-bottom: 5px;
 }
 
-/* .button-file-input.disabled handled by main.css */
 
 .selected-file-name {
     margin-top: 8px;
@@ -105,21 +91,11 @@
     box-sizing: border-box; /* Add this */
 }
 
-/* REMOVED rule for visible file input */
 
 .feedback-section { /* Container for status messages */
     margin-top: 10px;
 }
 
-/* Apply .button-secondary class in JSX for import button */
-/* .import-button styling handled by .button-secondary */
-/* .import-button:hover:not(:disabled) styling handled by .button-secondary:hover */
-/* .import-button:disabled styling handled by .button-secondary:disabled */
-
-/* Apply .button-danger class in JSX for destroy button */
-/* .destroy-button styling handled by .button-danger */
-/* .destroy-button:hover:not(:disabled) styling handled by .button-danger:hover */
-/* .destroy-button:disabled styling handled by .button-danger:disabled */
 
 /* --- Responsive Adjustments --- */
 @media (max-width: 768px) {
@@ -134,11 +110,9 @@
     width: 100%;
   }
 
-  /* Optional: Reduce padding on fieldsets for very small screens if needed */
-  /* Uncomment and modify this rule */
+  /* Reduce padding on fieldsets for smaller screens */
   .settings-fieldset {
     padding: 15px 10px; /* Reduce horizontal padding */
   }
 
-  /* REMOVED rule for visible file input */
 }

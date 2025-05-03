@@ -12,16 +12,12 @@
 }
 
 /* Input styling within forms in this view */
-/* Apply specific width override */
+/* Specific width override for text inputs in this view */
 .add-location-form .form-group input[type="text"],
 .edit-location-form .form-group input[type="text"] {
-    width: calc(100% - 22px); /* Adjust for padding/border */
-    /* Base styles (padding, border, radius) handled by main.css */
+    width: calc(100% - 22px); /* Adjust for main.css padding/border */
 }
 
-/* .add-location-form button styling handled by .button-primary class in JSX */
-/* .add-location-form button:disabled styling handled by .button-primary:disabled */
-/* .add-location-form button:not(:disabled):hover styling handled by .button-primary:hover */
 
 /* --- Location Card Styles --- */
 .locations-list { /* Container for cards */
@@ -57,7 +53,6 @@
     font-size: 0.95em;
 }
 
-/* Apply .button-secondary class in JSX */
 .edit-button {
     /* Keep positioning and specific size overrides */
     position: absolute;
@@ -65,37 +60,10 @@
     right: 10px;
     padding: 5px 10px;
     font-size: 0.9em; /* Keep slightly smaller */
-    /* Base styles (background, color, border, radius, cursor, transition) handled by .button-secondary */
 }
-
-/* .edit-button:hover:not(:disabled) handled by .button-secondary:hover */
-/* .edit-button:disabled handled by .button-secondary:disabled */
 
 
 /* --- Edit/Delete Modal Styles --- */
-/* Assumes a Modal component provides overlay and basic box */
 .edit-location-form { /* Styles specific to the form inside the edit modal */
     padding: 10px 0 0 0; /* Add padding top, remove others */
 }
-
-/* .modal-actions layout handled by main.css */
-/* Responsive .modal-actions handled by main.css */
-/* Base .modal-actions button styles handled by main.css button */
-/* Base .modal-actions button:disabled styles handled by main.css button:disabled */
-
-/* Apply .button-danger-strong class in JSX for delete buttons in modal */
-/* .delete-button styling handled by .button-danger-strong */
-/* .delete-button:hover:not(:disabled) styling handled by .button-danger-strong:hover */
-/* .delete-button:disabled styling handled by .button-danger-strong:disabled */
-
-/* Apply .button-primary class in JSX for save/confirm buttons in modal */
-/* .modal-actions button[type="submit"]... styling handled by .button-primary */
-/* .modal-actions button[type="submit"]:hover... styling handled by .button-primary:hover */
-
-/* Apply .button-secondary class in JSX for cancel buttons in modal */
-/* .modal-actions button:last-of-type styling handled by .button-secondary */
-/* .modal-actions button:last-of-type:hover... styling handled by .button-secondary:hover */
-
-
-/* .delete-confirm-content p styles handled by main.css */
-/* .delete-confirm-content p:first-of-type styles handled by main.css */
