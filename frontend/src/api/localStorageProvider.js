@@ -145,8 +145,8 @@ export const listItems = async (settings) => {
     return Promise.resolve(_getData('items')); // Simulate async
 };
 
-export const addItemSimple = async (settings, data) => {
-    console.log('localStorageProvider: addItemSimple called with data:', data);
+export const addItem = async (settings, data) => {
+    console.log('localStorageProvider: addItem called with data:', data);
     // Placeholder: Implement actual logic later (including image handling)
     const newId = _getNextId('items');
     // Basic item structure, image handling needs full implementation
