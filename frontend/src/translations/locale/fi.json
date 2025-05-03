@@ -154,6 +154,8 @@
     "settings.data.destroyNotSupported": "Nykyinen API-palvelu ei tue tuhoamista.",
     "settings.data.destroyFailedUnknown": "Tietojen tuhoaminen epäonnistui tuntemattomasta syystä.",
     "settings.data.destroyUnexpectedError": "Tietojen tuhoamisen aikana tapahtui odottamaton virhe.",
+    "settings.data.importChooseFile": "Valitse tiedosto",
+    "settings.data.importSelectedFile": "Valittu:",
     "locations.titleSingular": "Sijainti",
     "categories.titleSingular": "Kategoria",
     "owners.titleSingular": "Omistaja",

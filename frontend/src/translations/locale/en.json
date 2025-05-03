@@ -154,6 +154,8 @@
     "settings.data.destroyNotSupported": "Destroy is not supported by the current API provider.",
     "settings.data.destroyFailedUnknown": "Data destruction failed for an unknown reason.",
     "settings.data.destroyUnexpectedError": "An unexpected error occurred during data destruction.",
+    "settings.data.importChooseFile": "Choose File",
+    "settings.data.importSelectedFile": "Selected:",
     "locations.titleSingular": "Location",
     "categories.titleSingular": "Category",
     "owners.titleSingular": "Owner",
