@@ -16,18 +16,18 @@ export const providers = {
         configFields: [
             {
                 key: 'datasetteBaseUrl',        // Key used in the settings state object
-                label: 'Datasette Base URL',    // Label for the settings form
+                label: 'settings.api.fields.datasetteBaseUrl.label',    // Label for the settings form
                 type: 'text',                   // Input type for the form
-                placeholder: 'e.g., http://localhost:8001/data', // Placeholder text
+                placeholder: 'settings.api.fields.datasetteBaseUrl.placeholder', // Placeholder text
                 envVar: 'VITE_DATASETTE_URL',   // Corresponding environment variable
                 localStorageKey: 'datasetteBaseUrl', // Key for storing in localStorage
                 required: true,                 // Is this field mandatory for the provider to be configured?
             },
             {
                 key: 'datasetteApiToken',
-                label: 'Datasette API Token (Optional)',
+                label: 'settings.api.fields.datasetteApiToken.label',
                 type: 'password',
-                placeholder: 'Paste token if required',
+                placeholder: 'settings.api.fields.datasetteApiToken.placeholder',
                 envVar: 'VITE_DATASETTE_TOKEN',
                 localStorageKey: 'datasetteApiToken',
                 required: false,

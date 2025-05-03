@@ -308,14 +308,16 @@ const SettingsView = () => {
                     {/* Dynamically Rendered Provider Fields */}
                     {selectedProvider && selectedProvider.configFields && selectedProvider.configFields.map(field => (
                         <div className="form-group" key={field.key}>
-                            <label htmlFor={`api-setting-${field.key}`}>{field.label}:</label>
+                            {/* Use intl.formatMessage for the label */}
+                            <label htmlFor={`api-setting-${field.key}`}>{intl.formatMessage({ id: field.label })}:</label>
                             <input
                                 type={field.type}
                                 id={`api-setting-${field.key}`} // Unique ID
                                 name={field.key} // Name matches the key within localApiSettings.settings
                                 value={localApiSettings.settings?.[field.key] || ''} // Access nested setting safely
                                 onChange={handleApiChange} // Use API change handler
-                                placeholder={field.placeholder}
+                                // Use intl.formatMessage for the placeholder
+                                placeholder={field.placeholder ? intl.formatMessage({ id: field.placeholder }) : ''} // Added check for placeholder existence
                                 required={field.required} // Basic HTML5 validation
                             />
                         </div>
