@@ -21,6 +21,53 @@ const readFileAsBase64 = (file) => {
     });
 };
 
+// Assume createCSV is available (copy/import from localStorageProvider or use a library)
+const createCSV = (headers, data) => {
+    const headerRow = headers.join(',');
+    const dataRows = data.map(row =>
+        headers.map(header => {
+            let value = row[header];
+            if (value === null || typeof value === 'undefined') return '';
+            value = String(value);
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                value = value.replace(/"/g, '""');
+                return `"${value}"`;
+            }
+            return value;
+        }).join(',')
+    );
+    return [headerRow, ...dataRows].join('\n');
+};
+
+// Assume parseCSV is available (copy/import from localStorageProvider or use PapaParse)
+// Basic CSV parser (consider using a library like PapaParse for robustness)
+const parseCSV = (csvString) => {
+    const lines = csvString.trim().split('\n');
+    if (lines.length < 1) return [];
+    const headers = lines[0].split(',').map(h => h.trim());
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+        // Very basic split, doesn't handle quoted commas correctly
+        const values = lines[i].split(',');
+        const row = {};
+        headers.forEach((header, index) => {
+            let value = values[index] ? values[index].trim() : '';
+            // Basic unquoting
+            if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1).replace(/""/g, '"');
+            }
+            // Attempt to convert numbers (adjust as needed)
+            if (header.endsWith('_id') && value !== '') {
+                 row[header] = parseInt(value, 10);
+            } else {
+                 row[header] = value;
+            }
+        });
+        data.push(row);
+    }
+    return data;
+};
+
 // handleResponse updated to be more generic and return JSON if possible
 const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {
@@ -650,3 +697,161 @@ export const listItems = async (settings) => {
         // Or return []; // To show an empty list in case of error
     }
 };
+
+// --- Export/Import ---
+
+export const exportData = async (settings) => {
+    console.log('DatasetteProvider: exportData called');
+    const zip = new JSZip();
+
+    try {
+        // 1. Fetch all data using existing list functions
+        const locations = await listLocations(settings);
+        const categories = await listCategories(settings);
+        const owners = await listOwners(settings);
+        const items = await listItems(settings); // This includes imageFile objects
+
+        // 2. Create CSVs
+        const locationHeaders = ['location_id', 'name', 'description'];
+        zip.file('locations.csv', createCSV(locationHeaders, locations));
+
+        const categoryHeaders = ['category_id', 'name', 'description'];
+        zip.file('categories.csv', createCSV(categoryHeaders, categories));
+
+        const ownerHeaders = ['owner_id', 'name', 'description'];
+        zip.file('owners.csv', createCSV(ownerHeaders, owners));
+
+        const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemsForCsv = [];
+        const imagesFolder = zip.folder('images');
+
+        for (const item of items) {
+            const itemCsvRow = { ...item };
+            itemCsvRow.image_zip_filename = '';
+            itemCsvRow.image_original_filename = '';
+
+            if (item.imageFile instanceof File) {
+                const fileExtension = item.imageFile.name.split('.').pop() || 'bin';
+                const zipFilename = `${item.item_id}.${fileExtension}`;
+                itemCsvRow.image_zip_filename = zipFilename;
+                itemCsvRow.image_original_filename = item.imageFile.name;
+                imagesFolder.file(zipFilename, item.imageFile);
+            }
+            // Remove the File object before adding to CSV data
+            delete itemCsvRow.imageFile;
+            itemsForCsv.push(itemCsvRow);
+        }
+        zip.file('items.csv', createCSV(itemHeaders, itemsForCsv));
+
+        // 3. Create Manifest
+        const manifest = {
+            exportFormatVersion: "1.0",
+            exportedAt: new Date().toISOString(),
+            sourceProvider: "datasette"
+        };
+        zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+        // 4. Generate ZIP
+        const blob = await zip.generateAsync({ type: "blob" });
+        console.log('DatasetteProvider: Export generated successfully.');
+        return blob;
+
+    } catch (error) {
+        console.error("Error during Datasette export:", error);
+        throw new Error(`Export failed: ${error.message}`);
+    }
+};
+
+export const importData = async (settings, zipFile) => {
+    console.log('DatasetteProvider: importData called');
+    const zip = new JSZip();
+    try {
+        const loadedZip = await zip.loadAsync(zipFile);
+
+        // Validate essential files
+        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv')) {
+            throw new Error("Import file is missing required CSV or manifest files.");
+        }
+
+        // --- Clear existing data ---
+        console.log("Clearing existing Datasette data (Items first)...");
+        const existingItems = await listItems(settings);
+        for (const item of existingItems) {
+            await deleteItem(settings, item.item_id); // deleteItem also handles image deletion
+        }
+        console.log("Items cleared. Clearing Locations, Categories, Owners...");
+        const existingLocations = await listLocations(settings);
+        for (const loc of existingLocations) await deleteLocation(settings, loc.location_id);
+        const existingCategories = await listCategories(settings);
+        for (const cat of existingCategories) await deleteCategory(settings, cat.category_id);
+        const existingOwners = await listOwners(settings);
+        for (const owner of existingOwners) await deleteOwner(settings, owner.owner_id);
+        console.log("Existing data cleared.");
+
+        // --- Parse and Import ---
+        const locationMap = {}; // exported_id -> new_datasette_id
+        const categoryMap = {};
+        const ownerMap = {};
+
+        const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
+        for (const loc of locations) {
+            const { location_id: exportedId, ...locData } = loc;
+            const result = await addLocation(settings, locData);
+            if (result.success) locationMap[exportedId] = result.newId;
+            else throw new Error(`Failed to import location: ${loc.name}`);
+        }
+
+        const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
+        for (const cat of categories) {
+            const { category_id: exportedId, ...catData } = cat;
+            const result = await addCategory(settings, catData);
+            if (result.success) categoryMap[exportedId] = result.newId;
+            else throw new Error(`Failed to import category: ${cat.name}`);
+        }
+
+        const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
+        for (const owner of owners) {
+            const { owner_id: exportedId, ...ownerData } = owner;
+            const result = await addOwner(settings, ownerData);
+            if (result.success) ownerMap[exportedId] = result.newId;
+            else throw new Error(`Failed to import owner: ${owner.name}`);
+        }
+
+        const items = parseCSV(await loadedZip.file('items.csv').async('string'));
+        for (const item of items) {
+            const { item_id, image_zip_filename, image_original_filename, location_id, category_id, owner_id, ...itemMetadata } = item;
+
+            let imageFile = null;
+            if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
+                const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
+                imageFile = new File([imageBlob], image_original_filename || image_zip_filename, { type: imageBlob.type });
+            }
+
+            const newItemData = {
+                ...itemMetadata,
+                location_id: locationMap[location_id], // Map to new ID
+                category_id: categoryMap[category_id], // Map to new ID
+                owner_id: ownerMap[owner_id],       // Map to new ID
+                imageFile: imageFile
+            };
+
+            // Ensure mapped IDs are valid before adding
+            if (!newItemData.location_id || !newItemData.category_id || !newItemData.owner_id) {
+                 console.warn(`Skipping item "${item.name}" due to missing mapped ID (Location: ${location_id}=>${newItemData.location_id}, Category: ${category_id}=>${newItemData.category_id}, Owner: ${owner_id}=>${newItemData.owner_id})`);
+                 continue; // Skip this item if any mapping failed
+            }
+
+
+            await addItem(settings, newItemData); // addItem handles image insertion
+        }
+
+        console.log('DatasetteProvider: Import completed successfully.');
+        return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
+
+    } catch (error) {
+        console.error("Error during Datasette import:", error);
+        // Datasette rollback is complex, data might be partially imported/deleted.
+        return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
+    }
+};
+import JSZip from 'jszip';

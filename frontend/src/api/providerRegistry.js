@@ -53,6 +53,8 @@ export const providers = {
             'addOwner',
             'updateOwner',
             'deleteOwner',
+            'exportData', // Add export
+            'importData', // Add import
         ]
     },
 
@@ -81,6 +83,8 @@ export const providers = {
             'addOwner',
             'updateOwner',
             'deleteOwner',
+            'exportData', // Add export
+            'importData', // Add import
         ]
     },
 };

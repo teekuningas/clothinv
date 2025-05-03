@@ -79,3 +79,50 @@
     background-color: #b8c8d8;
     border-color: #a3b6c7;
 }
+
+/* --- Data Management Section --- */
+.data-management-section {
+    margin-top: 20px; /* Space above each section (export/import) */
+    padding-top: 15px; /* Space below the heading */
+    border-top: 1px solid #e9ecef; /* Separator line */
+}
+
+.data-management-section:first-of-type {
+    margin-top: 0; /* No top margin for the first section */
+    padding-top: 0;
+    border-top: none; /* No top border for the first section */
+}
+
+.data-management-section h4 {
+    margin-bottom: 10px;
+    font-size: 1.05em;
+    color: #343a40;
+}
+
+.data-management-section p {
+    font-size: 0.95em;
+    color: #495057;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.warning-text {
+    color: #856404; /* Bootstrap warning text color */
+    background-color: #fff3cd; /* Bootstrap warning background color */
+    border: 1px solid #ffeeba; /* Bootstrap warning border color */
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.data-management-section .form-group input[type="file"] {
+    width: auto; /* Don't force file input to full width */
+    padding: 5px; /* Basic padding */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: block; /* Ensure it takes its own line */
+}
+
+.feedback-section { /* Container for status messages */
+    margin-top: 10px;
+}

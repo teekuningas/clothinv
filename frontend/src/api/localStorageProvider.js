@@ -1,4 +1,4 @@
-
+import JSZip from 'jszip';
 // --- IndexedDB Setup ---
 const DB_NAME = 'ClothingInventoryDB';
 const DB_VERSION = 1; // Increment this if schema changes
@@ -74,6 +74,213 @@ const getAllFromStore = async (storeName) => {
         request.onerror = (event) => {
             console.error(`Error getting all from ${storeName}:`, event.target.error);
             reject(`Error getting all from ${storeName}: ${event.target.error}`);
+        };
+    });
+};
+
+// --- Export/Import ---
+
+const createCSV = (headers, data) => {
+    const headerRow = headers.join(',');
+    const dataRows = data.map(row =>
+        headers.map(header => {
+            let value = row[header];
+            // Handle null/undefined
+            if (value === null || typeof value === 'undefined') {
+                return '';
+            }
+            // Quote strings containing commas, quotes, or newlines
+            value = String(value);
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                // Escape double quotes by doubling them
+                value = value.replace(/"/g, '""');
+                return `"${value}"`;
+            }
+            return value;
+        }).join(',')
+    );
+    return [headerRow, ...dataRows].join('\n');
+};
+
+export const exportData = async (settings) => { // eslint-disable-line no-unused-vars
+    console.log('IndexedDBProvider: exportData called');
+    const zip = new JSZip();
+
+    try {
+        // 1. Fetch all data
+        const locations = await getAllFromStore(STORES.locations);
+        const categories = await getAllFromStore(STORES.categories);
+        const owners = await getAllFromStore(STORES.owners);
+        const itemsMetadata = await getAllFromStore(STORES.items);
+
+        // 2. Create CSVs
+        const locationHeaders = ['location_id', 'name', 'description'];
+        zip.file('locations.csv', createCSV(locationHeaders, locations));
+
+        const categoryHeaders = ['category_id', 'name', 'description'];
+        zip.file('categories.csv', createCSV(categoryHeaders, categories));
+
+        const ownerHeaders = ['owner_id', 'name', 'description'];
+        zip.file('owners.csv', createCSV(ownerHeaders, owners));
+
+        const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemsForCsv = [];
+        const imagesFolder = zip.folder('images');
+
+        for (const item of itemsMetadata) {
+            const itemCsvRow = { ...item };
+            itemCsvRow.image_zip_filename = ''; // Default to empty
+            itemCsvRow.image_original_filename = ''; // Default to empty
+
+            const imageFile = await getFromStore(STORES.images, item.item_id);
+            if (imageFile instanceof File) {
+                const fileExtension = imageFile.name.split('.').pop() || 'bin';
+                const zipFilename = `${item.item_id}.${fileExtension}`;
+                itemCsvRow.image_zip_filename = zipFilename;
+                itemCsvRow.image_original_filename = imageFile.name;
+                // Add image file to zip
+                imagesFolder.file(zipFilename, imageFile); // JSZip can handle File objects directly
+            }
+            itemsForCsv.push(itemCsvRow);
+        }
+        zip.file('items.csv', createCSV(itemHeaders, itemsForCsv));
+
+        // 3. Create Manifest
+        const manifest = {
+            exportFormatVersion: "1.0",
+            exportedAt: new Date().toISOString(),
+            sourceProvider: "localStorage"
+        };
+        zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+        // 4. Generate ZIP
+        const blob = await zip.generateAsync({ type: "blob" });
+        console.log('IndexedDBProvider: Export generated successfully.');
+        return blob;
+
+    } catch (error) {
+        console.error("Error during IndexedDB export:", error);
+        throw new Error(`Export failed: ${error.message}`);
+    }
+};
+
+
+// Basic CSV parser (consider using a library like PapaParse for robustness)
+const parseCSV = (csvString) => {
+    const lines = csvString.trim().split('\n');
+    if (lines.length < 1) return [];
+    const headers = lines[0].split(',').map(h => h.trim());
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+        // Very basic split, doesn't handle quoted commas correctly
+        const values = lines[i].split(',');
+        const row = {};
+        headers.forEach((header, index) => {
+            let value = values[index] ? values[index].trim() : '';
+            // Basic unquoting
+            if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1).replace(/""/g, '"');
+            }
+            // Attempt to convert numbers (adjust as needed)
+            if (header.endsWith('_id') && value !== '') {
+                 row[header] = parseInt(value, 10);
+            } else {
+                 row[header] = value;
+            }
+        });
+        data.push(row);
+    }
+    return data;
+};
+
+export const importData = async (settings, zipFile) => { // eslint-disable-line no-unused-vars
+    console.log('IndexedDBProvider: importData called');
+    const zip = new JSZip();
+    try {
+        const loadedZip = await zip.loadAsync(zipFile);
+
+        // Validate essential files
+        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv')) {
+            throw new Error("Import file is missing required CSV or manifest files.");
+        }
+
+        // Clear existing data (implement this carefully!)
+        console.log("Clearing existing IndexedDB data...");
+        await clearStore(STORES.items);
+        await clearStore(STORES.images);
+        await clearStore(STORES.locations);
+        await clearStore(STORES.categories);
+        await clearStore(STORES.owners);
+        _resetIdCounter('items');
+        _resetIdCounter('locations');
+        _resetIdCounter('categories');
+        _resetIdCounter('owners');
+        console.log("Existing data cleared.");
+
+        // Parse and import data (simplified - assumes IDs can be reused after clearing)
+        const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
+        for (const loc of locations) await addToStore(STORES.locations, loc);
+
+        const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
+        for (const cat of categories) await addToStore(STORES.categories, cat);
+
+        const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
+        for (const owner of owners) await addToStore(STORES.owners, owner);
+
+        const items = parseCSV(await loadedZip.file('items.csv').async('string'));
+        for (const item of items) {
+            const { image_zip_filename, image_original_filename, ...itemMetadata } = item;
+            let imageFile = null;
+            if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
+                const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
+                imageFile = new File([imageBlob], image_original_filename || image_zip_filename, { type: imageBlob.type });
+            }
+            // Add item metadata and image (similar logic to addItem, but using imported IDs)
+            await addToStore(STORES.items, itemMetadata);
+            if (imageFile) {
+                // Use putInStore to handle potential key conflicts if needed, or ensure keys are unique
+                // Using add assumes item_id from CSV is the key and doesn't exist yet
+                const imageAddRequest = await addToStore(STORES.images, imageFile, itemMetadata.item_id); // Use item_id as key
+                 if (!imageAddRequest.success) {
+                    console.warn(`Could not add image for item ${itemMetadata.item_id}. It might already exist or another error occurred.`);
+                 }
+            }
+        }
+
+        // Reset ID counters based on max imported IDs (optional but good practice)
+        const maxLocId = Math.max(0, ...locations.map(l => l.location_id));
+        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}locations`, String(maxLocId));
+        const maxCatId = Math.max(0, ...categories.map(c => c.category_id));
+        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}categories`, String(maxCatId));
+        const maxOwnerId = Math.max(0, ...owners.map(o => o.owner_id));
+        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}owners`, String(maxOwnerId));
+        const maxItemId = Math.max(0, ...items.map(i => i.item_id));
+        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}items`, String(maxItemId));
+        console.log("ID counters reset based on imported data.");
+
+
+        console.log('IndexedDBProvider: Import completed successfully.');
+        return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
+
+    } catch (error) {
+        console.error("Error during IndexedDB import:", error);
+        // Attempt to clean up partially imported data? Difficult in IndexedDB.
+        return { success: false, error: `Import failed: ${error.message}` };
+    }
+};
+
+// Helper function to clear an object store
+const clearStore = async (storeName) => {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const request = store.clear();
+
+        request.onsuccess = () => resolve({ success: true });
+        request.onerror = (event) => {
+            console.error(`Error clearing store ${storeName}:`, event.target.error);
+            reject(`Error clearing store ${storeName}: ${event.target.error}`);
         };
     });
 };
@@ -156,6 +363,12 @@ const _getNextId = (key) => {
     localStorage.setItem(counterKey, nextId.toString());
     console.log(`Generated next ID for ${key}: ${nextId}`);
     return nextId;
+};
+
+const _resetIdCounter = (key) => {
+    const counterKey = `${ID_COUNTERS_KEY_PREFIX}${key}`;
+    localStorage.setItem(counterKey, '0');
+    console.log(`Reset ID counter for ${key}`);
 };
 
 // --- Exported API Methods ---
