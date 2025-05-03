@@ -119,13 +119,7 @@
     box-sizing: border-box; /* Add this */
 }
 
-.data-management-section .form-group input[type="file"] {
-    width: auto; /* Don't force file input to full width */
-    padding: 5px; /* Basic padding */
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    display: block; /* Ensure it takes its own line */
-}
+/* REMOVED rule for visible file input */
 
 .feedback-section { /* Container for status messages */
     margin-top: 10px;
@@ -184,8 +178,5 @@
     padding: 15px 10px; /* Reduce horizontal padding */
   }
 
-  /* Optional: Ensure file input doesn't cause overflow */
-  .data-management-section .form-group input[type="file"] {
-    max-width: 100%; /* Prevent file input from exceeding container width */
-  }
+  /* REMOVED rule for visible file input */
 }

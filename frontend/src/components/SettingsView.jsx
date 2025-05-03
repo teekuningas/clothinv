@@ -381,13 +381,28 @@ const SettingsView = () => {
                         <p className="warning-text">{intl.formatMessage({ id: 'settings.data.importWarning', defaultMessage: 'Warning: Importing data will REPLACE ALL existing data in the currently active provider ({providerName}). This action cannot be undone.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
                         <div className="form-group">
                             <label htmlFor="import-file-input">{intl.formatMessage({ id: 'settings.data.importFileLabel', defaultMessage: 'Select .zip file to import:' })}</label>
+                            {/* Button-like Label */}
+                            <label
+                                htmlFor="import-file-input"
+                                className={`button-file-input import-button ${importStatus === 'importing' || !api.importData || !apiConfig.isConfigured ? 'disabled' : ''}`} // Add import-button for styling and dynamic disabled class
+                            >
+                                {intl.formatMessage({ id: 'settings.data.importChooseFile', defaultMessage: 'Choose File' })}
+                            </label>
+                            {/* Hidden Actual File Input */}
                             <input
                                 type="file"
                                 id="import-file-input"
-                                accept=".zip,application/zip,application/x-zip-compressed" // Be generous with MIME types
+                                accept=".zip,application/zip,application/x-zip-compressed"
                                 onChange={handleFileChange}
                                 disabled={importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
+                                className="hidden-file-input" // Add class to hide
                             />
+                            {/* Display Selected Filename */}
+                            {importFile && (
+                                <p className="selected-file-name">
+                                    {intl.formatMessage({ id: 'settings.data.importSelectedFile', defaultMessage: 'Selected:' })} {importFile.name}
+                                </p>
+                            )}
                         </div>
                         <div className="form-actions">
                             <button
