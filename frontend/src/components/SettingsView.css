@@ -85,6 +85,7 @@
     margin-top: 20px; /* Space above each section (export/import) */
     padding-top: 15px; /* Space below the heading */
     border-top: 1px solid #e9ecef; /* Separator line */
+    box-sizing: border-box; /* Add this */
 }
 
 .data-management-section:first-of-type {
@@ -115,6 +116,7 @@
     border-radius: 4px;
     font-weight: bold;
     overflow-wrap: break-word; /* Ensure long text wraps */
+    box-sizing: border-box; /* Add this */
 }
 
 .data-management-section .form-group input[type="file"] {
@@ -177,11 +179,10 @@
   }
 
   /* Optional: Reduce padding on fieldsets for very small screens if needed */
-  /*
+  /* Uncomment and modify this rule */
   .settings-fieldset {
-    padding: 15px;
+    padding: 15px 10px; /* Reduce horizontal padding */
   }
-  */
 
   /* Optional: Ensure file input doesn't cause overflow */
   .data-management-section .form-group input[type="file"] {
