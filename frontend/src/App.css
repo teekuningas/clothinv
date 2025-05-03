@@ -51,6 +51,32 @@
   display: inline-block;
 }
 
+/* Navigation within the mobile overlay */
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%; /* Ensure nav takes width for button alignment */
+}
+
+/* Target 'a' tags rendered by NavLink */
+.mobile-nav a {
+    background-color: transparent;
+    color: var(--color-text-base); /* Base text color */
+    border: none;
+    padding: 15px 30px;
+    margin: 10px 0;
+    cursor: pointer;
+    font-size: 1.5rem;
+    border-radius: 4px;
+    width: 80%;
+    max-width: 300px;
+    text-align: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+    font-weight: 500; /* Slightly less bold */
+}
+
 .app-nav a:hover {
   background-color: var(--color-bg-subtle); /* Subtle background on hover */
   color: var(--color-text-base); /* Darker text on hover */
