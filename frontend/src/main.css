@@ -145,9 +145,9 @@ button:disabled {
 }
 .button-danger:disabled {
     background-color: #f8d7da;
-    color: #721c24;
+    color: #a13843; /* Slightly darker text when disabled */
     border-color: #f5c6cb;
-    /* opacity: 0.65; */ /* Inherits from base button:disabled */
+    opacity: 0.75; /* Adjust opacity slightly */
 }
 
 /* Stronger Danger (e.g., Final Delete Confirmation) */
