@@ -19,6 +19,7 @@
 
 
 /* --- App Header --- */
+
 /* Combined .app-header styles */
 .app-header {
   background-color: var(--color-bg-container); /* Use white */
@@ -180,7 +181,7 @@
 }
 
 /* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .app-header {
         /* Ensure header has relative positioning for absolute children */
         position: relative;
