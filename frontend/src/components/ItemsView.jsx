@@ -124,23 +124,6 @@ const ItemsView = () => {
         fetchData();
     }, [fetchData]);
 
-   // Effect to create/revoke Blob URLs for item list display
-   useEffect(() => {
-       const newItemImageUrls = {};
-       filteredItems.forEach(item => {
-           if (item.imageFile instanceof File) {
-               newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
-           }
-       });
-       setItemImageUrls(newItemImageUrls);
-
-       // Cleanup function to revoke URLs when component unmounts or items change
-       return () => {
-           Object.values(newItemImageUrls).forEach(url => URL.revokeObjectURL(url));
-           setItemImageUrls({}); // Clear the state on cleanup
-       };
-   }, [filteredItems]); // Re-run when filteredItems changes
-
     // Calculate filtered items based on current filters
     const filteredItems = useMemo(() => {
         const lowerFilterName = filterName.toLowerCase();
@@ -167,6 +150,23 @@ const ItemsView = () => {
             return true; // Item passes all active filters
         });
     }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]);
+
+   // Effect to create/revoke Blob URLs for item list display
+   useEffect(() => {
+       const newItemImageUrls = {};
+       filteredItems.forEach(item => {
+           if (item.imageFile instanceof File) {
+               newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
+           }
+       });
+       setItemImageUrls(newItemImageUrls);
+
+       // Cleanup function to revoke URLs when component unmounts or items change
+       return () => {
+           Object.values(newItemImageUrls).forEach(url => URL.revokeObjectURL(url));
+           setItemImageUrls({}); // Clear the state on cleanup
+       };
+   }, [filteredItems]); // Re-run when filteredItems changes
 
     // --- Helper Functions ---
     const getLocationNameById = (id) => locations.find(loc => loc.location_id === id)?.name || intl.formatMessage({ id: 'items.card.noLocation', defaultMessage: 'N/A' });
