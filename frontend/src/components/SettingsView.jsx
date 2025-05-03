@@ -166,7 +166,8 @@ const SettingsView = () => {
         setImportError(null);
         setImportSummary('');
         const file = event.target.files[0];
-        if (file && file.type === 'application/zip') {
+        // Check for common zip MIME types or .zip extension
+        if (file && (file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed')) {
             setImportFile(file);
         } else {
             setImportFile(null);
