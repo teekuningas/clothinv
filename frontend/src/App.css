@@ -36,8 +36,9 @@
   border-bottom: 1px solid #b8c8d8; /* Lighter border */
 }
 
-.app-nav button {
-  background-color: #cddaea; /* Pastel blue-grey */
+/* Target 'a' tags rendered by NavLink instead of buttons */
+.app-nav a {
+  background-color: transparent; /* Make inactive links less prominent */
   color: #343a40; /* Dark grey text */
   border: 1px solid #b8c8d8; /* Lighter border */
   padding: 8px 15px;
@@ -45,15 +46,18 @@
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  transition: background-color 0.2s ease, border-color 0.2s ease; /* Add transition */
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; /* Add transition */
+  text-decoration: none; /* Remove default underline from links */
+  display: inline-block; /* Ensure padding and margins work correctly */
 }
 
-.app-nav button:hover {
+.app-nav a:hover {
   background-color: #b8c8d8; /* Lighter hover */
   border-color: #a3b6c7;
 }
 
-.app-nav button:disabled {
+/* Style for the active NavLink using the .active class */
+.app-nav a.active {
   background-color: #a3b6c7; /* Darker pastel for active */
   color: #ffffff; /* White text for contrast on active */
   cursor: default;
@@ -133,8 +137,9 @@
     width: 100%; /* Ensure nav takes width for button alignment */
 }
 
-.mobile-nav button {
-    background-color: transparent;
+/* Target 'a' tags rendered by NavLink instead of buttons */
+.mobile-nav a {
+    background-color: transparent; /* Keep background transparent */
     color: #343a40; /* Dark grey text */
     border: none;
     padding: 15px 30px; /* Larger tap targets */
@@ -145,14 +150,16 @@
     width: 80%; /* Make buttons wider */
     max-width: 300px; /* Optional: prevent buttons getting too wide */
     text-align: center;
-    transition: background-color 0.2s ease; /* Add transition */
+    transition: background-color 0.2s ease, color 0.2s ease; /* Add transition */
+    text-decoration: none; /* Remove default underline */
 }
 
-.mobile-nav button:hover {
+.mobile-nav a:hover {
     background-color: rgba(52, 58, 64, 0.08); /* Subtle dark hover */
 }
 
-.mobile-nav button:disabled {
+/* Style for the active NavLink using the .active class */
+.mobile-nav a.active {
     color: #005f73; /* Muted teal/blue for active text */
     background-color: rgba(0, 95, 115, 0.1); /* Slight background tint for active */
     cursor: default;
