@@ -1,7 +1,3 @@
-.categories-view {
-    padding: 20px;
-}
-
 
 .add-category-form {
     margin-bottom: 20px;
@@ -16,37 +12,16 @@
 }
 
 /* Input styling within forms in this view */
+/* Apply specific width override */
 .add-category-form .form-group input[type="text"],
-.edit-category-form .form-group input[type="text"] { /* Apply to edit form too */
+.edit-category-form .form-group input[type="text"] {
     width: calc(100% - 22px); /* Adjust for padding/border */
-    padding: 8px 10px;
-    border: 1px solid #ced4da; /* Slightly darker border for inputs */
-    border-radius: 4px;
+    /* Base styles (padding, border, radius) handled by main.css */
 }
 
-.add-category-form button {
-    padding: 10px 15px;
-    /* Match App.css nav buttons */
-    background-color: #cddaea;
-    color: #343a40;
-    border: 1px solid #b8c8d8;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease; /* Match App.css */
-}
-
-.add-category-form button:disabled {
-    /* Match App.css disabled nav buttons */
-    background-color: #a3b6c7;
-    color: #ffffff;
-    border-color: #8fa6b9;
-    cursor: not-allowed;
-}
-
-.add-category-form button:not(:disabled):hover {
-    /* Match App.css nav button hover */
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
+/* .add-category-form button styling handled by .button-primary class in JSX */
+/* .add-category-form button:disabled styling handled by .button-primary:disabled */
+/* .add-category-form button:not(:disabled):hover styling handled by .button-primary:hover */
 }
 
 /* --- Category Card Styles --- */
@@ -60,14 +35,16 @@
 }
 
 .category-card {
-    border: 1px solid #dee2e6; /* Consistent border */
-    border-radius: 4px;
+    /* Keep specific layout/spacing */
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
-    background-color: #fff;
-    position: relative; /* For positioning the edit button */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     padding-right: 60px; /* Make space for the edit button */
+    position: relative; /* For positioning the edit button */
+    /* Keep border/background/shadow for now as it's card-specific */
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .category-card h4 {
@@ -81,33 +58,19 @@
     font-size: 0.95em;
 }
 
+/* Apply .button-secondary class in JSX */
 .edit-button {
+    /* Keep positioning and specific size overrides */
     position: absolute;
     top: 10px;
     right: 10px;
     padding: 5px 10px;
     font-size: 0.9em; /* Keep slightly smaller */
-    /* Match Add button style */
-    background-color: #cddaea;
-    color: #343a40;
-    border: 1px solid #b8c8d8;
-    border-radius: 4px; /* Consistent radius */
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    /* Base styles (background, color, border, radius, cursor, transition) handled by .button-secondary */
 }
 
-.edit-button:hover:not(:disabled) {
-    /* Match Add button hover */
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
-}
-
-.edit-button:disabled {
-    /* Match Add button disabled */
-    background-color: #a3b6c7; /* Use consistent disabled style */
-    color: #ffffff;
-    border-color: #8fa6b9;
-    cursor: not-allowed;
+/* .edit-button:hover:not(:disabled) handled by .button-secondary:hover */
+/* .edit-button:disabled handled by .button-secondary:disabled */
 }
 
 
@@ -117,91 +80,25 @@
     padding: 10px 0 0 0; /* Add padding top, remove others */
 }
 
-/* Styles for action buttons container within the modal */
-.modal-actions {
-    display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
-    gap: 10px; /* Space between buttons */
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
+/* .modal-actions layout handled by main.css */
+/* Responsive .modal-actions handled by main.css */
+/* Base .modal-actions button styles handled by main.css button */
+/* Base .modal-actions button:disabled styles handled by main.css button:disabled */
 
-/* Responsive Modal Actions */
-@media (max-width: 480px) { /* Adjust breakpoint as needed */
-    .modal-actions {
-        flex-direction: column; /* Stack buttons vertically */
-        align-items: stretch; /* Make buttons full width */
-        gap: 8px; /* Adjust gap for vertical layout */
-    }
-}
+/* Apply .button-danger-strong class in JSX for delete buttons in modal */
+/* .delete-button styling handled by .button-danger-strong */
+/* .delete-button:hover:not(:disabled) styling handled by .button-danger-strong:hover */
+/* .delete-button:disabled styling handled by .button-danger-strong:disabled */
 
-/* General button styling within modal actions */
-.modal-actions button {
-    padding: 8px 15px;
-    border: 1px solid transparent; /* Base border */
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; /* Add color transition */
-}
+/* Apply .button-primary class in JSX for save/confirm buttons in modal */
+/* .modal-actions button[type="submit"]... styling handled by .button-primary */
+/* .modal-actions button[type="submit"]:hover... styling handled by .button-primary:hover */
 
-.modal-actions button:disabled {
-    /* Consistent disabled look, slightly lighter than primary disabled */
-    background-color: #ced4da;
-    border-color: #ced4da;
-    color: #6c757d;
-    cursor: not-allowed;
-}
-
-/* Specific style for delete buttons */
-.delete-button {
-    background-color: #dc3545; /* Red */
-    color: white;
-    border-color: #dc3545;
-}
-
-.delete-button:hover:not(:disabled) {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
-
-.delete-button:disabled {
-    background-color: #f1b0b7; /* Lighter red for disabled */
-    border-color: #f1b0b7;
-    color: #a13843;
-}
-
-/* Style for primary action (Save/Confirm) */
-.modal-actions button[type="submit"],
-.modal-actions button:first-of-type:not(.delete-button) { /* Target save/confirm */
-     /* Match Add/Edit button style */
-     background-color: #cddaea;
-     color: #343a40;
-     border-color: #b8c8d8;
-}
-.modal-actions button[type="submit"]:hover:not(:disabled),
-.modal-actions button:first-of-type:not(.delete-button):hover:not(:disabled) {
-    /* Match Add/Edit button hover */
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
-}
-
-/* Style for cancel button */
-.modal-actions button:last-of-type { /* Target cancel */
-    background-color: #e9ecef; /* Consistent light grey */
-    color: #495057; /* Darker grey text */
-    border-color: #dee2e6; /* Subtle border */
-}
-.modal-actions button:last-of-type:hover:not(:disabled) {
-    background-color: #e2e6ea;
-} /* Keep hover subtle */
+/* Apply .button-secondary class in JSX for cancel buttons in modal */
+/* .modal-actions button:last-of-type styling handled by .button-secondary */
+/* .modal-actions button:last-of-type:hover... styling handled by .button-secondary:hover */
 
 
-/* Styles for delete confirmation content */
-.delete-confirm-content p {
-    margin-bottom: 10px;
-    line-height: 1.5;
-}
-.delete-confirm-content p:first-of-type {
-    font-weight: bold; /* Emphasize the question */
+/* .delete-confirm-content p styles handled by main.css */
+/* .delete-confirm-content p:first-of-type styles handled by main.css */
 }

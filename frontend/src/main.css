@@ -72,3 +72,205 @@ body {
 }
 
 /* ========================================== */
+
+
+/* === Additions to frontend/src/main.css === */
+
+/* --- Base Button Style --- */
+/* Applied globally to button elements */
+button {
+    padding: 10px 15px; /* Default padding */
+    font-weight: bold;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    line-height: 1.5;
+    text-align: center;
+    font-size: 1em; /* Base font size */
+}
+
+button:focus-visible {
+    outline: 2px solid #005fcc;
+    outline-offset: 2px;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* --- Button Variant Definitions --- */
+/* These classes define the look, to be applied in JSX or via specific CSS rules */
+.button-primary {
+    background-color: #cddaea;
+    color: #343a40;
+    border-color: #b8c8d8;
+}
+.button-primary:hover:not(:disabled) {
+    background-color: #b8c8d8;
+    border-color: #a3b6c7;
+}
+.button-primary:disabled {
+     background-color: #a3b6c7;
+     color: #ffffff;
+     border-color: #8fa6b9;
+     opacity: 1; /* Override base disabled opacity */
+}
+
+.button-secondary {
+    background-color: #e9ecef;
+    color: #495057;
+    border-color: #dee2e6;
+}
+.button-secondary:hover:not(:disabled) {
+    background-color: #e2e6ea;
+    border-color: #ced4da;
+}
+.button-secondary:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-color: #dee2e6;
+    /* opacity: 0.65; */ /* Inherits from base button:disabled */
+}
+
+.button-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+.button-danger:hover:not(:disabled) {
+    background-color: #f1b0b7;
+    border-color: #ec98a1;
+}
+.button-danger:disabled {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    /* opacity: 0.65; */ /* Inherits from base button:disabled */
+}
+
+/* Stronger Danger (e.g., Final Delete Confirmation) */
+.button-danger-strong {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+.button-danger-strong:hover:not(:disabled) {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+ .button-danger-strong:disabled {
+    background-color: #f1b0b7;
+    border-color: #f1b0b7;
+    color: #a13843;
+    opacity: 1; /* Override base disabled opacity */
+}
+
+/* --- Common View Padding --- */
+/* Applied via view container class names */
+.locations-view,
+.categories-view,
+.owners-view,
+.items-view,
+.settings-view {
+    padding: 20px;
+}
+
+/* --- Common Form Element Styles --- */
+/* Base Input Styles (Applied via .form-group > input/select) */
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group select {
+    width: 100%; /* Default to full width */
+    padding: 8px 10px;
+    border: 1px solid #ced4da; /* Consistent border */
+    border-radius: 4px;
+    font-size: 1em;
+    box-sizing: border-box;
+}
+
+/* Select Arrow Styling */
+.form-group select {
+     appearance: none;
+     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+     background-repeat: no-repeat;
+     background-position: right 10px center;
+     background-size: 0.65em auto;
+     padding-right: 30px; /* Make space for arrow */
+}
+
+.form-group select[disabled] {
+    background-color: #eee; /* Consistent disabled background */
+    cursor: not-allowed;
+}
+
+/* --- Common Modal Action Styles --- */
+/* Applied via .modal-actions class */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Responsive Modal Actions */
+@media (max-width: 480px) {
+    .modal-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    .modal-actions button {
+        width: 100%;
+    }
+}
+
+/* --- Common Delete Confirmation Styles --- */
+/* Applied via .delete-confirm-content class */
+.delete-confirm-content p {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+.delete-confirm-content p:first-of-type {
+    font-weight: bold;
+}
+
+/* --- Common File Input Styles --- */
+/* Applied via .hidden-file-input class */
+.hidden-file-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+/* Base style for the label acting as a button */
+/* Apply .button-secondary class in JSX for visual styling */
+.button-file-input {
+    /* Inherits display, cursor, alignment etc. from button base styles if needed */
+    /* Or define explicitly: */
+    display: inline-block;
+    padding: 10px 15px; /* Match base button padding */
+    cursor: pointer;
+    text-align: center;
+    vertical-align: middle;
+    /* Styling (color, background, border) comes from .button-secondary */
+    /* Disabled state handled by adding .disabled class */
+}
+.button-file-input.disabled {
+    /* Styles matching .button-secondary:disabled */
+    background-color: #e9ecef;
+    color: #6c757d;
+    border-color: #dee2e6;
+    opacity: 0.65;
+    cursor: not-allowed;
+    pointer-events: none; /* Prevent clicks on label */
+}
+
+
+/* ========================================== */

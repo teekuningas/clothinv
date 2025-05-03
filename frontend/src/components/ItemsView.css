@@ -1,127 +1,28 @@
 /* frontend/src/components/ItemsView.css */
 
-.items-view {
-    padding: 20px;
-}
+/* .items-view padding handled by main.css */
 
-/* --- Base Button Style --- */
-.items-view button,
-.modal-actions button,
-.button-file-input { /* Include label styled as button */
-    padding: 10px 15px; /* Consistent vertical padding for height */
-    font-weight: bold;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-    line-height: 1.5; /* Ensure text vertical alignment */
-    text-align: center;
-}
+/* Base button styles handled by main.css button */
+/* Base button focus styles handled by main.css button:focus-visible */
+/* Base button disabled styles handled by main.css button:disabled */
 
-.items-view button:focus-visible,
-.modal-actions button:focus-visible {
-    outline: 2px solid #005fcc; /* Example focus ring */
-    outline-offset: 2px;
-}
+/* Button variant definitions (.button-primary, .button-secondary, .button-danger) handled by main.css */
 
-.items-view button:disabled,
-.modal-actions button:disabled,
-.button-file-input:disabled { /* Style disabled label */
-    cursor: not-allowed;
-    opacity: 0.65;
-    /* Ensure background/color don't change drastically */
-}
+/* Apply .button-primary class in JSX for add/save buttons */
+/* Apply .button-secondary class in JSX for edit/filter/reset/cancel buttons */
+/* Apply .button-danger class in JSX for delete/remove buttons */
+/* Apply .button-danger-strong class in JSX for main delete confirmation button */
 
-/* --- Button Variants --- */
-/* Primary (Add, Save) */
-.button-primary,
-.add-item-form button[type="submit"],
-.modal-actions button[type="submit"] {
-    background-color: #cddaea; /* Existing blueish */
-    color: #343a40;
-    border-color: #b8c8d8;
-}
-.button-primary:hover:not(:disabled),
-.add-item-form button[type="submit"]:hover:not(:disabled),
-.modal-actions button[type="submit"]:hover:not(:disabled) {
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
-}
-.button-primary:disabled,
-.add-item-form button[type="submit"]:disabled,
-.modal-actions button[type="submit"]:disabled {
-     background-color: #a3b6c7; /* Existing disabled */
-     color: #ffffff;
-     border-color: #8fa6b9;
-     opacity: 1; /* Override base disabled opacity if needed */
-}
-
-
-/* Secondary (Cancel, Edit, Filter, Reset) */
-.button-secondary,
-.item-card .edit-button, /* Apply to card edit button */
-.filter-toggle-button,
-.reset-filters-button,
-.modal-actions button[type="button"]:not(.delete-button):not(.remove-image-button) /* Target cancel/other buttons */
- {
-    background-color: #e9ecef; /* Light grey */
-    color: #495057;
-    border-color: #dee2e6;
-}
-.button-secondary:hover:not(:disabled),
-.item-card .edit-button:hover:not(:disabled),
-.filter-toggle-button:hover:not(:disabled),
-.reset-filters-button:hover:not(:disabled),
-.modal-actions button[type="button"]:not(.delete-button):not(.remove-image-button):hover:not(:disabled) {
-    background-color: #e2e6ea;
-    border-color: #ced4da;
-}
-.button-secondary:disabled,
-.item-card .edit-button:disabled,
-.filter-toggle-button:disabled,
-.reset-filters-button:disabled,
-.modal-actions button[type="button"]:not(.delete-button):not(.remove-image-button):disabled {
-    background-color: #e9ecef; /* Keep light grey */
-    color: #6c757d;
-    border-color: #dee2e6;
-}
-
-/* Danger (Delete, Remove Image) */
-.button-danger,
-.delete-button,
-.remove-image-button {
-    background-color: #f8d7da; /* Light red */
-    color: #721c24; /* Dark red text */
-    border-color: #f5c6cb; /* Reddish border */
-}
-.button-danger:hover:not(:disabled),
-.delete-button:hover:not(:disabled),
-.remove-image-button:hover:not(:disabled) {
-    background-color: #f1b0b7;
-    border-color: #ec98a1;
-}
-.button-danger:disabled,
-.delete-button:disabled,
-.remove-image-button:disabled {
-    background-color: #f8d7da; /* Keep light red */
-    color: #721c24;
-    border-color: #f5c6cb;
-}
-
-/* Specific override for main delete confirmation button */
+/* Specific override for main delete confirmation button (keep selector for specificity) */
+/* Apply .button-danger-strong class in JSX */
 .delete-confirm-content .delete-button {
-    background-color: #dc3545; /* Stronger red */
-    color: white;
-    border-color: #dc3545;
+    /* Styles defined by .button-danger-strong */
 }
 .delete-confirm-content .delete-button:hover:not(:disabled) {
-    background-color: #c82333;
-    border-color: #bd2130;
+    /* Styles defined by .button-danger-strong:hover */
 }
  .delete-confirm-content .delete-button:disabled {
-    background-color: #f1b0b7; /* Lighter red when disabled */
-    border-color: #f1b0b7;
-    color: #a13843;
+    /* Styles defined by .button-danger-strong:disabled */
 }
 
 /* --- Add Item Form --- */
@@ -147,15 +48,17 @@
     font-weight: bold;
 }
 
+/* Apply specific width override */
 .add-item-form .form-group input[type="text"],
-.add-item-form .form-group select,
-+.add-item-form .form-group input[type="file"], /* Style file input */
-.edit-item-form .form-group input[type="text"] { /* Apply to edit form too */
+.edit-item-form .form-group input[type="text"] {
     width: calc(100% - 22px); /* Adjust for padding/border */
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1em; /* Ensure consistent font size */
+    /* Base styles (padding, border, radius, font-size) handled by main.css */
+}
+
+/* Base select styles handled by main.css .form-group select */
+.add-item-form .form-group select {
+     /* Base styles (width, padding, border, radius, font-size) handled by main.css */
+     /* Arrow styles handled by main.css */
 }
 
 /* Basic styling for file input - often hidden and triggered by a label/button */
@@ -164,24 +67,7 @@
     margin-top: 5px; /* Space above file input */
 }
 
-.add-item-form .form-group select {
-     width: 100%; /* Select needs full width */
-     /* Appearance reset might be needed for cross-browser consistency */
-     appearance: none;
-     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
-     background-repeat: no-repeat;
-     background-position: right 10px center;
-     background-size: 0.65em auto;
-     padding-right: 30px; /* Make space for arrow */
-}
-/* Remove specific color overrides for buttons within the add form; let variant classes handle it */
-.add-item-form button {
-    padding: 10px 15px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
+/* .add-item-form button styling handled by .button-primary class in JSX */
 
 /* Image Preview Styles */
 .image-preview {
@@ -299,14 +185,18 @@
     /* transition: background-color 0.2s ease, border-color 0.2s ease; */ /* Handled by base button */
     background-color: rgba(255, 255, 255, 0.9); /* Less transparent */
     /* color: #343a40; */ /* Handled by button-secondary */
-    /* border: 1px solid #b8c8d8; */ /* Handled by button-secondary */
+    /* Keep specific overrides */
+    background-color: rgba(255, 255, 255, 0.9); /* Less transparent */
+    color: #343a40;
+    border: 1px solid #b8c8d8;
     backdrop-filter: blur(2px); /* Optional: blur background behind button */
     z-index: 10; /* Ensure it's above image */
 }
 
 
-/* --- Edit/Delete Modal Styles (Inherit from CategoriesView.css if possible, or redefine) --- */
-/* Assuming Modal.css provides base styles */
+/* --- Edit/Delete Modal Styles --- */
+/* Base modal styles provided by Modal.css */
+/* Modal action layout/styles handled by main.css .modal-actions */
 .edit-item-form {
     padding: 10px 0 0 0;
 }
@@ -327,22 +217,13 @@
     font-weight: bold;
 }
 
-/* Hide the actual file input element */
-.hidden-file-input {
-    width: 0.1px;
-    height: 0.1px;
-    opacity: 0;
-    overflow: hidden;
-    position: absolute;
-    z-index: -1;
-}
+/* .hidden-file-input handled by main.css */
 
-/* Style the label to look like a button */
+/* Apply .button-secondary class in JSX */
+/* Base .button-file-input styles handled by main.css */
 .button-file-input {
-    /* Background, color, border inherited from .button-secondary class */
-    /* display: inline-block; Let flexbox handle display */
-    padding: 10px 15px; /* Match base button padding */
-    cursor: pointer;
+    /* Base styles (padding, cursor) handled by main.css */
+    /* Visual styles (background, color, border) handled by .button-secondary */
 }
 
 .form-group-image-actions {
@@ -363,10 +244,11 @@
     font-weight: bold;
 }
 
-/* Adjust remove image button */
+/* Apply .button-danger class in JSX */
 .remove-image-button {
-    /* Background, color, border inherited from .button-danger class */
-    padding: 10px 15px; /* Match base button padding */
+    /* Base styles (padding) handled by main.css button */
+    /* Visual styles (background, color, border) handled by .button-danger */
+    /* Keep specific font-size override */
     font-size: 0.9em;
 }
 
@@ -378,37 +260,16 @@
     }
 }
 
-/* Re-use modal action styles if defined globally or copy from CategoriesView.css */
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
-    padding-top: 15px;
-    border-top: 1px solid #eee;
-}
-
-/* Media query for modal actions (optional, keep if needed) */
-@media (max-width: 480px) {
-    .modal-actions {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    }
-}
-
-.delete-confirm-content p {
-    margin-bottom: 10px;
-    line-height: 1.5;
-}
-.delete-confirm-content p:first-of-type {
-    font-weight: bold;
-}
+/* .modal-actions layout handled by main.css */
+/* Responsive .modal-actions handled by main.css */
+/* .delete-confirm-content p styles handled by main.css */
+/* .delete-confirm-content p:first-of-type styles handled by main.css */
 
 /* --- Filters --- */
+/* Apply .button-secondary class in JSX */
 .filter-toggle-button {
-    /* Styles handled by .button-secondary */
-    margin-bottom: 15px; /* Space below button */
+    /* Base styles handled by .button-secondary */
+    margin-bottom: 15px; /* Keep specific margin */
 }
 
 .filter-toggle-button[aria-expanded="true"] {
@@ -486,9 +347,10 @@
     color: #343a40;
 }
 
+/* Apply .button-secondary class in JSX */
 .reset-filters-button {
-    /* Styles handled by .button-secondary */
-    margin-top: 10px; /* Space above reset button */
+    /* Base styles handled by .button-secondary */
+    margin-top: 10px; /* Keep specific margin */
 }
 
 /* Responsive adjustments for filters if needed */
