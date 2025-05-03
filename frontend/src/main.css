@@ -158,18 +158,18 @@ button:disabled {
     border-color: var(--color-primary);
 }
 
-.button-primary:hover:not(:disabled) {
-    background-color: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
-    color: var(--color-primary-text);
-}
-
 .button-primary:disabled {
      background-color: var(--color-primary);
      color: var(--color-primary-text);
      border-color: var(--color-primary);
 
      /* Inherits opacity: 0.65 */
+}
+
+.button-primary:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    color: var(--color-primary-text);
 }
 
 /* Applied via view container class names */

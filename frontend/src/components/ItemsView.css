@@ -18,6 +18,24 @@
     color: var(--color-text-base);
 }
 
+/* Filter & Checkbox Label Styles (Lower Specificity) */
+.filter-group label,
+.filter-group legend { /* Style legend like label */
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: var(--color-text-label); /* CHANGE */
+}
+
+.checkbox-item label {
+    margin-bottom: 0; /* Reset margin from .filter-group label */
+    font-weight: normal;
+    font-size: 0.95em;
+    cursor: pointer;
+    color: var(--color-text-base); /* CHANGE */
+}
+
 .add-item-form .form-group {
     margin-bottom: 10px;
 }
@@ -290,14 +308,6 @@
 .add-item-form .form-group input[type="text"],
 .edit-item-form .form-group input[type="text"] {
     width: calc(100% - 22px); /* Adjust for main.css padding/border */
-}
-
-.checkbox-item label {
-    margin-bottom: 0; /* Reset margin from .filter-group label */
-    font-weight: normal;
-    font-size: 0.95em;
-    cursor: pointer;
-    color: var(--color-text-base); /* CHANGE */
 }
 
 .reset-filters-button {
