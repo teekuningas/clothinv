@@ -130,6 +130,9 @@
     /* Ensure close button is clickable above overlay content if needed */
     z-index: 1110; /* Higher than overlay */
 }
+.close-menu-button:hover {
+    color: var(--color-text-base); /* Darken on hover */
+}
 
 /* Navigation within the mobile overlay */
 .mobile-nav {
