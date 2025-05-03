@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useIntl } from 'react-intl'; // Import useIntl hook
 import { useApi } from './api/ApiContext'; // Import the custom hook
+import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom'; // Import react-router-dom components
 // Import the view components
 import ItemsView from './components/ItemsView';
 import LocationsView from './components/LocationsView';
@@ -15,7 +16,7 @@ function App() {
   const intl = useIntl(); // Get intl object
   // Remove isSettingsOpen state
 
-  const [activeView, setActiveView] = useState('items'); // Default view
+  // Remove activeView state - routing handles this now
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
   const api = useApi(); // Use the API context hook
 
@@ -110,21 +111,22 @@ function App() {
         </button>
         {/* Simple Navigation - hidden on small screens via CSS */}
         <nav className="app-nav">
-            <button onClick={() => setActiveView('items')} disabled={activeView === 'items'}>
+            {/* Use NavLink for declarative navigation and active styling */}
+            <NavLink to="/items" className={({ isActive }) => isActive ? 'active' : ''}>
                 {intl.formatMessage({ id: 'nav.items', defaultMessage: 'Items' })}
-            </button>
-            <button onClick={() => setActiveView('locations')} disabled={activeView === 'locations'}>
+            </NavLink>
+            <NavLink to="/locations" className={({ isActive }) => isActive ? 'active' : ''}>
                 {intl.formatMessage({ id: 'nav.locations', defaultMessage: 'Locations' })}
-            </button>
-            <button onClick={() => setActiveView('categories')} disabled={activeView === 'categories'}>
+            </NavLink>
+            <NavLink to="/categories" className={({ isActive }) => isActive ? 'active' : ''}>
                 {intl.formatMessage({ id: 'nav.categories', defaultMessage: 'Categories' })}
-            </button>
-            <button onClick={() => setActiveView('owners')} disabled={activeView === 'owners'}>
+            </NavLink>
+            <NavLink to="/owners" className={({ isActive }) => isActive ? 'active' : ''}>
                 {intl.formatMessage({ id: 'nav.owners', defaultMessage: 'Owners' })}
-            </button>
-            <button onClick={() => setActiveView('settings')} disabled={activeView === 'settings'}>
+            </NavLink>
+            <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>
                 {intl.formatMessage({ id: 'nav.settings', defaultMessage: 'Settings' })}
-            </button>
+            </NavLink>
         </nav>
       </header>
       {/* Mobile Menu Overlay - shown when isMobileMenuOpen is true */}
@@ -138,27 +140,63 @@ function App() {
                   &times; {/* Simple close icon */}
               </button>
               <nav className="mobile-nav">
-                  <button onClick={() => handleMobileNavClick('items')} disabled={activeView === 'items'}>
+                  {/* Use NavLink here as well. Add onClick just to close the menu */}
+                  <NavLink
+                      to="/items"
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                      onClick={() => setIsMobileMenuOpen(false)} // Close menu on click
+                  >
                       {intl.formatMessage({ id: 'nav.items', defaultMessage: 'Items' })}
-                  </button>
-                  <button onClick={() => handleMobileNavClick('locations')} disabled={activeView === 'locations'}>
+                  </NavLink>
+                  <NavLink
+                      to="/locations"
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                  >
                       {intl.formatMessage({ id: 'nav.locations', defaultMessage: 'Locations' })}
-                  </button>
-                  <button onClick={() => handleMobileNavClick('categories')} disabled={activeView === 'categories'}>
+                  </NavLink>
+                  <NavLink
+                      to="/categories"
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                  >
                       {intl.formatMessage({ id: 'nav.categories', defaultMessage: 'Categories' })}
-                  </button>
-                  <button onClick={() => handleMobileNavClick('owners')} disabled={activeView === 'owners'}>
+                  </NavLink>
+                  <NavLink
+                      to="/owners"
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                  >
                       {intl.formatMessage({ id: 'nav.owners', defaultMessage: 'Owners' })}
-                  </button>
-                  <button onClick={() => handleMobileNavClick('settings')} disabled={activeView === 'settings'}>
+                  </NavLink>
+                  <NavLink
+                      to="/settings"
+                      className={({ isActive }) => isActive ? 'active' : ''}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                  >
                       {intl.formatMessage({ id: 'nav.settings', defaultMessage: 'Settings' })}
-                  </button>
+                  </NavLink>
               </nav>
           </div>
       )}
       <main className="app-main-content" style={{ padding: '20px' }}>
-          {/* Render the active view component */}
-          {renderActiveView()}
+          {/* Define the routes */}
+          <Routes>
+              {/* Redirect root path to /items */}
+              <Route path="/" element={<Navigate to="/items" replace />} />
+              <Route path="/items" element={<ItemsView />} />
+              <Route path="/locations" element={<LocationsView />} />
+              <Route path="/categories" element={<CategoriesView />} />
+              <Route path="/owners" element={<OwnersView />} />
+              <Route path="/settings" element={
+                  <SettingsView
+                      currentConfig={api.config}
+                      onSave={api.updateConfiguration}
+                  />
+              } />
+              {/* Optional: Add a catch-all 404 route */}
+              {/* <Route path="*" element={<div>Page Not Found</div>} /> */}
+          </Routes>
 
           {/* Keep Global Warnings Here */}
           <div className="global-warnings" style={{ marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
@@ -192,7 +230,8 @@ function App() {
       </main>
 
       {/* Remove SettingsView modal rendering */}
-    </div>
+      </div>
+    </BrowserRouter>
   );
 }
 
