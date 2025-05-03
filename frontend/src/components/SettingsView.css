@@ -208,7 +208,7 @@
   }
 
   /* Make data management buttons full width on mobile */
-  .data-management-section .form-actions button {
+  .settings-fieldset .form-actions button {
     width: 100%;
   }
 
