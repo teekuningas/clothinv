@@ -331,12 +331,13 @@ const clearStore = async (storeName) => {
 };
 
 // Generic function to add a record to a store
-const addToStore = async (storeName, record) => {
+const addToStore = async (storeName, record, key = undefined) => { // Add optional key parameter
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
-        const request = store.add(record);
+        // Pass key if provided, otherwise let IndexedDB handle it (in-line keys/generator)
+        const request = key !== undefined ? store.add(record, key) : store.add(record);
 
         request.onsuccess = () => resolve({ success: true, id: request.result }); // request.result is the key
         request.onerror = (event) => {
