@@ -229,10 +229,6 @@
         flex-direction: column; /* Stack vertically */
         align-items: stretch; /* Make items fill the container width */
     }
-
-    .checkbox-group {
-        /* Could add columns here if many options, but vertical is usually fine */
-    }
 }
 
 
