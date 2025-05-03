@@ -147,6 +147,7 @@
 
 .item-card p.item-meta {
     font-size: 0.85em;
+
     /* Slightly smaller meta text */
     color: var(--color-text-label);
     margin-bottom: 5px;
