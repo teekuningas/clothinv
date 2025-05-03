@@ -196,6 +196,7 @@
     "items.card.noImage": "Ei kuvaa",
     "items.card.noCategory": "Ei määritelty",
     "items.card.noOwner": "Ei määritelty",
+    "items.card.viewImageTooltip": "Klikkaa nähdäksesi koko kuvan",
     "items.editButton.label": "Muokkaa {name}",
     "items.editModal.title": "Muokkaa vaatetta",
     "items.success.update": "Vaate \"{name}\" päivitetty onnistuneesti!",

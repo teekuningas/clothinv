@@ -196,6 +196,7 @@
     "items.card.noImage": "No Image",
     "items.card.noCategory": "N/A",
     "items.card.noOwner": "N/A",
+    "items.card.viewImageTooltip": "Click to view full image",
     "items.editButton.label": "Edit {name}",
     "items.editModal.title": "Edit Item",
     "items.success.update": "Item \"{name}\" updated successfully!",
