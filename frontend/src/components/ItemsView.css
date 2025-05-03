@@ -5,16 +5,17 @@
 
 /* --- Add Item Form --- */
 .add-item-form {
-    margin-bottom: 30px; /* More space before the list */
+    margin-bottom: 30px;
     padding: 15px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border); /* CHANGE */
     border-radius: 4px;
-    background-color: #e9ecef;
+    background-color: var(--color-bg-subtle); /* CHANGE */
 }
 
 .add-item-form h3 {
     margin-top: 0;
     margin-bottom: 15px;
+    color: var(--color-text-base);
 }
 
 .add-item-form .form-group {
@@ -43,13 +44,14 @@
 
 /* Image Preview Styles */
 .image-preview {
-    margin-bottom: 0; /* Remove default margin, use gap */
-    max-width: 250px; /* Slightly larger max width */
+    margin-bottom: 0;
+    max-width: 250px;
     max-height: 250px;
-    border: 1px solid #ced4da;
-    border-radius: 4px; /* Add border radius */
+    border: 1px solid var(--color-border-input); /* CHANGE */
+    border-radius: 4px;
     overflow: hidden;
-    align-self: flex-start; /* Don't stretch full width */
+    align-self: flex-start;
+    background-color: var(--color-bg-container); /* Add white background */
 }
 
 .image-preview img {
@@ -69,9 +71,9 @@
 
 /* --- Item Card --- */
 .item-card {
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border); /* CHANGE */
     border-radius: 4px;
-    background-color: #fff;
+    background-color: var(--color-bg-container); /* CHANGE */
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
@@ -82,19 +84,19 @@
 /* Container for image or placeholder */
 .item-image-container {
     width: 100%;
-    height: 200px; /* Fixed height for consistency */
-    border-bottom: 1px solid #dee2e6; /* Separator */
+    height: 200px;
+    border-bottom: 1px solid var(--color-border-divider); /* CHANGE */
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* Ensure image fits */
-    background-color: #f8f9fa; /* Default background */
+    overflow: hidden;
+    background-color: var(--color-bg-subtle); /* CHANGE - Default background */
 }
 
 /* Placeholder styling using background */
 .item-image-container.placeholder {
-    background: linear-gradient(135deg, #e0e7ef 25%, #f8f9fa 25%, #f8f9fa 50%, #e0e7ef 50%, #e0e7ef 75%, #f8f9fa 75%, #f8f9fa 100%);
-    background-size: 40px 40px; /* Size of the pattern */
+    /* Remove gradient, just use subtle background */
+    background-color: var(--color-bg-subtle); /* CHANGE */
 }
 
 .item-image-container.clickable {
@@ -107,11 +109,11 @@
     object-fit: cover; /* Cover the area, cropping if needed */
 }
 
-/* Loading/Error states (Optional - not strictly needed if placeholder is sufficient) */
+/* Loading/Error states (Optional) */
 .item-image-loading,
 .item-image-error {
     font-size: 0.9em;
-    color: #6c757d;
+    color: var(--color-text-muted); /* CHANGE */
     text-align: center;
 }
 
@@ -124,11 +126,12 @@
     margin-top: 0;
     margin-bottom: 8px;
     font-size: 1.1em;
+    color: var(--color-text-base);
 }
 
 .item-card p.item-description {
     font-size: 0.9em;
-    color: #6c757d; /* Muted color for description */
+    color: var(--color-text-muted); /* CHANGE */
     margin-bottom: 10px;
     /* Limit description lines if needed */
     /* display: -webkit-box;
@@ -139,26 +142,22 @@
 
 .item-card p.item-meta {
     font-size: 0.85em;
-    color: #495057;
+    color: var(--color-text-label); /* CHANGE */
     margin-bottom: 5px;
 }
 
+/* Edit button: Remove color/bg/border. Apply .button-light in JSX */
 .item-card .edit-button {
     position: absolute;
     top: 10px;
     right: 10px;
     padding: 5px 10px;
     font-size: 0.9em;
-    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
-    color: #343a40;
-    border: 1px solid #b8c8d8;
-    border-radius: 4px; /* Keep radius override if different from base button */
+    /* REMOVE background-color, color, border */
+    border-radius: 4px;
     cursor: pointer;
-    background-color: rgba(255, 255, 255, 0.9); /* Less transparent */
-    color: #343a40;
-    border: 1px solid #b8c8d8;
-    backdrop-filter: blur(2px); /* Optional: blur background behind button */
-    z-index: 10; /* Ensure it's above image */
+    backdrop-filter: blur(2px);
+    z-index: 10;
 }
 
 
@@ -178,8 +177,9 @@
 .add-item-form .form-group-image label,
 .edit-item-form .form-group-image label {
     display: block;
-    margin-bottom: 0; /* Remove default margin, use gap */
+    margin-bottom: 0;
     font-weight: bold;
+    color: var(--color-text-label);
 }
 
 
@@ -220,26 +220,24 @@
 
 /* --- Filters --- */
 .filter-toggle-button {
-    margin-bottom: 15px; /* Keep specific margin */
-}
-
-.filter-toggle-button[aria-expanded="true"] {
+    margin-bottom: 15px;
 }
 
 .filters-container {
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border); /* CHANGE */
     border-radius: 4px;
     padding: 15px;
-    margin-bottom: 20px; /* Space below filters */
-    background-color: #f8f9fa;
+    margin-bottom: 20px;
+    background-color: var(--color-bg-body); /* CHANGE */
 }
 
 .filters-container h4 {
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.1em;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--color-border-divider); /* CHANGE */
     padding-bottom: 8px;
+    color: var(--color-text-base);
 }
 
 .filter-group {
@@ -252,7 +250,7 @@
     margin-bottom: 5px;
     font-weight: bold;
     font-size: 0.9em;
-    color: #495057;
+    color: var(--color-text-label); /* CHANGE */
 }
 
 .filter-group input[type="text"] {
@@ -282,19 +280,19 @@
 }
 
 .checkbox-item input[type="checkbox"] {
-    margin-right: 8px; /* Space between checkbox and label */
+    margin-right: 8px;
     cursor: pointer;
-    /* Optional: Style checkbox appearance */
     width: 16px;
     height: 16px;
+    accent-color: var(--color-primary); /* Style checkbox color */
 }
 
 .checkbox-item label {
     margin-bottom: 0; /* Reset margin from .filter-group label */
-    font-weight: normal; /* Normal weight for checkbox labels */
+    font-weight: normal;
     font-size: 0.95em;
     cursor: pointer;
-    color: #343a40;
+    color: var(--color-text-base); /* CHANGE */
 }
 
 .reset-filters-button {

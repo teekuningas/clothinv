@@ -99,13 +99,15 @@ const ExportConfigurationLink = () => {
 
 
     return (
-        <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+        // Use settings-view class for consistent padding/styling
+        <div className="settings-view">
             <h2>{intl.formatMessage({ id: 'exportConfig.title', defaultMessage: 'Export Configuration Link' })}</h2>
 
-            {error && <p style={{ color: 'red', fontWeight: 'bold' }}>{error}</p>}
+            {/* Use status-error class */}
+            {error && <p className="status-error">{error}</p>}
 
             {!error && generatedUrl && (
-                <div>
+                <div className="settings-fieldset"> {/* Wrap content in fieldset for styling */}
                     <h3>{intl.formatMessage({ id: 'exportConfig.section.details', defaultMessage: 'Configuration Details Included:' })}</h3>
                     {configDetails.api && (
                         <div>
@@ -122,38 +124,42 @@ const ExportConfigurationLink = () => {
                     )}
 
                     <h3>{intl.formatMessage({ id: 'exportConfig.section.generatedUrl', defaultMessage: 'Generated Configuration URL:' })}</h3>
-                    <p style={{ wordBreak: 'break-all', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '4px' }}>
+                    {/* Use subtle background for code blocks */}
+                    <p style={{ wordBreak: 'break-all', backgroundColor: 'var(--color-bg-subtle)', padding: '10px', borderRadius: '4px' }}>
                         <code>{generatedUrl}</code>
                     </p>
-                    <button onClick={handleCopyUrl} style={{ marginRight: '10px' }}>
+                    {/* Use button classes */}
+                    <button onClick={handleCopyUrl} className="button-primary" style={{ marginRight: '10px' }}>
                         {intl.formatMessage({ id: 'exportConfig.button.copyUrl', defaultMessage: 'Copy URL' })}
                     </button>
 
                     <h3>{intl.formatMessage({ id: 'exportConfig.section.encodedString', defaultMessage: 'Base64 Encoded String:' })}</h3>
-                    <p style={{ wordBreak: 'break-all', backgroundColor: '#f0f0f0', padding: '10px', borderRadius: '4px' }}>
+                    <p style={{ wordBreak: 'break-all', backgroundColor: 'var(--color-bg-subtle)', padding: '10px', borderRadius: '4px' }}>
                         <code>{encodedString}</code>
                     </p>
-                    <button onClick={handleCopyEncoded}>
+                    <button onClick={handleCopyEncoded} className="button-primary">
                         {intl.formatMessage({ id: 'exportConfig.button.copyEncoded', defaultMessage: 'Copy Encoded String' })}
                     </button>
 
                     <p style={{ marginTop: '20px', fontStyle: 'italic' }}>
                         {intl.formatMessage({ id: 'exportConfig.instructions', defaultMessage: 'Share the generated URL with someone. When they open it, the specified configuration will be automatically applied to their browser.' })}
                     </p>
-                     <p style={{ marginTop: '10px', fontWeight: 'bold', color: '#d9534f' }}>
+                    {/* Use status-warning class */}
+                     <p className="status-warning" style={{ marginTop: '10px' }}>
                         {intl.formatMessage({ id: 'exportConfig.warning.secret', defaultMessage: 'Warning: This URL contains configuration details, potentially including API tokens. Share it only with trusted individuals.' })}
                     </p>
                 </div>
             )}
 
             {!error && !generatedUrl && (
-                 <p>{intl.formatMessage({ id: 'exportConfig.status.generating', defaultMessage: 'Generating link...' })}</p>
+                 <p className="status-loading">{intl.formatMessage({ id: 'exportConfig.status.generating', defaultMessage: 'Generating link...' })}</p>
             )}
 
-             <div style={{ marginTop: '30px', borderTop: '1px solid #ccc', paddingTop: '15px' }}>
+             {/* Use fieldset for usage section */}
+             <div className="settings-fieldset" style={{ marginTop: '30px' }}>
                 <h4>{intl.formatMessage({ id: 'exportConfig.section.usage', defaultMessage: 'How to Use This Page' })}</h4>
                 <p>{intl.formatMessage({ id: 'exportConfig.usage.description', defaultMessage: 'Construct a URL pointing to this page with query parameters representing the desired configuration. Example:' })}</p>
-                <code style={{ display: 'block', backgroundColor: '#eee', padding: '5px', whiteSpace: 'pre-wrap' }}>
+                <code style={{ display: 'block', backgroundColor: 'var(--color-bg-subtle)', padding: '5px', whiteSpace: 'pre-wrap', border: '1px solid var(--color-border)', borderRadius: '4px' }}>
                     {window.location.origin}/export-configuration?providerType=datasette&amp;setting_datasetteBaseUrl=https://your-datasette.example.com/inventory&amp;setting_datasetteApiToken=YOUR_SECRET_TOKEN&amp;locale=en
                 </code>
                 <p style={{ marginTop: '10px' }}>{intl.formatMessage({ id: 'exportConfig.usage.parameters', defaultMessage: 'Parameters:' })}</p>

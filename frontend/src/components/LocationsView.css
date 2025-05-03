@@ -1,14 +1,14 @@
-
 .add-location-form {
     margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid #dee2e6; /* Consistent border */
-    border-radius: 4px; /* Consistent radius */
-    background-color: #e9ecef; /* Consistent light grey background */
+    border: 1px solid var(--color-border); /* CHANGE */
+    border-radius: 4px;
+    background-color: var(--color-bg-subtle); /* CHANGE */
 }
 
 .add-location-form h3 {
     margin-top: 0;
+    color: var(--color-text-base);
 }
 
 /* Input styling within forms in this view */
@@ -34,32 +34,36 @@
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
     padding-right: 60px; /* Make space for the edit button */
-    position: relative; /* For positioning the edit button */
-    /* Keep border/background/shadow for now as it's card-specific */
-    border: 1px solid #dee2e6;
+    position: relative;
+    /* Use variables for border/background */
+    border: 1px solid var(--color-border); /* CHANGE */
     border-radius: 4px;
-    background-color: #fff;
+    background-color: var(--color-bg-container); /* CHANGE */
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .location-card h4 {
     margin-top: 0;
     margin-bottom: 5px;
+    color: var(--color-text-base);
 }
 
 .location-card p {
     margin-bottom: 10px;
-    color: #555;
+    color: var(--color-text-muted); /* CHANGE */
     font-size: 0.95em;
 }
 
+/* Edit button: Remove color/bg/border. Apply .button-light in JSX */
 .edit-button {
-    /* Keep positioning and specific size overrides */
     position: absolute;
     top: 10px;
     right: 10px;
     padding: 5px 10px;
-    font-size: 0.9em; /* Keep slightly smaller */
+    font-size: 0.9em;
+    /* REMOVE background-color, color, border */
+    border-radius: 4px; /* Ensure radius is kept if needed */
+    cursor: pointer; /* Ensure cursor is kept */
 }
 
 

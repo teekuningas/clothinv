@@ -326,11 +326,12 @@ const SettingsView = () => {
 
                     {/* Action Buttons for API Settings */}
                     <div className="form-actions">
+                        {/* Use button-primary */}
                         <button
                             type="button"
                             onClick={handleSaveApiConfig}
-                            className="button-primary" // Changed from save-button
-                            disabled={saveStatus === 'saving' || saveStatus === 'success'} // Disable if saving or just succeeded
+                            className="button-primary"
+                            disabled={saveStatus === 'saving' || saveStatus === 'success'}
                         >
                             {saveStatus === 'saving'
                                 ? intl.formatMessage({ id: 'settings.api.saveButton.saving', defaultMessage: 'Saving API Config...' })
@@ -357,10 +358,11 @@ const SettingsView = () => {
                         <h4>{intl.formatMessage({ id: 'settings.data.exportTitle', defaultMessage: 'Export Data' })}</h4>
                         <p>{intl.formatMessage({ id: 'settings.data.exportDescription', defaultMessage: 'Export all items, locations, categories, and owners from the currently active provider ({providerName}) into a downloadable .zip file.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
                         <div className="form-actions">
+                            {/* Use button-primary */}
                             <button
                                 type="button"
                                 onClick={handleExport}
-                                className="button-primary" // Changed from export-button
+                                className="button-primary"
                                 disabled={exportStatus === 'exporting' || !api.exportData || !apiConfig.isConfigured}
                             >
                                 {exportStatus === 'exporting'
@@ -381,10 +383,10 @@ const SettingsView = () => {
                         <p className="warning-text">{intl.formatMessage({ id: 'settings.data.importWarning', defaultMessage: 'Warning: Importing data will REPLACE ALL existing data in the currently active provider ({providerName}). This action cannot be undone.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
                         <div className="form-group">
                             <label htmlFor="import-file-input">{intl.formatMessage({ id: 'settings.data.importFileLabel', defaultMessage: 'Select .zip file to import:' })}</label>
-                            {/* Button-like Label */}
+                            {/* Button-like Label - Use button-light */}
                             <label
                                 htmlFor="import-file-input"
-                                className={`button-secondary button-file-input import-button ${importStatus === 'importing' || !api.importData || !apiConfig.isConfigured ? 'disabled' : ''}`} // Changed to secondary
+                                className={`button-light button-file-input ${importStatus === 'importing' || !api.importData || !apiConfig.isConfigured ? 'disabled' : ''}`}
                             >
                                 {intl.formatMessage({ id: 'settings.data.importChooseFile', defaultMessage: 'Choose File' })}
                             </label>
@@ -405,10 +407,11 @@ const SettingsView = () => {
                             )}
                         </div>
                         <div className="form-actions">
+                            {/* Use button-danger */}
                             <button
                                 type="button"
                                 onClick={handleImport}
-                                className="button-danger" // Changed from import-button to danger
+                                className="button-danger"
                                 disabled={!importFile || importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
                             >
                                 {importStatus === 'importing'
@@ -428,10 +431,11 @@ const SettingsView = () => {
                         <h4>{intl.formatMessage({ id: 'settings.data.destroyTitle', defaultMessage: 'Destroy Data' })}</h4>
                         <p className="warning-text">{intl.formatMessage({ id: 'settings.data.destroyWarning', defaultMessage: 'Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
                         <div className="form-actions">
+                            {/* Use button-danger */}
                             <button
                                 type="button"
                                 onClick={handleDestroy}
-                                className="button-danger-strong" // Changed from destroy-button to danger-strong
+                                className="button-danger"
                                 disabled={destroyStatus === 'destroying' || !api.destroyData || !apiConfig.isConfigured}
                             >
                                 {destroyStatus === 'destroying'

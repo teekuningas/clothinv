@@ -4,7 +4,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: var(--color-backdrop); /* CHANGE */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,7 +15,7 @@
 }
 
 .webcam-capture-content {
-    background-color: #2c2c2c; /* Dark background for contrast */
+    background-color: var(--color-overlay-dark-bg); /* CHANGE */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
@@ -25,8 +25,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px; /* Space between elements */
-    color: #eee; /* Light text */
+    gap: 15px;
+    color: var(--color-text-light); /* CHANGE */
 }
 
 /* Combined status message styling */
@@ -48,13 +48,15 @@
 }
 
 .webcam-loading {
-    color: #d1ecf1; /* Light blue for loading */
-    background-color: rgba(12, 84, 96, 0.8); /* Dark blue background, slightly transparent */
+    color: var(--color-info-text); /* CHANGE */
+    background-color: var(--color-info-bg); /* CHANGE */
+    border: 1px solid var(--color-info-bg); /* Add border */
 }
 
 .webcam-error {
-    color: #f8d7da; /* Light red for errors */
-    background-color: rgba(114, 28, 36, 0.8); /* Dark red background, slightly transparent */
+    color: var(--color-error-text); /* CHANGE */
+    background-color: var(--color-error-bg); /* CHANGE */
+    border: 1px solid var(--color-error-bg); /* Add border */
 }
 .webcam-error p {
     margin: 0; /* Reset paragraph margin */
@@ -64,11 +66,11 @@
 .webcam-video-container {
     position: relative; /* For positioning the capture button AND status messages */
     width: 100%;
-    max-width: 640px; /* Limit max width */
-    aspect-ratio: 4 / 3; /* Common webcam aspect ratio, adjust if needed */
-    background-color: #111; /* Placeholder background */
+    max-width: 640px;
+    aspect-ratio: 4 / 3;
+    background-color: #000; /* CHANGE to black */
     border-radius: 4px;
-    overflow: hidden; /* Clip video to container */
+    overflow: hidden;
     display: flex; /* Center potential error/loading messages if video hidden */
     justify-content: center;
     align-items: center;
@@ -87,8 +89,8 @@
     bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 2px solid rgba(0, 0, 0, 0.3);
+    background-color: var(--color-overlay-button-bg); /* CHANGE */
+    border: 1px solid var(--color-border); /* CHANGE */
     border-radius: 50%;
     width: 60px;
     height: 60px;
@@ -102,16 +104,16 @@
 }
 
 .webcam-capture-button:hover {
-    background-color: rgba(255, 255, 255, 1);
+    background-color: var(--color-overlay-button-hover); /* CHANGE */
 }
 .webcam-capture-button:active {
      transform: translateX(-50%) scale(0.95); /* Slight shrink on click */
 }
 
 .webcam-capture-button svg {
-    width: 30px; /* Adjust icon size */
+    width: 30px;
     height: 30px;
-    fill: #333; /* Icon color */
+    fill: var(--color-overlay-button-icon); /* CHANGE */
 }
 
 .webcam-actions {

@@ -92,14 +92,17 @@ const ConfigureFromUrl = () => {
 
     }, [searchParams, navigate, intl]); // Dependencies
 
-    // Render status message (useful if redirect fails or for errors)
+    // Render status message
     return (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
+        // Use settings-view class for consistent padding/styling
+        <div className="settings-view" style={{ textAlign: 'center' }}>
             <h2>{intl.formatMessage({ id: 'configure.title', defaultMessage: 'Applying Configuration' })}</h2>
-            <p style={{ color: isError ? 'red' : 'inherit' }}>
+            {/* Use status classes */}
+            <p className={isError ? 'status-error' : 'status-loading'}>
                 {statusMessage}
             </p>
             {!isError && <p>{intl.formatMessage({ id: 'configure.status.wait', defaultMessage: 'Please wait...' })}</p>}
+            {/* Use text-link color (implicitly via 'a' tag) */}
             {isError && <p><a href="/">{intl.formatMessage({ id: 'configure.link.home', defaultMessage: 'Go to Home Page' })}</a></p>}
         </div>
     );

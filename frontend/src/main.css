@@ -1,4 +1,57 @@
-/* Basic Reset */
+/* frontend/src/main.css */
+:root {
+  /* Core Interaction Colors */
+  --color-primary: #0d6efd;          /* Bootstrap Blue */
+  --color-primary-hover: #0b5ed7;     /* Darker Blue */
+  --color-primary-text: #ffffff;      /* White */
+
+  --color-secondary: #6c757d;        /* Bootstrap Grey */
+  --color-secondary-hover: #5c636a;    /* Darker Grey */
+  --color-secondary-text: #ffffff;     /* White (for dark grey buttons) */
+
+  --color-danger: #dc3545;           /* Bootstrap Red */
+  --color-danger-hover: #bb2d3b;      /* Darker Red */
+  --color-danger-text: #ffffff;       /* White */
+
+  /* Text */
+  --color-text-base: #212529;         /* Near Black */
+  --color-text-muted: #6c757d;        /* Grey (matches secondary) */
+  --color-text-label: #495057;        /* Darker Grey for Labels */
+  --color-text-link: var(--color-primary); /* Link color */
+  --color-text-light: #f8f9fa;       /* Very light text (for dark backgrounds if needed) */
+
+  /* Backgrounds */
+  --color-bg-body: #f8f9fa;          /* Very Light Grey */
+  --color-bg-container: #ffffff;     /* White (cards, modals) */
+  --color-bg-subtle: #e9ecef;        /* Lighter Grey (forms, disabled) */
+
+  /* Borders */
+  --color-border: #dee2e6;           /* Default Light Grey Border */
+  --color-border-input: #ced4da;      /* Input border */
+  --color-border-divider: #e9ecef;    /* Subtle divider (matches subtle bg) */
+
+  /* Status Colors (Background + Text for contrast) */
+  --color-success-bg: #d1e7dd;       /* Light Green */
+  --color-success-text: #0f5132;      /* Dark Green */
+
+  --color-warning-bg: #fff3cd;       /* Light Yellow */
+  --color-warning-text: #664d03;      /* Dark Yellow */
+
+  --color-info-bg: #cff4fc;          /* Light Cyan */
+  --color-info-text: #055160;         /* Dark Cyan */
+
+  --color-error-bg: #f8d7da;         /* Light Red */
+  --color-error-text: #842029;        /* Dark Red */
+
+  /* Overlays & Special */
+  --color-backdrop: rgba(0, 0, 0, 0.5); /* Standard modal backdrop */
+  --color-overlay-dark-bg: #2c2c2c;   /* Webcam dark background */
+  --color-overlay-button-bg: rgba(255, 255, 255, 0.8); /* Webcam capture button bg */
+  --color-overlay-button-hover: rgba(255, 255, 255, 1);
+  --color-overlay-button-icon: #333333; /* Webcam capture button icon */
+}
+
+/* Reset should be below :root */
 * {
   margin: 0;
   padding: 0;
@@ -11,8 +64,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f4f4;
-  color: #333;
+  background-color: var(--color-bg-body); /* CHANGE */
+  color: var(--color-text-base); /* CHANGE */
   line-height: 1.6;
 }
 
@@ -25,38 +78,39 @@ body {
 /* === Additions to frontend/src/index.css === */
 
 /* Common Status Message Styles */
-.status-loading,
+.status-loading, /* Use info style */
 .status-error,
 .status-success,
 .status-warning {
-    padding: 10px;
+    padding: 10px 15px; /* Increased padding slightly */
     margin-bottom: 15px;
     border-radius: 4px;
-    border: 1px solid transparent; /* Base border */
+    border: 1px solid var(--color-border); /* Use default border */
+    font-weight: 500; /* Slightly bolder text */
 }
 
-.status-loading {
-    background-color: #e9ecef; /* Light grey */
-    color: #495057; /* Darker grey text */
-    border-color: #dee2e6; /* Subtle border */
+.status-loading { /* Use info colors */
+    background-color: var(--color-info-bg);
+    color: var(--color-info-text);
+    border-color: var(--color-info-bg); /* Match background for less emphasis */
 }
 
 .status-error {
-    background-color: #fde0e0; /* Pastel red */
-    color: #9d1c1c; /* Darker red text */
-    border-color: #fbcaca; /* Pastel red border */
+    background-color: var(--color-error-bg);
+    color: var(--color-error-text);
+    border-color: var(--color-error-bg); /* Match background */
 }
 
 .status-success {
-    background-color: #d1f7e0; /* Pastel green */
-    color: #0a5c36; /* Darker green text */
-    border-color: #a3e9c1; /* Pastel green border */
+    background-color: var(--color-success-bg);
+    color: var(--color-success-text);
+    border-color: var(--color-success-bg); /* Match background */
 }
 
 .status-warning {
-    background-color: #fff8d9; /* Pastel yellow */
-    color: #8a6d0a; /* Darker yellow/brown text */
-    border-color: #ffefb3; /* Pastel yellow border */
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning-text);
+    border-color: var(--color-warning-bg); /* Match background */
 }
 
 /* Common Form Group Structure */
@@ -68,7 +122,7 @@ body {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
-  color: #555; /* Consistent label color */
+  color: var(--color-text-label); /* CHANGE */
 }
 
 /* ========================================== */
@@ -87,85 +141,91 @@ button {
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
     line-height: 1.5;
     text-align: center;
-    font-size: 1em; /* Base font size */
+    font-size: 1em;
 }
-
+/* Keep :focus-visible */
 button:focus-visible {
-    outline: 2px solid #005fcc;
+    outline: 2px solid var(--color-primary); /* Use primary for focus */
     outline-offset: 2px;
 }
-
 button:disabled {
     cursor: not-allowed;
     opacity: 0.65;
 }
 
 /* --- Button Variant Definitions --- */
-/* These classes define the look, to be applied in JSX or via specific CSS rules */
 .button-primary {
-    background-color: #cddaea;
-    color: #343a40;
-    border-color: #b8c8d8;
+    background-color: var(--color-primary);
+    color: var(--color-primary-text);
+    border-color: var(--color-primary);
 }
 .button-primary:hover:not(:disabled) {
-    background-color: #b8c8d8;
-    border-color: #a3b6c7;
+    background-color: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    color: var(--color-primary-text);
 }
 .button-primary:disabled {
-     background-color: #a3b6c7;
-     color: #ffffff;
-     border-color: #8fa6b9;
-     opacity: 1; /* Override base disabled opacity */
+     background-color: var(--color-primary);
+     color: var(--color-primary-text);
+     border-color: var(--color-primary);
+     /* Inherits opacity: 0.65 */
 }
 
+/* Secondary uses dark grey bg, white text */
 .button-secondary {
-    background-color: #e9ecef;
-    color: #495057;
-    border-color: #dee2e6;
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-text);
+    border-color: var(--color-secondary);
 }
 .button-secondary:hover:not(:disabled) {
-    background-color: #e2e6ea;
-    border-color: #ced4da;
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+    color: var(--color-secondary-text);
 }
 .button-secondary:disabled {
-    background-color: #e9ecef;
-    color: #6c757d;
-    border-color: #dee2e6;
-    /* opacity: 0.65; */ /* Inherits from base button:disabled */
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-text);
+    border-color: var(--color-secondary);
+    /* Inherits opacity: 0.65 */
 }
+
+/* New Light variant for subtle actions */
+.button-light {
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-base); /* Dark text on light bg */
+    border-color: var(--color-border); /* Use default border */
+}
+.button-light:hover:not(:disabled) {
+    background-color: #d3d9df; /* Slightly darker subtle bg */
+    border-color: #adb5bd; /* Slightly darker border */
+    color: var(--color-text-base);
+}
+.button-light:disabled {
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-muted); /* Muted text when disabled */
+    border-color: var(--color-border);
+    /* Inherits opacity: 0.65 */
+}
+
 
 .button-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-color: #f5c6cb;
+    background-color: var(--color-danger);
+    color: var(--color-danger-text);
+    border-color: var(--color-danger);
 }
 .button-danger:hover:not(:disabled) {
-    background-color: #f1b0b7;
-    border-color: #ec98a1;
+    background-color: var(--color-danger-hover);
+    border-color: var(--color-danger-hover);
+    color: var(--color-danger-text);
 }
 .button-danger:disabled {
-    background-color: #f8d7da;
-    color: #a13843; /* Slightly darker text when disabled */
-    border-color: #f5c6cb;
-    opacity: 0.75; /* Adjust opacity slightly */
+    background-color: var(--color-danger);
+    color: var(--color-danger-text);
+    border-color: var(--color-danger);
+    /* Inherits opacity: 0.65 */
 }
 
-/* Stronger Danger (e.g., Final Delete Confirmation) */
-.button-danger-strong {
-    background-color: #dc3545;
-    color: white;
-    border-color: #dc3545;
-}
-.button-danger-strong:hover:not(:disabled) {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
- .button-danger-strong:disabled {
-    background-color: #f1b0b7;
-    border-color: #f1b0b7;
-    color: #a13843;
-    opacity: 1; /* Override base disabled opacity */
-}
+/* REMOVE .button-danger-strong rule */
 
 /* --- Common View Padding --- */
 /* Applied via view container class names */
@@ -182,27 +242,32 @@ button:disabled {
 .form-group input[type="text"],
 .form-group input[type="password"],
 .form-group select {
-    width: 100%; /* Default to full width */
+    width: 100%;
     padding: 8px 10px;
-    border: 1px solid #ced4da; /* Consistent border */
+    border: 1px solid var(--color-border-input); /* CHANGE */
     border-radius: 4px;
     font-size: 1em;
     box-sizing: border-box;
+    background-color: var(--color-bg-container);
+    color: var(--color-text-base);
+}
+.form-group input:disabled,
+.form-group select:disabled {
+    background-color: var(--color-bg-subtle); /* CHANGE */
+    cursor: not-allowed;
+    /* Optional: slightly muted text color for disabled inputs */
+    color: var(--color-text-muted);
 }
 
 /* Select Arrow Styling */
 .form-group select {
      appearance: none;
-     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23007CB2%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+     /* Use text-muted color for the arrow */
+     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); /* CHANGE fill to #6c757d */
      background-repeat: no-repeat;
      background-position: right 10px center;
      background-size: 0.65em auto;
-     padding-right: 30px; /* Make space for arrow */
-}
-
-.form-group select[disabled] {
-    background-color: #eee; /* Consistent disabled background */
-    cursor: not-allowed;
+     padding-right: 30px;
 }
 
 /* --- Common Modal Action Styles --- */
@@ -213,7 +278,7 @@ button:disabled {
     gap: 10px;
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--color-border-divider); /* CHANGE */
 }
 
 /* Responsive Modal Actions */
@@ -250,35 +315,26 @@ button:disabled {
 }
 
 /* Base style for the label acting as a button */
-/* Apply .button-secondary class in JSX for visual styling */
+/* Apply .button-light class in JSX for visual styling */
 .button-file-input {
-    /* Inherits display, cursor, alignment etc. from button base styles if needed */
-    /* Or define explicitly: */
     display: inline-block;
-    padding: 10px 15px; /* Match base button padding */
+    padding: 10px 15px;
     cursor: pointer;
     text-align: center;
     vertical-align: middle;
-    /* Styling (color, background, border) comes from .button-secondary by default */
-    background-color: #e9ecef;
-    color: #495057;
-    border-color: #dee2e6;
-    /* Disabled state handled by adding .disabled class */
+    /* Styling comes from .button-light class applied in JSX */
+    /* Remove specific background, color, border, hover, disabled styles here */
+    /* Ensure base button properties are inherited or applied by .button-light */
+    border-radius: 4px;
+    font-weight: bold;
+    line-height: 1.5;
+    font-size: 1em;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
-/* Add hover state for the default secondary look */
-.button-file-input:hover:not(.disabled) {
-    background-color: #e2e6ea;
-    border-color: #ced4da;
-}
-.button-file-input.disabled {
-    /* Styles matching .button-secondary:disabled */
-    background-color: #e9ecef;
-    color: #6c757d;
-    border-color: #dee2e6;
-    opacity: 0.65;
-    cursor: not-allowed;
-    pointer-events: none; /* Prevent clicks on label */
-}
+
+/* REMOVE hover/disabled states for .button-file-input */
+/* .button-file-input:hover:not(.disabled) { ... } */
+/* .button-file-input.disabled { ... } */
 
 
 /* ========================================== */

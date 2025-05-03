@@ -4,7 +4,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Darker backdrop */
+    background-color: var(--color-backdrop); /* CHANGE */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,11 +24,11 @@
 
 .image-view-modal-content {
     position: relative;
-    max-width: 90vw; /* Limit width relative to viewport */
-    max-height: 90vh; /* Limit height relative to viewport */
-    overflow: auto; /* Allow scrolling if image is larger than container */
-    background-color: #fff; /* Optional: background for the container itself */
-    padding: 5px; /* Small padding around the image */
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: auto;
+    background-color: var(--color-bg-container); /* CHANGE */
+    padding: 5px;
     border-radius: 4px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     display: flex; /* Helps center image if smaller than max */
@@ -48,13 +48,13 @@
 
 .image-view-modal-close {
     position: absolute;
-    top: 10px; /* Position inside the content area */
-    right: 10px; /* Position inside the content area */
-    background-color: rgba(40, 40, 40, 0.7); /* Semi-transparent dark background */
-    color: white; /* White 'x' */
-    border: 1px solid rgba(255, 255, 255, 0.4); /* Subtle border */
-    border-radius: 50%; /* Circular button */
-    width: 36px;  /* Keep width */
+    top: 10px;
+    right: 10px;
+    background-color: var(--color-overlay-button-bg); /* CHANGE */
+    color: var(--color-text-base); /* CHANGE */
+    border: 1px solid var(--color-border); /* CHANGE */
+    border-radius: 50%;
+    width: 36px;
     height: 36px; /* Keep height */
     font-size: 32px; /* Further increase font size */
     line-height: 36px; /* Match height for vertical centering */
@@ -72,7 +72,8 @@
 
 .image-view-modal-close:hover,
 .image-view-modal-close:focus {
-    background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
-    color: white; /* Keep color white */
+    background-color: var(--color-overlay-button-hover); /* CHANGE */
+    color: var(--color-text-base); /* CHANGE */
+    border-color: var(--color-border-input); /* CHANGE */
     outline: none;
 }

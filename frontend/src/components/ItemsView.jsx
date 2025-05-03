@@ -526,23 +526,25 @@ const ItemsView = () => {
                         )}
                         {/* Action buttons for image */}
                         <div className="form-group-image-actions">
-                            <label htmlFor="item-image" className={`button-secondary button-file-input ${loading ? 'disabled' : ''}`}> {/* Changed to secondary, added disabled class */}
+                            {/* Use button-light for file input label */}
+                            <label htmlFor="item-image" className={`button-light button-file-input ${loading ? 'disabled' : ''}`}>
                                 {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                             </label>
+                            {/* Use button-secondary for webcam */}
                             <button
                                 type="button"
                                 onClick={() => handleOpenWebcam('add')}
                                 disabled={loading}
-                                className="button-primary" // Kept primary
+                                className="button-secondary"
                             >
-                                {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
+                                {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
                             </button>
                             {/* Show remove button only if there's a preview URL */}
                             {addImageUrl && (
                                 <button
                                     type="button"
                                     onClick={handleRemoveNewImage}
-                                    className="button-danger remove-image-button" // Use danger style + specific class
+                                    className="button-danger remove-image-button" // Keep danger class
                                 >{intl.formatMessage({ id: 'items.editForm.removeImage', defaultMessage: 'Remove Image' })}</button>
                             )}
                         </div>
@@ -616,11 +618,11 @@ const ItemsView = () => {
             {/* Items List */}
             <h3>{intl.formatMessage({ id: 'items.list.title', defaultMessage: 'Existing Items' })}</h3>
 
-            {/* Filter Toggle Button */}
+            {/* Filter Toggle Button - Use button-light */}
             {api.config.isConfigured && typeof api.listItems === 'function' && items.length > 0 && (
                 <button
                     onClick={handleFilterToggle}
-                    className="button-secondary filter-toggle-button" // Added button-secondary
+                    className="button-light filter-toggle-button"
                     aria-controls="filters-container"
                     aria-expanded={isFilterVisible}
                 >
@@ -696,7 +698,8 @@ const ItemsView = () => {
                         ))}
                     </fieldset>
 
-                    <button onClick={handleResetFilters} className="button-secondary reset-filters-button"> {/* Added button-secondary */}
+                    {/* Use button-light for reset */}
+                    <button onClick={handleResetFilters} className="button-light reset-filters-button">
                         {intl.formatMessage({ id: 'items.filter.resetButton', defaultMessage: 'Reset Filters' })}
                     </button>
                 </div>
@@ -743,11 +746,11 @@ const ItemsView = () => {
                                     {intl.formatMessage({ id: 'owners.titleSingular', defaultMessage: 'Owner' })}: {getOwnerNameById(item.owner_id)}
                                 </p>
                             </div>
-                            {/* Show Edit button only if provider configured and update method exists */}
+                            {/* Show Edit button only if provider configured and update method exists - Use button-light */}
                             {api.config.isConfigured && typeof api.updateItem === 'function' && (
                                 <button
                                     onClick={() => handleEditClick(item)}
-                                    className="edit-button"
+                                    className="edit-button button-light" /* Add button-light */
                                     aria-label={intl.formatMessage({ id: 'items.editButton.label', defaultMessage: 'Edit {name}' }, { name: item.name })}
                                     disabled={loading || isUpdating || isDeleting}
                                 >
@@ -807,23 +810,25 @@ const ItemsView = () => {
                             )}
                             {/* Action buttons for image */}
                             <div className="form-group-image-actions">
-                                <label htmlFor="edit-item-image" className={`button-secondary button-file-input ${isUpdating || isDeleting ? 'disabled' : ''}`}> {/* Changed to secondary, added disabled class */}
+                                {/* Use button-light for file input label */}
+                                <label htmlFor="edit-item-image" className={`button-light button-file-input ${isUpdating || isDeleting ? 'disabled' : ''}`}>
                                     {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                                 </label>
+                                {/* Use button-secondary for webcam */}
                                 <button
                                     type="button"
                                     onClick={() => handleOpenWebcam('edit')}
                                     disabled={isUpdating || isDeleting}
-                                    className="button-primary" // Kept primary
+                                    className="button-secondary"
                                 >
-                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
+                                    {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })}
                                 </button>
                                 {/* Show remove button only if there's an image currently displayed */}
                                 {displayImageUrl && typeof api.deleteItem === 'function' && (
                                     <button
                                         type="button"
                                         onClick={handleRemoveEditImage}
-                                        className="button-danger remove-image-button" // Use danger style + specific class
+                                        className="button-danger remove-image-button" // Keep danger class
                                         disabled={isUpdating || isDeleting}
                                     >
                                         {intl.formatMessage({ id: 'items.editForm.removeImage', defaultMessage: 'Remove Image' })}
@@ -899,17 +904,19 @@ const ItemsView = () => {
                             <button type="submit" disabled={isUpdating || isDeleting || !editName.trim() || !editLocationId || !editCategoryId || !editOwnerId} className="button-primary">
                                 {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
+                            {/* Use button-danger for delete */}
                             {api.config.isConfigured && typeof api.deleteItem === 'function' && (
                                 <button
-                                    type="button" // Explicitly set type
-                                    className="button-danger" // Changed from delete-button
+                                    type="button"
+                                    className="button-danger"
                                     onClick={() => handleDeleteClick(editingItemId)}
                                     disabled={isUpdating || isDeleting}
                                 >
                                     {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                                 </button>
                             )}
-                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary"> {/* Keep class for styling */}
+                            {/* Use button-secondary for cancel */}
+                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
@@ -927,9 +934,11 @@ const ItemsView = () => {
                             {intl.formatMessage({ id: 'items.deleteModal.confirmMessage', defaultMessage: 'Are you sure you want to delete the item "{name}"? This action cannot be undone.' }, { name: items.find(i => i.item_id === deleteCandidateId)?.name || '' })}
                         </p>
                         <div className="modal-actions">
-                            <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
+                            {/* Use button-danger for confirm delete */}
+                            <button onClick={handleConfirmDelete} disabled={isDeleting} className="button-danger">
                                 {isDeleting ? intl.formatMessage({ id: 'common.deleting', defaultMessage: 'Deleting...' }) : intl.formatMessage({ id: 'common.confirmDelete', defaultMessage: 'Confirm Delete' })}
                             </button>
+                            {/* Use button-secondary for cancel */}
                             <button onClick={handleCancelDelete} disabled={isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>

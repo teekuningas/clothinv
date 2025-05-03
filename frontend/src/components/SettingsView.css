@@ -5,19 +5,19 @@
 }
 
 .settings-fieldset {
-    margin-bottom: 25px; /* Space between fieldsets */
+    margin-bottom: 25px;
     padding: 20px;
-    border: 1px solid #dee2e6; /* Consistent border */
-    border-radius: 4px; /* Consistent radius */
-    background-color: #f8f9fa; /* Slightly off-white background */
+    border: 1px solid var(--color-border); /* CHANGE */
+    border-radius: 4px;
+    background-color: var(--color-bg-body); /* CHANGE */
 }
 
 .settings-fieldset legend {
     font-weight: bold;
-    padding: 0 10px; /* Padding around legend text */
-    margin-left: 10px; /* Align with content */
+    padding: 0 10px;
+    margin-left: 10px;
     font-size: 1.1em;
-    color: #495057; /* Darker grey text */
+    color: var(--color-text-label); /* CHANGE */
 }
 
 /* Generic .form-group and label styles are in main.css */
@@ -40,10 +40,10 @@
 
 /* --- Data Management Section --- */
 .data-management-section {
-    margin-top: 20px; /* Space above each section (export/import) */
-    padding-top: 15px; /* Space below the heading */
-    border-top: 1px solid #e9ecef; /* Separator line */
-    box-sizing: border-box; /* Add this */
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--color-border-divider); /* CHANGE */
+    box-sizing: border-box;
 }
 
 .data-management-section:first-of-type {
@@ -62,28 +62,28 @@
 .selected-file-name {
     margin-top: 8px;
     font-size: 0.9em;
-    color: #495057;
-    word-break: break-all; /* Prevent long filenames from overflowing */
+    color: var(--color-text-label); /* CHANGE */
+    word-break: break-all;
 }
 
 .data-management-section h4 {
     margin-bottom: 10px;
     font-size: 1.05em;
-    color: #343a40;
+    color: var(--color-text-base); /* CHANGE */
 }
 
 .data-management-section p {
     font-size: 0.95em;
-    color: #495057;
+    color: var(--color-text-label); /* CHANGE */
     margin-bottom: 15px;
     line-height: 1.5;
     overflow-wrap: break-word; /* Ensure long text wraps */
 }
 
 .warning-text {
-    color: #856404; /* Bootstrap warning text color */
-    background-color: #fff3cd; /* Bootstrap warning background color */
-    border: 1px solid #ffeeba; /* Bootstrap warning border color */
+    color: var(--color-warning-text); /* CHANGE */
+    background-color: var(--color-warning-bg); /* CHANGE */
+    border: 1px solid var(--color-warning-bg); /* CHANGE */
     padding: 10px 15px;
     border-radius: 4px;
     font-weight: bold;

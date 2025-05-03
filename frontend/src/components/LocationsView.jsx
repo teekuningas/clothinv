@@ -278,13 +278,13 @@ const LocationsView = () => {
                         <div key={loc.location_id} className="location-card">
                             <h4>{loc.name}</h4>
                             {loc.description && <p>{loc.description}</p>}
-                            {/* Show Edit button only if provider configured and update method exists */}
+                            {/* Show Edit button only if provider configured and update method exists - Use button-light */}
                             {api.config.isConfigured && typeof api.updateLocation === 'function' && (
                                 <button
                                     onClick={() => handleEditClick(loc)}
-                                    className="edit-button"
+                                    className="edit-button button-light" /* Add button-light */
                                     aria-label={intl.formatMessage({ id: 'locations.editButton.label', defaultMessage: 'Edit {name}' }, { name: loc.name })}
-                                    disabled={loading || isUpdating || isDeleting} // Disable if any operation is in progress
+                                    disabled={loading || isUpdating || isDeleting}
                                 >
                                     {intl.formatMessage({ id: 'common.edit', defaultMessage: 'Edit' })}
                                 </button>
@@ -324,17 +324,18 @@ const LocationsView = () => {
                              <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()} className="button-primary">
                                 {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
-                            {/* Show Delete button only if provider configured and delete/listItems methods exist */}
+                            {/* Use button-danger for delete */}
                             {api.config.isConfigured && typeof api.deleteLocation === 'function' && typeof api.listItems === 'function' && (
                                 <button
                                     type="button"
-                                    className="button-danger" // Changed from delete-button
+                                    className="button-danger"
                                     onClick={() => handleDeleteClick(editingLocationId)}
-                                    disabled={isUpdating || isDeleting} // Disable during update or delete
+                                    disabled={isUpdating || isDeleting}
                                 >
                                     {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                                 </button>
                             )}
+                            {/* Use button-secondary for cancel */}
                             <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
@@ -352,9 +353,11 @@ const LocationsView = () => {
                             {intl.formatMessage({ id: 'locations.deleteModal.confirmMessage', defaultMessage: 'Are you sure you want to delete the location "{name}"? This action cannot be undone.' }, { name: locations.find(l => l.location_id === deleteCandidateId)?.name || '' })}
                         </p>
                         <div className="modal-actions">
-                            <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
+                            {/* Use button-danger for confirm delete */}
+                            <button onClick={handleConfirmDelete} disabled={isDeleting} className="button-danger">
                                 {isDeleting ? intl.formatMessage({ id: 'common.deleting', defaultMessage: 'Deleting...' }) : intl.formatMessage({ id: 'common.confirmDelete', defaultMessage: 'Confirm Delete' })}
                             </button>
+                            {/* Use button-secondary for cancel */}
                             <button onClick={handleCancelDelete} disabled={isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>

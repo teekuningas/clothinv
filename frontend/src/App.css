@@ -23,45 +23,48 @@
 
 /* --- App Header --- */
 .App-header {
-  background-color: #e0e7ef; /* Soft light blue-grey */
-  padding: 20px 20px 10px 20px;
-  color: #343a40; /* Dark grey text for contrast */
+  background-color: var(--color-bg-container); /* Use white */
+  padding: 15px 20px 10px 20px; /* Adjust padding */
+  color: var(--color-text-base);
   margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border); /* Add border */
 }
 
 /* --- Desktop Navigation --- */
 .app-nav {
-  margin-top: 15px;
+  margin-top: 0; /* Remove margin */
   padding-bottom: 10px;
-  border-bottom: 1px solid #b8c8d8; /* Lighter border */
+  border-bottom: none; /* Remove double border */
 }
 
-/* Target 'a' tags rendered by NavLink instead of buttons */
+/* Target 'a' tags rendered by NavLink */
 .app-nav a {
-  background-color: transparent; /* Make inactive links less prominent */
-  color: #343a40; /* Dark grey text */
-  border: 1px solid #b8c8d8; /* Lighter border */
+  background-color: transparent; /* Inactive is transparent */
+  color: var(--color-text-muted); /* Muted text for inactive */
+  border: 1px solid transparent; /* No border for inactive */
   padding: 8px 15px;
   margin: 0 5px;
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; /* Add transition */
-  text-decoration: none; /* Remove default underline from links */
-  display: inline-block; /* Ensure padding and margins work correctly */
+  font-weight: bold; /* Match buttons */
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .app-nav a:hover {
-  background-color: #b8c8d8; /* Lighter hover */
-  border-color: #a3b6c7;
+  background-color: var(--color-bg-subtle); /* Subtle background on hover */
+  color: var(--color-text-base); /* Darker text on hover */
+  border-color: transparent;
 }
 
 /* Style for the active NavLink using the .active class */
 .app-nav a.active {
-  background-color: #a3b6c7; /* Darker pastel for active */
-  color: #ffffff; /* White text for contrast on active */
+  background-color: var(--color-primary); /* Use primary */
+  color: var(--color-primary-text);
   cursor: default;
-  border-color: #8fa6b9; /* Darker active border */
+  border-color: var(--color-primary);
 }
 
 /* --- Global Warnings Area --- */
@@ -77,13 +80,13 @@
 
 /* --- Hamburger Menu Button (Mobile) --- */
 .hamburger-button {
-    display: none; /* Hidden by default */
+    display: none;
     background: none;
     border: none;
-    color: #343a40; /* Match header text */
-    font-size: 2rem; /* Make it large enough to tap */
+    color: var(--color-text-base); /* Use base text color */
+    font-size: 2rem;
     cursor: pointer;
-    position: absolute; /* Position relative to header */
+    position: absolute;
     top: 15px; /* Adjust as needed */
     right: 20px; /* Adjust as needed */
     /* Lower z-index so it's below the overlay */
@@ -99,9 +102,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(200, 210, 220, 0.97); /* Lighter semi-transparent */
-    /* Increase z-index to be above the hamburger button */
-    z-index: 1100; /* Ensure it's above page content and hamburger */
+    background-color: rgba(255, 255, 255, 0.98); /* Almost opaque white */
+    z-index: 1100;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -120,10 +122,10 @@
     right: 20px;
     background: none;
     border: none;
-    color: #343a40; /* Dark grey text */
-    font-size: 2.5rem; /* Large and easy to tap */
+    color: var(--color-text-muted); /* Muted close button */
+    font-size: 2.5rem;
     cursor: pointer;
-    line-height: 1; /* Prevent extra spacing */
+    line-height: 1;
     padding: 5px; /* Add some padding */
     /* Ensure close button is clickable above overlay content if needed */
     z-index: 1110; /* Higher than overlay */
@@ -137,31 +139,34 @@
     width: 100%; /* Ensure nav takes width for button alignment */
 }
 
-/* Target 'a' tags rendered by NavLink instead of buttons */
+/* Target 'a' tags rendered by NavLink */
 .mobile-nav a {
-    background-color: transparent; /* Keep background transparent */
-    color: #343a40; /* Dark grey text */
+    background-color: transparent;
+    color: var(--color-text-base); /* Base text color */
     border: none;
-    padding: 15px 30px; /* Larger tap targets */
+    padding: 15px 30px;
     margin: 10px 0;
     cursor: pointer;
-    font-size: 1.5rem; /* Larger text */
+    font-size: 1.5rem;
     border-radius: 4px;
-    width: 80%; /* Make buttons wider */
-    max-width: 300px; /* Optional: prevent buttons getting too wide */
+    width: 80%;
+    max-width: 300px;
     text-align: center;
-    transition: background-color 0.2s ease, color 0.2s ease; /* Add transition */
-    text-decoration: none; /* Remove default underline */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+    font-weight: 500; /* Slightly less bold */
 }
 
 .mobile-nav a:hover {
-    background-color: rgba(52, 58, 64, 0.08); /* Subtle dark hover */
+    background-color: var(--color-bg-subtle); /* Subtle hover */
+    color: var(--color-primary); /* Use primary color on hover */
 }
 
 /* Style for the active NavLink using the .active class */
 .mobile-nav a.active {
-    color: #005f73; /* Muted teal/blue for active text */
-    background-color: rgba(0, 95, 115, 0.1); /* Slight background tint for active */
+    color: var(--color-primary); /* Active is primary color */
+    background-color: transparent; /* No background for active */
+    font-weight: bold; /* Make active bold */
     cursor: default;
 }
 

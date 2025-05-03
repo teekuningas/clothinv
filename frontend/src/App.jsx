@@ -217,7 +217,6 @@ function App() {
                   </p>}
               {/* General configuration warning */}
               {api.config.providerType !== 'none' && !api.config.isConfigured &&
-                  /* Use status-error class instead of inline style */
                   <p className="status-error">
                       {intl.formatMessage({
                           id: 'warning.providerNotConfigured',
@@ -225,10 +224,9 @@ function App() {
                       }, { providerType: api.config.providerType })}
                   </p>
               }
-               {/* Informational message if no provider is selected */}
+               {/* Informational message if no provider is selected - Use status-loading (info style) */}
                {api.config.providerType === 'none' &&
-                  /* Use status-loading class (or create a status-info) instead of inline style */
-                  <p className="status-loading"> {/* Using loading style for info, adjust if needed */}
+                  <p className="status-loading">
                       {intl.formatMessage({ id: 'info.noProviderSelected', defaultMessage: 'No API provider selected. Please configure one in Settings.' })}
                   </p>
               }
