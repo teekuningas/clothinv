@@ -3,15 +3,13 @@
   /* Core Interaction Colors */
   --color-primary: #0d6efd;          /* Bootstrap Blue */
   --color-primary-hover: #0b5ed7;     /* Darker Blue */
-  --color-primary-text: #ffffff;      /* White */
-
+  --color-primary-text: #fff;      /* White */
   --color-secondary: #6c757d;        /* Bootstrap Grey */
   --color-secondary-hover: #5c636a;    /* Darker Grey */
-  --color-secondary-text: #ffffff;     /* White (for dark grey buttons) */
-
+  --color-secondary-text: #fff;     /* White (for dark grey buttons) */
   --color-danger: #dc3545;           /* Bootstrap Red */
   --color-danger-hover: #bb2d3b;      /* Darker Red */
-  --color-danger-text: #ffffff;       /* White */
+  --color-danger-text: #fff;       /* White */
 
   /* Text */
   --color-text-base: #212529;         /* Near Black */
@@ -22,7 +20,7 @@
 
   /* Backgrounds */
   --color-bg-body: #f8f9fa;          /* Very Light Grey */
-  --color-bg-container: #ffffff;     /* White (cards, modals) */
+  --color-bg-container: #fff;     /* White (cards, modals) */
   --color-bg-subtle: #e9ecef;        /* Lighter Grey (forms, disabled) */
 
   /* Borders */
@@ -33,22 +31,19 @@
   /* Status Colors (Background + Text for contrast) */
   --color-success-bg: #d1e7dd;       /* Light Green */
   --color-success-text: #0f5132;      /* Dark Green */
-
   --color-warning-bg: #fff3cd;       /* Light Yellow */
   --color-warning-text: #664d03;      /* Dark Yellow */
-
   --color-info-bg: #cff4fc;          /* Light Cyan */
   --color-info-text: #055160;         /* Dark Cyan */
-
   --color-error-bg: #f8d7da;         /* Light Red */
   --color-error-text: #842029;        /* Dark Red */
 
   /* Overlays & Special */
-  --color-backdrop: rgba(0, 0, 0, 0.5); /* Standard modal backdrop */
+  --color-backdrop: rgb(0 0 0 / 50%); /* Standard modal backdrop */
   --color-overlay-dark-bg: #2c2c2c;   /* Webcam dark background */
-  --color-overlay-button-bg: rgba(255, 255, 255, 0.8); /* Webcam capture button bg */
-  --color-overlay-button-hover: rgba(255, 255, 255, 1);
-  --color-overlay-button-icon: #333333; /* Webcam capture button icon */
+  --color-overlay-button-bg: rgb(255 255 255 / 80%); /* Webcam capture button bg */
+  --color-overlay-button-hover: rgb(255 255 255 / 100%);
+  --color-overlay-button-icon: #333; /* Webcam capture button icon */
 }
 
 /* Reset should be below :root */
@@ -59,8 +54,8 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -131,6 +126,7 @@ body {
 /* === Additions to frontend/src/main.css === */
 
 /* --- Base Button Style --- */
+
 /* Applied globally to button elements */
 button {
     padding: 10px 15px; /* Default padding */
@@ -143,11 +139,13 @@ button {
     text-align: center;
     font-size: 1em;
 }
+
 /* Keep :focus-visible */
 button:focus-visible {
     outline: 2px solid var(--color-primary); /* Use primary for focus */
     outline-offset: 2px;
 }
+
 button:disabled {
     cursor: not-allowed;
     opacity: 0.65;
@@ -159,15 +157,18 @@ button:disabled {
     color: var(--color-primary-text);
     border-color: var(--color-primary);
 }
+
 .button-primary:hover:not(:disabled) {
     background-color: var(--color-primary-hover);
     border-color: var(--color-primary-hover);
     color: var(--color-primary-text);
 }
+
 .button-primary:disabled {
      background-color: var(--color-primary);
      color: var(--color-primary-text);
      border-color: var(--color-primary);
+
      /* Inherits opacity: 0.65 */
 }
 
@@ -177,15 +178,18 @@ button:disabled {
     color: var(--color-secondary-text);
     border-color: var(--color-secondary);
 }
+
 .button-secondary:hover:not(:disabled) {
     background-color: var(--color-secondary-hover);
     border-color: var(--color-secondary-hover);
     color: var(--color-secondary-text);
 }
+
 .button-secondary:disabled {
     background-color: var(--color-secondary);
     color: var(--color-secondary-text);
     border-color: var(--color-secondary);
+
     /* Inherits opacity: 0.65 */
 }
 
@@ -195,15 +199,18 @@ button:disabled {
     color: var(--color-text-base); /* Dark text on light bg */
     border-color: var(--color-border); /* Use default border */
 }
+
 .button-light:hover:not(:disabled) {
     background-color: #d3d9df; /* Slightly darker subtle bg */
     border-color: #adb5bd; /* Slightly darker border */
     color: var(--color-text-base);
 }
+
 .button-light:disabled {
     background-color: var(--color-bg-subtle);
     color: var(--color-text-muted); /* Muted text when disabled */
     border-color: var(--color-border);
+
     /* Inherits opacity: 0.65 */
 }
 
@@ -213,21 +220,25 @@ button:disabled {
     color: var(--color-danger-text);
     border-color: var(--color-danger);
 }
+
 .button-danger:hover:not(:disabled) {
     background-color: var(--color-danger-hover);
     border-color: var(--color-danger-hover);
     color: var(--color-danger-text);
 }
+
 .button-danger:disabled {
     background-color: var(--color-danger);
     color: var(--color-danger-text);
     border-color: var(--color-danger);
+
     /* Inherits opacity: 0.65 */
 }
 
 /* REMOVE .button-danger-strong rule */
 
 /* --- Common View Padding --- */
+
 /* Applied via view container class names */
 .locations-view,
 .categories-view,
@@ -238,6 +249,7 @@ button:disabled {
 }
 
 /* --- Common Form Element Styles --- */
+
 /* Base Input Styles (Applied via .form-group > input/select) */
 .form-group input[type="text"],
 .form-group input[type="password"],
@@ -251,10 +263,12 @@ button:disabled {
     background-color: var(--color-bg-container);
     color: var(--color-text-base);
 }
+
 .form-group input:disabled,
 .form-group select:disabled {
     background-color: var(--color-bg-subtle); /* CHANGE */
     cursor: not-allowed;
+
     /* Optional: slightly muted text color for disabled inputs */
     color: var(--color-text-muted);
 }
@@ -262,6 +276,7 @@ button:disabled {
 /* Select Arrow Styling */
 .form-group select {
      appearance: none;
+
      /* Use text-muted color for the arrow */
      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); /* CHANGE fill to #6c757d */
      background-repeat: no-repeat;
@@ -271,6 +286,7 @@ button:disabled {
 }
 
 /* --- Common Modal Action Styles --- */
+
 /* Applied via .modal-actions class */
 .modal-actions {
     display: flex;
@@ -282,28 +298,32 @@ button:disabled {
 }
 
 /* Responsive Modal Actions */
-@media (max-width: 480px) {
+@media (width <= 480px) {
     .modal-actions {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
     }
+
     .modal-actions button {
         width: 100%;
     }
 }
 
 /* --- Common Delete Confirmation Styles --- */
+
 /* Applied via .delete-confirm-content class */
 .delete-confirm-content p {
     margin-bottom: 10px;
     line-height: 1.5;
 }
+
 .delete-confirm-content p:first-of-type {
     font-weight: bold;
 }
 
 /* --- Common File Input Styles --- */
+
 /* Applied via .hidden-file-input class */
 .hidden-file-input {
     width: 0.1px;
@@ -315,6 +335,7 @@ button:disabled {
 }
 
 /* Base style for the label acting as a button */
+
 /* Apply .button-light class in JSX for visual styling */
 .button-file-input {
     display: inline-block;
@@ -322,8 +343,11 @@ button:disabled {
     cursor: pointer;
     text-align: center;
     vertical-align: middle;
+
     /* Styling comes from .button-light class applied in JSX */
+
     /* Remove specific background, color, border, hover, disabled styles here */
+
     /* Ensure base button properties are inherited or applied by .button-light */
     border-radius: 4px;
     font-weight: bold;
@@ -333,7 +357,9 @@ button:disabled {
 }
 
 /* REMOVE hover/disabled states for .button-file-input */
+
 /* .button-file-input:hover:not(.disabled) { ... } */
+
 /* .button-file-input.disabled { ... } */
 
 

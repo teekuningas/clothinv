@@ -4,7 +4,7 @@
 
 .App-header {
   background-color: #282c34;
-  padding: 20px 20px 10px 20px; /* Adjusted padding */
+  padding: 20px 20px 10px; /* Adjusted padding */
   color: white;
   margin-bottom: 20px;
 }
@@ -18,13 +18,15 @@
 .App-header p {
   font-size: 1.2rem;
 }
+
 /* --- General App Styles --- */
+
 /* (App class already exists) */
 
 /* --- App Header --- */
 .App-header {
   background-color: var(--color-bg-container); /* Use white */
-  padding: 15px 20px 10px 20px; /* Adjust padding */
+  padding: 15px 20px 10px; /* Adjust padding */
   color: var(--color-text-base);
   margin-bottom: 20px;
   border-bottom: 1px solid var(--color-border); /* Add border */
@@ -70,7 +72,10 @@
 /* --- Global Warnings Area --- */
 .global-warnings {
     /* Add some styling if needed, e.g., */
-    /* text-align: left; */ /* Align warnings left if preferred */
+
+    /* text-align: left; */
+
+ /* Align warnings left if preferred */
 }
 
 .global-warnings p {
@@ -89,6 +94,7 @@
     position: absolute;
     top: 15px; /* Adjust as needed */
     right: 20px; /* Adjust as needed */
+
     /* Lower z-index so it's below the overlay */
     z-index: 1090; /* Ensure it's below the overlay (1050 -> 1100) */
     padding: 5px; /* Add some padding for easier interaction */
@@ -102,12 +108,13 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.98); /* Almost opaque white */
+    background-color: rgb(255 255 255 / 98%); /* Almost opaque white */
     z-index: 1100;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     /* Add transitions for smoother open/close */
     opacity: 1;
     visibility: visible;
@@ -127,9 +134,11 @@
     cursor: pointer;
     line-height: 1;
     padding: 5px; /* Add some padding */
+
     /* Ensure close button is clickable above overlay content if needed */
     z-index: 1110; /* Higher than overlay */
 }
+
 .close-menu-button:hover {
     color: var(--color-text-base); /* Darken on hover */
 }
@@ -174,14 +183,11 @@
 }
 
 /* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
-@media (max-width: 768px) {
+@media (width <= 768px) {
     .App-header {
         /* Ensure header has relative positioning for absolute children */
         position: relative;
-        padding-right: 70px; /* Increased padding to ensure space for hamburger */
-        padding-left: 15px; /* Adjust left padding if needed */
-        padding-top: 15px; /* Adjust top/bottom padding */
-        padding-bottom: 5px;
+        padding: 15px 70px 5px 15px; /* Increased padding to ensure space for hamburger */ /* Adjust left padding if needed */ /* Adjust top/bottom padding */
     }
 
     /* Hide the standard desktop navigation */

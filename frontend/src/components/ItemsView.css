@@ -59,9 +59,11 @@
     width: 100%;
     height: auto; /* Maintain aspect ratio */
 }
+
 /* --- Items List (Gallery) --- */
 .items-list {
     display: grid;
+
     /* Adjust minmax for desired card width */
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px; /* Space between cards */
@@ -74,7 +76,7 @@
     border: 1px solid var(--color-border); /* CHANGE */
     border-radius: 4px;
     background-color: var(--color-bg-container); /* CHANGE */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
     display: flex;
     flex-direction: column;
     position: relative; /* For positioning edit button */
@@ -133,7 +135,9 @@
     font-size: 0.9em;
     color: var(--color-text-muted); /* CHANGE */
     margin-bottom: 10px;
+
     /* Limit description lines if needed */
+
     /* display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -153,6 +157,7 @@
     right: 10px;
     padding: 5px 10px;
     font-size: 0.9em;
+
     /* REMOVE background-color, color, border */
     border-radius: 4px;
     cursor: pointer;
@@ -163,7 +168,7 @@
 
 /* --- Edit/Delete Modal Styles --- */
 .edit-item-form {
-    padding: 10px 0 0 0;
+    padding: 10px 0 0;
 }
 
 .add-item-form .form-group-image,
@@ -210,7 +215,7 @@
 }
 
 /* Responsive stacking for image action buttons */
-@media (max-width: 600px) {
+@media (width <= 600px) {
     .form-group-image-actions {
         flex-direction: column; /* Stack vertically */
         align-items: stretch; /* Make items fill the container width */
@@ -300,7 +305,7 @@
 }
 
 /* Responsive adjustments for filters if needed */
-@media (max-width: 600px) {
+@media (width <= 600px) {
     .checkbox-group {
         /* Could add columns here if many options, but vertical is usually fine */
     }
