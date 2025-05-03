@@ -4,7 +4,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: var(--color-backdrop); /* CHANGE */
+    background-color: var(--color-backdrop);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -26,8 +26,8 @@
     position: relative;
     max-width: 90vw;
     max-height: 90vh;
-    overflow: auto;
-    background-color: var(--color-bg-container); /* CHANGE */
+    overflow: hidden; /* Prevent scrollbars on the container itself */
+    background-color: var(--color-bg-container);
     padding: 5px;
     border-radius: 4px;
     box-shadow: 0 5px 15px rgb(0 0 0 / 30%);
@@ -49,10 +49,10 @@
 .image-view-modal-close {
     position: absolute;
     top: 10px;
-    right: 10px;
-    background-color: var(--color-overlay-button-bg); /* CHANGE */
-    color: var(--color-text-base); /* CHANGE */
-    border: 1px solid var(--color-border); /* CHANGE */
+    right: 10px; /* Position top-right */
+    background-color: var(--color-overlay-button-bg);
+    color: var(--color-text-base);
+    border: 1px solid var(--color-border);
     border-radius: 50%;
     width: 36px;
     height: 36px; /* Keep height */
@@ -73,8 +73,8 @@
 
 .image-view-modal-close:hover,
 .image-view-modal-close:focus {
-    background-color: var(--color-overlay-button-hover); /* CHANGE */
-    color: var(--color-text-base); /* CHANGE */
-    border-color: var(--color-border-input); /* CHANGE */
+    background-color: var(--color-overlay-button-hover);
+    color: var(--color-text-base);
+    border-color: var(--color-border-input);
     outline: none;
 }

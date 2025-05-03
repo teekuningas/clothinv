@@ -172,6 +172,24 @@ button:disabled {
     color: var(--color-primary-text);
 }
 
+/* Light Button (often for secondary actions, edit buttons) */
+.button-light {
+    background-color: var(--color-bg-subtle); /* Light grey background */
+    color: var(--color-text-base); /* Standard text color */
+    border-color: var(--color-border); /* Standard border */
+}
+
+.button-light:disabled {
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-muted); /* Muted text when disabled */
+    border-color: var(--color-border);
+}
+
+.button-light:hover:not(:disabled) {
+    background-color: var(--color-border-divider); /* Slightly darker grey on hover */
+    border-color: var(--color-border-input); /* Slightly darker border */
+}
+
 /* Applied via view container class names */
 
 /* Applied via view container class names */
@@ -290,12 +308,6 @@ button:disabled {
     font-size: 1em;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
-
-/* REMOVE hover/disabled states for .button-file-input */
-
-/* .button-file-input:hover:not(.disabled) { ... } */
-
-/* .button-file-input.disabled { ... } */
 
 
 /* ========================================== */

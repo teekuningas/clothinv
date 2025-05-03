@@ -1,15 +1,13 @@
 /* frontend/src/components/ItemsView.css */
 
 
-/* REMOVED: Delete confirmation button styles are now global */
-
 /* --- Add Item Form --- */
 .add-item-form {
     margin-bottom: 30px;
     padding: 15px;
-    border: 1px solid var(--color-border); /* CHANGE */
+    border: 1px solid var(--color-border);
     border-radius: 4px;
-    background-color: var(--color-bg-subtle); /* CHANGE */
+    background-color: var(--color-bg-subtle);
 }
 
 .add-item-form h3 {
@@ -24,16 +22,16 @@
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
-    font-size: 0.9em;
-    color: var(--color-text-label); /* CHANGE */
+    font-size: 0.9em; /* Slightly smaller for filter labels */
+    color: var(--color-text-label);
 }
 
 .checkbox-item label {
     margin-bottom: 0; /* Reset margin from .filter-group label */
     font-weight: normal;
-    font-size: 0.95em;
+    font-size: 0.95em; /* Slightly smaller than base */
     cursor: pointer;
-    color: var(--color-text-base); /* CHANGE */
+    color: var(--color-text-base);
 }
 
 .add-item-form .form-group {
@@ -57,8 +55,8 @@
 .image-preview {
     margin-bottom: 0;
     max-width: 250px;
-    max-height: 250px;
-    border: 1px solid var(--color-border-input); /* CHANGE */
+    max-height: 250px; /* Limit preview height */
+    border: 1px solid var(--color-border-input);
     border-radius: 4px;
     overflow: hidden;
     align-self: flex-start;
@@ -84,9 +82,9 @@
 
 /* --- Item Card --- */
 .item-card {
-    border: 1px solid var(--color-border); /* CHANGE */
+    border: 1px solid var(--color-border);
     border-radius: 4px;
-    background-color: var(--color-bg-container); /* CHANGE */
+    background-color: var(--color-bg-container);
     box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
     display: flex;
     flex-direction: column;
@@ -97,19 +95,18 @@
 /* Container for image or placeholder */
 .item-image-container {
     width: 100%;
-    height: 200px;
-    border-bottom: 1px solid var(--color-border-divider); /* CHANGE */
+    height: 200px; /* Fixed height for image area */
+    border-bottom: 1px solid var(--color-border-divider);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background-color: var(--color-bg-subtle); /* CHANGE - Default background */
+    background-color: var(--color-bg-subtle); /* Default background */
 }
 
-/* Placeholder styling using background */
 .item-image-container.placeholder {
     /* Remove gradient, just use subtle background */
-    background-color: var(--color-bg-subtle); /* CHANGE */
+    background-color: var(--color-bg-subtle);
 }
 
 .item-image-container.clickable {
@@ -125,8 +122,8 @@
 /* Loading/Error states (Optional) */
 .item-image-loading,
 .item-image-error {
-    font-size: 0.9em;
-    color: var(--color-text-muted); /* CHANGE */
+    font-size: 0.9em; /* Slightly smaller text */
+    color: var(--color-text-muted);
     text-align: center;
 }
 
@@ -144,36 +141,15 @@
 
 .item-card p.item-description {
     font-size: 0.9em;
-    color: var(--color-text-muted); /* CHANGE */
+    color: var(--color-text-muted);
     margin-bottom: 10px;
-
-    /* Limit description lines if needed */
-
-    /* display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden; */
 }
 
 .item-card p.item-meta {
     font-size: 0.85em;
-    color: var(--color-text-label); /* CHANGE */
+    /* Slightly smaller meta text */
+    color: var(--color-text-label);
     margin-bottom: 5px;
-}
-
-/* Edit button: Remove color/bg/border. Apply .button-light in JSX */
-.item-card .edit-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 5px 10px;
-    font-size: 0.9em;
-
-    /* REMOVE background-color, color, border */
-    border-radius: 4px;
-    cursor: pointer;
-    backdrop-filter: blur(2px);
-    z-index: 10;
 }
 
 
@@ -238,18 +214,18 @@
 }
 
 .filters-container {
-    border: 1px solid var(--color-border); /* CHANGE */
+    border: 1px solid var(--color-border);
     border-radius: 4px;
     padding: 15px;
     margin-bottom: 20px;
-    background-color: var(--color-bg-body); /* CHANGE */
+    background-color: var(--color-bg-body);
 }
 
 .filters-container h4 {
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.1em;
-    border-bottom: 1px solid var(--color-border-divider); /* CHANGE */
+    border-bottom: 1px solid var(--color-border-divider);
     padding-bottom: 8px;
     color: var(--color-text-base);
 }
@@ -272,7 +248,7 @@
 }
 
 .filter-group input[type="text"] {
-    width: calc(100% - 22px); /* Match add form style */
+    width: calc(100% - 22px); /* Adjust for padding/border */
     padding: 8px 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -298,7 +274,7 @@
 /* Specific width override for text inputs in add/edit forms */
 .add-item-form .form-group input[type="text"],
 .edit-item-form .form-group input[type="text"] {
-    width: calc(100% - 22px); /* Adjust for main.css padding/border */
+    width: calc(100% - 22px);
 }
 
 .reset-filters-button {

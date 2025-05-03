@@ -1,9 +1,9 @@
 .add-category-form {
     margin-bottom: 20px;
     padding: 15px;
-    border: 1px solid var(--color-border); /* CHANGE */
+    border: 1px solid var(--color-border);
     border-radius: 4px;
-    background-color: var(--color-bg-subtle); /* CHANGE */
+    background-color: var(--color-bg-subtle);
 }
 
 .add-category-form h3 {
@@ -16,7 +16,7 @@
 /* Specific width override for text inputs in this view */
 .add-category-form .form-group input[type="text"],
 .edit-category-form .form-group input[type="text"] {
-    width: calc(100% - 22px); /* Adjust for main.css padding/border */
+    width: calc(100% - 22px);
 }
 
 
@@ -24,25 +24,19 @@
 .categories-list { /* Container for cards */
     padding: 0;
     margin-top: 20px;
-
-    /* Optional: Use grid for layout */
-
-    /* display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px; */
 }
 
 .category-card {
     /* Keep specific layout/spacing */
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
-    padding-right: 60px; /* Make space for the edit button */
+    padding-right: 60px; /* Make space for the edit button if present */
     position: relative;
 
     /* Use variables for border/background */
-    border: 1px solid var(--color-border); /* CHANGE */
+    border: 1px solid var(--color-border);
     border-radius: 4px;
-    background-color: var(--color-bg-container); /* CHANGE */
+    background-color: var(--color-bg-container);
     box-shadow: 0 1px 3px rgb(0 0 0 / 10%);
 }
 
@@ -54,21 +48,8 @@
 
 .category-card p {
     margin-bottom: 10px;
-    color: var(--color-text-muted); /* CHANGE */
+    color: var(--color-text-muted);
     font-size: 0.95em;
-}
-
-/* Edit button: Remove color/bg/border. Apply .button-light in JSX */
-.edit-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 5px 10px;
-    font-size: 0.9em;
-
-    /* REMOVE background-color, color, border */
-    border-radius: 4px; /* Ensure radius is kept if needed */
-    cursor: pointer; /* Ensure cursor is kept */
 }
 
 

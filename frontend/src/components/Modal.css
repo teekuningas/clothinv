@@ -1,7 +1,7 @@
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background-color: var(--color-backdrop); /* CHANGE */
+    background-color: var(--color-backdrop);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -10,7 +10,7 @@
 }
 
 .modal-content {
-    background-color: var(--color-bg-container); /* CHANGE */
+    background-color: var(--color-bg-container);
     padding: 20px;
     border-radius: 5px;
     max-width: 500px; /* Max width */
@@ -25,7 +25,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--color-border-divider); /* CHANGE */
+    border-bottom: 1px solid var(--color-border-divider);
     padding-bottom: 10px;
     margin-bottom: 15px;
 }
@@ -42,12 +42,12 @@
     font-size: 1.8rem;
     line-height: 1;
     cursor: pointer;
-    padding: 0 5px;
-    color: var(--color-text-muted); /* CHANGE */
+    padding: 0 5px; /* Minimal padding */
+    color: var(--color-text-muted);
 }
 
 .modal-close-button:hover {
-    color: var(--color-text-base); /* CHANGE */
+    color: var(--color-text-base);
 }
 
 .modal-body {
