@@ -267,15 +267,6 @@
     margin-bottom: 8px; /* Space below legend */
 }
 
-.filter-group label,
-.filter-group legend { /* Style legend like label */
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    font-size: 0.9em;
-    color: var(--color-text-label); /* CHANGE */
-}
-
 .filter-group {
     margin-bottom: 15px;
 }
