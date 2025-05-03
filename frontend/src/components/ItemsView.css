@@ -27,11 +27,6 @@
     font-weight: bold;
 }
 
-/* Specific width override for text inputs in this view */
-.add-item-form .form-group input[type="text"],
-.edit-item-form .form-group input[type="text"] {
-    width: calc(100% - 22px); /* Adjust for main.css padding/border */
-}
 
 
 .add-item-form .form-group input[type="file"],

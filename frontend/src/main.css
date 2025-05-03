@@ -169,6 +169,9 @@ button:disabled {
      color: var(--color-primary-text);
      border-color: var(--color-primary);
 
+     /* Inherits opacity: 0.65 */
+}
+
 /* Applied via view container class names */
 
 /* Applied via view container class names */
