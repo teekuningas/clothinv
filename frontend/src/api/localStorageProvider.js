@@ -114,13 +114,13 @@ export const exportData = async (settings) => { // eslint-disable-line no-unused
         const itemsMetadata = await getAllFromStore(STORES.items);
 
         // 2. Create CSVs
-        const locationHeaders = ['location_id', 'name', 'description'];
+        const locationHeaders = ['location_id', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('locations.csv', createCSV(locationHeaders, locations));
 
-        const categoryHeaders = ['category_id', 'name', 'description'];
+        const categoryHeaders = ['category_id', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('categories.csv', createCSV(categoryHeaders, categories));
 
-        const ownerHeaders = ['owner_id', 'name', 'description'];
+        const ownerHeaders = ['owner_id', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('owners.csv', createCSV(ownerHeaders, owners));
 
         const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
@@ -183,9 +183,11 @@ const parseCSV = (csvString) => {
             }
             // Attempt to convert numbers (adjust as needed)
             if (header.endsWith('_id') && value !== '') {
-                 row[header] = parseInt(value, 10);
+                row[header] = parseInt(value, 10);
+            } else if (header.endsWith('_at') && value === '') {
+                row[header] = null; // Handle empty timestamps as null
             } else {
-                 row[header] = value;
+                row[header] = value;
             }
         });
         data.push(row);
@@ -216,17 +218,30 @@ export const importData = async (settings, zipFile) => { // eslint-disable-line 
         _resetIdCounter('categories');
         _resetIdCounter('owners');
         console.log("Existing data cleared.");
-
+ 
         // Parse and import data (simplified - assumes IDs can be reused after clearing)
         const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
-        for (const loc of locations) await addToStore(STORES.locations, loc);
-
+        for (const loc of locations) {
+            // Ensure timestamps are preserved or set defaults if missing in older exports
+            loc.created_at = loc.created_at || new Date().toISOString();
+            loc.updated_at = loc.updated_at || null;
+            await addToStore(STORES.locations, loc);
+        }
+ 
         const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
-        for (const cat of categories) await addToStore(STORES.categories, cat);
-
+        for (const cat of categories) {
+            cat.created_at = cat.created_at || new Date().toISOString();
+            cat.updated_at = cat.updated_at || null;
+            await addToStore(STORES.categories, cat);
+        }
+ 
         const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
-        for (const owner of owners) await addToStore(STORES.owners, owner);
-
+        for (const owner of owners) {
+            owner.created_at = owner.created_at || new Date().toISOString();
+            owner.updated_at = owner.updated_at || null;
+            await addToStore(STORES.owners, owner);
+        }
+ 
         const items = parseCSV(await loadedZip.file('items.csv').async('string'));
         for (const item of items) {
             const { image_zip_filename, image_original_filename, ...itemMetadata } = item;
@@ -236,6 +251,9 @@ export const importData = async (settings, zipFile) => { // eslint-disable-line 
                 imageFile = new File([imageBlob], image_original_filename || image_zip_filename, { type: imageBlob.type });
             }
             // Add item metadata and image (similar logic to addItem, but using imported IDs)
+            // Preserve timestamps from CSV
+            itemMetadata.created_at = itemMetadata.created_at || new Date().toISOString();
+            itemMetadata.updated_at = itemMetadata.updated_at || null;
             await addToStore(STORES.items, itemMetadata);
             if (imageFile) {
                 // Use putInStore to handle potential key conflicts if needed, or ensure keys are unique

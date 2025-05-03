@@ -7,7 +7,8 @@ CREATE TABLE IF NOT EXISTS locations (
     location_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP -- Allow NULL initially
 );
 
 -- Table for item categories
@@ -15,7 +16,8 @@ CREATE TABLE IF NOT EXISTS categories (
     category_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP -- Allow NULL initially
 );
 
 -- Table for storing image data
@@ -32,7 +34,8 @@ CREATE TABLE IF NOT EXISTS owners (
     owner_id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP -- Allow NULL initially
 );
 
 -- Table for inventory items
@@ -45,7 +48,7 @@ CREATE TABLE IF NOT EXISTS items (
     image_id INTEGER,
     owner_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP, -- Allow NULL initially, update trigger handles this
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
     FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL,

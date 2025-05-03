@@ -58,9 +58,11 @@ const parseCSV = (csvString) => {
             }
             // Attempt to convert numbers (adjust as needed)
             if (header.endsWith('_id') && value !== '') {
-                 row[header] = parseInt(value, 10);
+                row[header] = parseInt(value, 10);
+            } else if (header.endsWith('_at') && value === '') {
+                row[header] = null; // Handle empty timestamps as null
             } else {
-                 row[header] = value;
+                row[header] = value;
             }
         });
         data.push(row);
