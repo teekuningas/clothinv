@@ -259,8 +259,16 @@ button:disabled {
     cursor: pointer;
     text-align: center;
     vertical-align: middle;
-    /* Styling (color, background, border) comes from .button-secondary */
+    /* Styling (color, background, border) comes from .button-secondary by default */
+    background-color: #e9ecef;
+    color: #495057;
+    border-color: #dee2e6;
     /* Disabled state handled by adding .disabled class */
+}
+/* Add hover state for the default secondary look */
+.button-file-input:hover:not(.disabled) {
+    background-color: #e2e6ea;
+    border-color: #ced4da;
 }
 .button-file-input.disabled {
     /* Styles matching .button-secondary:disabled */

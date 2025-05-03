@@ -329,7 +329,7 @@ const SettingsView = () => {
                         <button
                             type="button"
                             onClick={handleSaveApiConfig}
-                            className="save-button"
+                            className="button-primary" // Changed from save-button
                             disabled={saveStatus === 'saving' || saveStatus === 'success'} // Disable if saving or just succeeded
                         >
                             {saveStatus === 'saving'
@@ -360,7 +360,7 @@ const SettingsView = () => {
                             <button
                                 type="button"
                                 onClick={handleExport}
-                                className="export-button" // Use specific class if needed, or rely on general button styles
+                                className="button-primary" // Changed from export-button
                                 disabled={exportStatus === 'exporting' || !api.exportData || !apiConfig.isConfigured}
                             >
                                 {exportStatus === 'exporting'
@@ -384,7 +384,7 @@ const SettingsView = () => {
                             {/* Button-like Label */}
                             <label
                                 htmlFor="import-file-input"
-                                className={`button-file-input import-button ${importStatus === 'importing' || !api.importData || !apiConfig.isConfigured ? 'disabled' : ''}`} // Add import-button for styling and dynamic disabled class
+                                className={`button-secondary button-file-input import-button ${importStatus === 'importing' || !api.importData || !apiConfig.isConfigured ? 'disabled' : ''}`} // Changed to secondary
                             >
                                 {intl.formatMessage({ id: 'settings.data.importChooseFile', defaultMessage: 'Choose File' })}
                             </label>
@@ -408,7 +408,7 @@ const SettingsView = () => {
                             <button
                                 type="button"
                                 onClick={handleImport}
-                                className="import-button" // Use specific class if needed
+                                className="button-danger" // Changed from import-button to danger
                                 disabled={!importFile || importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
                             >
                                 {importStatus === 'importing'
@@ -431,7 +431,7 @@ const SettingsView = () => {
                             <button
                                 type="button"
                                 onClick={handleDestroy}
-                                className="destroy-button" // Add specific class for styling
+                                className="button-danger-strong" // Changed from destroy-button to danger-strong
                                 disabled={destroyStatus === 'destroying' || !api.destroyData || !apiConfig.isConfigured}
                             >
                                 {destroyStatus === 'destroying'

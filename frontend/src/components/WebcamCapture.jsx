@@ -208,11 +208,11 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
                 <div className="webcam-actions">
                     {/* Show Retry button only if there's an error */}
                     {error && (
-                        <button className="webcam-retry-button" onClick={startCamera}>
+                        <button className="button-primary" onClick={startCamera}> {/* Changed class */}
                             {intl.formatMessage({ id: 'webcam.button.retry', defaultMessage: 'Retry' })}
                         </button>
                     )}
-                    <button className="webcam-cancel-button" onClick={onClose}>
+                    <button className="button-secondary" onClick={onClose}> {/* Changed class */}
                         {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                     </button>
                 </div>

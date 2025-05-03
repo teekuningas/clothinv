@@ -1,13 +1,7 @@
 /* frontend/src/components/ItemsView.css */
 
 
-/* Specific override for main delete confirmation button */
-.delete-confirm-content .delete-button {
-}
-.delete-confirm-content .delete-button:hover:not(:disabled) {
-}
- .delete-confirm-content .delete-button:disabled {
-}
+/* REMOVED: Delete confirmation button styles are now global */
 
 /* --- Add Item Form --- */
 .add-item-form {

@@ -526,14 +526,14 @@ const ItemsView = () => {
                         )}
                         {/* Action buttons for image */}
                         <div className="form-group-image-actions">
-                            <label htmlFor="item-image" className="button-primary button-file-input"> {/* Change to primary style */}
+                            <label htmlFor="item-image" className={`button-secondary button-file-input ${loading ? 'disabled' : ''}`}> {/* Changed to secondary, added disabled class */}
                                 {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                             </label>
                             <button
                                 type="button"
                                 onClick={() => handleOpenWebcam('add')}
                                 disabled={loading}
-                                className="button-primary" // Change to primary style to match Choose File
+                                className="button-primary" // Kept primary
                             >
                                 {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                             </button>
@@ -607,7 +607,7 @@ const ItemsView = () => {
                             ))}
                         </select>
                     </div>
-                    <button type="submit" disabled={loading || !newItemName.trim() || !newItemLocationId || !newItemCategoryId || !newItemOwnerId}>
+                    <button type="submit" disabled={loading || !newItemName.trim() || !newItemLocationId || !newItemCategoryId || !newItemOwnerId} className="button-primary">
                         {loading ? intl.formatMessage({ id: 'items.addForm.button.adding', defaultMessage: 'Adding...' }) : intl.formatMessage({ id: 'items.addForm.button.add', defaultMessage: 'Add Item' })}
                     </button>
                 </form>
@@ -620,7 +620,7 @@ const ItemsView = () => {
             {api.config.isConfigured && typeof api.listItems === 'function' && items.length > 0 && (
                 <button
                     onClick={handleFilterToggle}
-                    className="filter-toggle-button"
+                    className="button-secondary filter-toggle-button" // Added button-secondary
                     aria-controls="filters-container"
                     aria-expanded={isFilterVisible}
                 >
@@ -696,7 +696,7 @@ const ItemsView = () => {
                         ))}
                     </fieldset>
 
-                    <button onClick={handleResetFilters} className="reset-filters-button">
+                    <button onClick={handleResetFilters} className="button-secondary reset-filters-button"> {/* Added button-secondary */}
                         {intl.formatMessage({ id: 'items.filter.resetButton', defaultMessage: 'Reset Filters' })}
                     </button>
                 </div>
@@ -807,14 +807,14 @@ const ItemsView = () => {
                             )}
                             {/* Action buttons for image */}
                             <div className="form-group-image-actions">
-                                <label htmlFor="edit-item-image" className="button-primary button-file-input"> {/* Change to primary style */}
+                                <label htmlFor="edit-item-image" className={`button-secondary button-file-input ${isUpdating || isDeleting ? 'disabled' : ''}`}> {/* Changed to secondary, added disabled class */}
                                     {intl.formatMessage({ id: 'items.addForm.chooseFile', defaultMessage: 'Choose File' })}
                                 </label>
                                 <button
                                     type="button"
                                     onClick={() => handleOpenWebcam('edit')}
                                     disabled={isUpdating || isDeleting}
-                                    className="button-primary" // Change to primary style
+                                    className="button-primary" // Kept primary
                                 >
                                     {intl.formatMessage({ id: 'items.addForm.takePicture', defaultMessage: 'Take Picture' })} {/* Use translation key */}
                                 </button>
@@ -896,20 +896,20 @@ const ItemsView = () => {
                         </div>
                         {/* Location/Category dropdowns are NOT included in edit for now - REMOVED */}
                         <div className="modal-actions">
-                            <button type="submit" disabled={isUpdating || isDeleting || !editName.trim() || !editLocationId || !editCategoryId || !editOwnerId}>
+                            <button type="submit" disabled={isUpdating || isDeleting || !editName.trim() || !editLocationId || !editCategoryId || !editOwnerId} className="button-primary">
                                 {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
                             {api.config.isConfigured && typeof api.deleteItem === 'function' && (
                                 <button
                                     type="button" // Explicitly set type
-                                    className="delete-button"
+                                    className="button-danger" // Changed from delete-button
                                     onClick={() => handleDeleteClick(editingItemId)}
                                     disabled={isUpdating || isDeleting}
                                 >
                                     {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                                 </button>
                             )}
-                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary"> {/* Add class for styling */}
+                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary"> {/* Keep class for styling */}
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
@@ -930,7 +930,7 @@ const ItemsView = () => {
                             <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
                                 {isDeleting ? intl.formatMessage({ id: 'common.deleting', defaultMessage: 'Deleting...' }) : intl.formatMessage({ id: 'common.confirmDelete', defaultMessage: 'Confirm Delete' })}
                             </button>
-                            <button onClick={handleCancelDelete} disabled={isDeleting}>
+                            <button onClick={handleCancelDelete} disabled={isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>

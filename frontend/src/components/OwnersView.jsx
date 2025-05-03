@@ -260,7 +260,7 @@ const OwnersView = () => {
                             disabled={loading}
                         />
                     </div>
-                    <button type="submit" disabled={loading || !newOwnerName.trim()}>
+                    <button type="submit" disabled={loading || !newOwnerName.trim()} className="button-primary">
                         {loading ? intl.formatMessage({ id: 'owners.addForm.button.adding', defaultMessage: 'Adding...' }) : intl.formatMessage({ id: 'owners.addForm.button.add', defaultMessage: 'Add Owner' })}
                     </button>
                 </form>
@@ -324,21 +324,21 @@ const OwnersView = () => {
                             />
                         </div>
                         <div className="modal-actions">
-                             <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()}>
+                             <button type="submit" disabled={isUpdating || isDeleting || !editName.trim()} className="button-primary">
                                 {isUpdating ? intl.formatMessage({ id: 'common.saving', defaultMessage: 'Saving...' }) : intl.formatMessage({ id: 'common.saveChanges', defaultMessage: 'Save Changes' })}
                             </button>
                             {/* Show Delete button only if provider configured and delete/listItems methods exist */}
                             {api.config.isConfigured && typeof api.deleteOwner === 'function' && typeof api.listItems === 'function' && (
                                 <button
                                     type="button"
-                                    className="delete-button"
+                                    className="button-danger" // Changed from delete-button
                                     onClick={() => handleDeleteClick(editingOwnerId)}
                                     disabled={isUpdating || isDeleting} // Disable during update or delete
                                 >
                                     {intl.formatMessage({ id: 'common.delete', defaultMessage: 'Delete' })}
                                 </button>
                             )}
-                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting}>
+                            <button type="button" onClick={handleCancelEdit} disabled={isUpdating || isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
@@ -359,7 +359,7 @@ const OwnersView = () => {
                             <button onClick={handleConfirmDelete} disabled={isDeleting} className="delete-button">
                                 {isDeleting ? intl.formatMessage({ id: 'common.deleting', defaultMessage: 'Deleting...' }) : intl.formatMessage({ id: 'common.confirmDelete', defaultMessage: 'Confirm Delete' })}
                             </button>
-                            <button onClick={handleCancelDelete} disabled={isDeleting}>
+                            <button onClick={handleCancelDelete} disabled={isDeleting} className="button-secondary">
                                 {intl.formatMessage({ id: 'common.cancel', defaultMessage: 'Cancel' })}
                             </button>
                         </div>
