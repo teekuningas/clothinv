@@ -22,7 +22,6 @@
 /* .add-owner-form button styling handled by .button-primary class in JSX */
 /* .add-owner-form button:disabled styling handled by .button-primary:disabled */
 /* .add-owner-form button:not(:disabled):hover styling handled by .button-primary:hover */
-}
 
 /* --- Owner Card Styles --- */
 .owners-list { /* Container for cards */
@@ -71,7 +70,6 @@
 
 /* .edit-button:hover:not(:disabled) handled by .button-secondary:hover */
 /* .edit-button:disabled handled by .button-secondary:disabled */
-}
 
 
 /* --- Edit/Delete Modal Styles --- */
@@ -101,4 +99,3 @@
 
 /* .delete-confirm-content p styles handled by main.css */
 /* .delete-confirm-content p:first-of-type styles handled by main.css */
-}
