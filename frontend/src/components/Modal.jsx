@@ -1,36 +1,39 @@
-import React from 'react';
-import { useIntl } from 'react-intl'; // Import useIntl
-import './Modal.css'; // Create corresponding CSS file
+import React from "react";
+import { useIntl } from "react-intl"; // Import useIntl
+import "./Modal.css"; // Create corresponding CSS file
 
 const Modal = ({ show, onClose, title, children }) => {
-    const intl = useIntl(); // Get intl object
+  const intl = useIntl(); // Get intl object
 
-    if (!show) {
-        return null;
-    }
+  if (!show) {
+    return null;
+  }
 
-    // Prevent clicks inside the modal from closing it
-    const handleContentClick = (e) => {
-        e.stopPropagation();
-    };
+  // Prevent clicks inside the modal from closing it
+  const handleContentClick = (e) => {
+    e.stopPropagation();
+  };
 
-    return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-content" onClick={handleContentClick}>
-                <div className="modal-header">
-                    {title && <h3 className="modal-title">{title}</h3>}
-                    <button
-                        onClick={onClose}
-                        className="modal-close-button"
-                        aria-label={intl.formatMessage({ id: 'modal.closeButton.label', defaultMessage: 'Close modal' })} /* Add modal. key */
-                    >&times;</button>
-                </div>
-                <div className="modal-body">
-                    {children}
-                </div>
-            </div>
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={handleContentClick}>
+        <div className="modal-header">
+          {title && <h3 className="modal-title">{title}</h3>}
+          <button
+            onClick={onClose}
+            className="modal-close-button"
+            aria-label={intl.formatMessage({
+              id: "modal.closeButton.label",
+              defaultMessage: "Close modal",
+            })} /* Add modal. key */
+          >
+            &times;
+          </button>
         </div>
-    );
+        <div className="modal-body">{children}</div>
+      </div>
+    </div>
+  );
 };
 
 export default Modal;
