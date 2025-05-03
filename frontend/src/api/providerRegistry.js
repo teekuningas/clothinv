@@ -37,7 +37,6 @@ export const providers = {
         isConfiguredCheck: (settings) => !!settings?.datasetteBaseUrl,
         // List the API methods this provider implements (must match exports from the module)
         methods: [
-            // 'addItem', // Removed as addItemSimple is used
             'listLocations',
             'addLocation',
             'updateLocation',
@@ -47,47 +46,15 @@ export const providers = {
             'updateCategory',
             'deleteCategory',
             'listItems',
-            // Add the following:
-            'addItemSimple', // New: For adding items from the form
-            'updateItem',    // New: For editing item name/description
-            'deleteItem',     // New: For deleting items
+            'addItem',
+            'updateItem',
+            'deleteItem',
             'listOwners',
             'addOwner',
             'updateOwner',
             'deleteOwner',
         ]
     },
-
-    // --- Homebox Provider Definition (Example Placeholder) ---
-    /*
-    'homebox': {
-        id: 'homebox',
-        displayName: 'Homebox',
-        module: homeboxProvider, // Assumes homeboxProvider.js exists and is imported
-        configFields: [
-            {
-                key: 'homeboxUrl',
-                label: 'Homebox Instance URL',
-                type: 'text',
-                placeholder: 'e.g., https://my-homebox.com',
-                envVar: 'VITE_HOMEBOX_URL',
-                localStorageKey: 'homeboxUrl',
-                required: true,
-            },
-            {
-                key: 'homeboxApiKey',
-                label: 'Homebox API Key',
-                type: 'password',
-                placeholder: 'Paste your Homebox API key',
-                envVar: 'VITE_HOMEBOX_API_KEY',
-                localStorageKey: 'homeboxApiKey',
-                required: true,
-            }
-        ],
-        isConfiguredCheck: (settings) => !!settings?.homeboxUrl && !!settings?.homeboxApiKey,
-        methods: ['addItem', 'getItems', 'updateItem', 'deleteItem'] // Example methods
-    },
-    */
 
     // --- Local Storage Provider Definition ---
     'localStorage': {
@@ -107,7 +74,7 @@ export const providers = {
             'updateCategory',
             'deleteCategory',
             'listItems',
-            'addItemSimple',
+            'addItem',
             'updateItem',
             'deleteItem',
             'listOwners',
