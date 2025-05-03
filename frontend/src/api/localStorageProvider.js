@@ -1,5 +1,23 @@
 
-// --- Helper Functions (Placeholders - To be implemented later) ---
+// --- Helper Functions ---
+
+// Helper to read file as Base64
+const readFileAsBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        if (!file) {
+            return resolve(null); // Resolve with null if no file provided
+        }
+        const reader = new FileReader();
+        // Return object with data and mimetype
+        reader.onload = () => resolve({
+            base64Data: reader.result.split(',')[1], // Get only the base64 part
+            mimeType: file.type
+        });
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+    });
+};
+
 
 const _getData = (key) => {
     // Placeholder: Logic to get data array from localStorage
@@ -37,159 +55,276 @@ const _getNextId = (key) => {
 // Note: All functions accept 'settings' as the first argument, even if unused,
 // because ApiContext binds them this way.
 
-export const listLocations = async (settings) => {
+export const listLocations = async (settings) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: listLocations called');
-    // Placeholder: Implement actual logic later
-    return Promise.resolve(_getData('locations')); // Simulate async
+    return Promise.resolve(_getData('locations'));
 };
 
-export const addLocation = async (settings, data) => {
+export const addLocation = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: addLocation called with data:', data);
-    // Placeholder: Implement actual logic later
     const newId = _getNextId('locations');
-    const newLocation = { ...data, location_id: newId };
+    // Add timestamps if desired, though not strictly required by current UI for these
+    const newLocation = { ...data, location_id: newId /*, created_at: new Date().toISOString() */ };
     const locations = _getData('locations');
     _setData('locations', [...locations, newLocation]);
-    return Promise.resolve({ success: true, newId: newId }); // Simulate async
+    return Promise.resolve({ success: true, newId: newId });
 };
 
-export const updateLocation = async (settings, locationId, data) => {
+export const updateLocation = async (settings, locationId, data) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: updateLocation called for ID ${locationId} with data:`, data);
-    // Placeholder: Implement actual logic later
     const locations = _getData('locations');
-    const updatedLocations = locations.map(loc => loc.location_id === locationId ? { ...loc, ...data } : loc);
+    let found = false;
+    const updatedLocations = locations.map(loc => {
+        if (loc.location_id === locationId) {
+            found = true;
+            // Add updated_at timestamp if desired
+            return { ...loc, ...data /*, updated_at: new Date().toISOString() */ };
+        }
+        return loc;
+    });
+    if (!found) {
+         return Promise.resolve({ success: false, message: 'Location not found' });
+    }
     _setData('locations', updatedLocations);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const deleteLocation = async (settings, locationId) => {
+export const deleteLocation = async (settings, locationId) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: deleteLocation called for ID ${locationId}`);
-    // Placeholder: Implement actual logic later (add check for items using it)
+    const items = _getData('items');
+    // Check if any item uses this location
+    const isUsed = items.some(item => item.location_id === locationId);
+    if (isUsed) {
+        console.warn(`Attempted to delete location ID ${locationId} which is in use.`);
+        // Provide a user-friendly message
+        return Promise.resolve({ success: false, message: 'Cannot delete location: It is currently assigned to one or more items.' });
+    }
+
     const locations = _getData('locations');
     const updatedLocations = locations.filter(loc => loc.location_id !== locationId);
+    // Check if anything was actually deleted
+    if (locations.length === updatedLocations.length) {
+         return Promise.resolve({ success: false, message: 'Location not found' });
+    }
     _setData('locations', updatedLocations);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const listCategories = async (settings) => {
+export const listCategories = async (settings) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: listCategories called');
-    // Placeholder: Implement actual logic later
-    return Promise.resolve(_getData('categories')); // Simulate async
+    return Promise.resolve(_getData('categories'));
 };
 
-export const addCategory = async (settings, data) => {
+export const addCategory = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: addCategory called with data:', data);
-    // Placeholder: Implement actual logic later
     const newId = _getNextId('categories');
-    const newCategory = { ...data, category_id: newId };
+    const newCategory = { ...data, category_id: newId /*, created_at: new Date().toISOString() */ };
     const categories = _getData('categories');
     _setData('categories', [...categories, newCategory]);
-    return Promise.resolve({ success: true, newId: newId }); // Simulate async
+    return Promise.resolve({ success: true, newId: newId });
 };
 
-export const updateCategory = async (settings, categoryId, data) => {
+export const updateCategory = async (settings, categoryId, data) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: updateCategory called for ID ${categoryId} with data:`, data);
-    // Placeholder: Implement actual logic later
     const categories = _getData('categories');
-    const updatedCategories = categories.map(cat => cat.category_id === categoryId ? { ...cat, ...data } : cat);
+    let found = false;
+    const updatedCategories = categories.map(cat => {
+        if (cat.category_id === categoryId) {
+            found = true;
+            return { ...cat, ...data /*, updated_at: new Date().toISOString() */ };
+        }
+        return cat;
+    });
+     if (!found) {
+         return Promise.resolve({ success: false, message: 'Category not found' });
+    }
     _setData('categories', updatedCategories);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const deleteCategory = async (settings, categoryId) => {
+export const deleteCategory = async (settings, categoryId) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: deleteCategory called for ID ${categoryId}`);
-    // Placeholder: Implement actual logic later (add check for items using it)
+    const items = _getData('items');
+    // Check if any item uses this category
+    const isUsed = items.some(item => item.category_id === categoryId);
+    if (isUsed) {
+        console.warn(`Attempted to delete category ID ${categoryId} which is in use.`);
+        return Promise.resolve({ success: false, message: 'Cannot delete category: It is currently assigned to one or more items.' });
+    }
+
     const categories = _getData('categories');
     const updatedCategories = categories.filter(cat => cat.category_id !== categoryId);
+     if (categories.length === updatedCategories.length) {
+         return Promise.resolve({ success: false, message: 'Category not found' });
+    }
     _setData('categories', updatedCategories);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const listOwners = async (settings) => {
+export const listOwners = async (settings) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: listOwners called');
-    // Placeholder: Implement actual logic later
-    return Promise.resolve(_getData('owners')); // Simulate async
+    return Promise.resolve(_getData('owners'));
 };
 
-export const addOwner = async (settings, data) => {
+export const addOwner = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: addOwner called with data:', data);
-    // Placeholder: Implement actual logic later
     const newId = _getNextId('owners');
-    const newOwner = { ...data, owner_id: newId };
+    const newOwner = { ...data, owner_id: newId /*, created_at: new Date().toISOString() */ };
     const owners = _getData('owners');
     _setData('owners', [...owners, newOwner]);
-    return Promise.resolve({ success: true, newId: newId }); // Simulate async
+    return Promise.resolve({ success: true, newId: newId });
 };
 
-export const updateOwner = async (settings, ownerId, data) => {
+export const updateOwner = async (settings, ownerId, data) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: updateOwner called for ID ${ownerId} with data:`, data);
-    // Placeholder: Implement actual logic later
     const owners = _getData('owners');
-    const updatedOwners = owners.map(owner => owner.owner_id === ownerId ? { ...owner, ...data } : owner);
+    let found = false;
+    const updatedOwners = owners.map(owner => {
+        if (owner.owner_id === ownerId) {
+            found = true;
+            return { ...owner, ...data /*, updated_at: new Date().toISOString() */ };
+        }
+        return owner;
+    });
+     if (!found) {
+         return Promise.resolve({ success: false, message: 'Owner not found' });
+    }
     _setData('owners', updatedOwners);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const deleteOwner = async (settings, ownerId) => {
+export const deleteOwner = async (settings, ownerId) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: deleteOwner called for ID ${ownerId}`);
-    // Placeholder: Implement actual logic later (add check for items using it)
+    const items = _getData('items');
+    // Check if any item uses this owner
+    const isUsed = items.some(item => item.owner_id === ownerId);
+    if (isUsed) {
+        console.warn(`Attempted to delete owner ID ${ownerId} which is in use.`);
+        return Promise.resolve({ success: false, message: 'Cannot delete owner: They are currently assigned to one or more items.' });
+    }
+
     const owners = _getData('owners');
     const updatedOwners = owners.filter(owner => owner.owner_id !== ownerId);
+     if (owners.length === updatedOwners.length) {
+         return Promise.resolve({ success: false, message: 'Owner not found' });
+    }
     _setData('owners', updatedOwners);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const listItems = async (settings) => {
+export const listItems = async (settings) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: listItems called');
-    // Placeholder: Implement actual logic later (including image merging)
-    return Promise.resolve(_getData('items')); // Simulate async
+    // Because images are embedded, just return the items array
+    const items = _getData('items');
+    // Optional: Sort by creation date descending, like datasetteProvider
+    items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return Promise.resolve(items);
 };
 
-export const addItem = async (settings, data) => {
+export const addItem = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('localStorageProvider: addItem called with data:', data);
-    // Placeholder: Implement actual logic later (including image handling)
     const newId = _getNextId('items');
-    // Basic item structure, image handling needs full implementation
+    let image_data = null;
+    let image_mimetype = null;
+
+    // Process image file if it exists
+    if (data.imageFile) {
+        try {
+            const imageResult = await readFileAsBase64(data.imageFile);
+            if (imageResult) {
+                image_data = imageResult.base64Data;
+                image_mimetype = imageResult.mimeType;
+            }
+        } catch (error) {
+            console.error("Failed to read image file:", error);
+            // Decide how to handle: fail the add, or add without image?
+            // Let's fail for now to be safe.
+            return Promise.resolve({ success: false, message: `Failed to process image: ${error.message}` });
+        }
+    }
+
+    // Create the new item object, excluding the temporary 'imageFile' property
+    const { imageFile, ...restOfData } = data;
     const newItem = {
-        ...data,
+        ...restOfData, // name, description, location_id, category_id, owner_id
         item_id: newId,
-        image_id: null, // Placeholder
+        image_data: image_data, // Embed base64 data
+        image_mimetype: image_mimetype, // Embed mime type
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        updated_at: null // Explicitly set updated_at to null on creation
     };
-    delete newItem.imageFile; // Don't store the File object
+
     const items = _getData('items');
     _setData('items', [...items, newItem]);
-    return Promise.resolve({ success: true, newId: newId }); // Simulate async
+    return Promise.resolve({ success: true, newId: newId });
 };
 
-export const updateItem = async (settings, itemId, data) => {
+export const updateItem = async (settings, itemId, data) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: updateItem called for ID ${itemId} with data:`, data);
-    // Placeholder: Implement actual logic later (including image handling)
     const items = _getData('items');
-    const updatedItems = items.map(item => {
-        if (item.item_id === itemId) {
-            const updatedItem = { ...item, ...data, updated_at: new Date().toISOString() };
-            delete updatedItem.imageFile; // Don't store File object
-            delete updatedItem.removeImage; // Don't store flag
-            // Image update/removal logic needed here
-            return updatedItem;
+    const itemIndex = items.findIndex(item => item.item_id === itemId);
+
+    if (itemIndex === -1) {
+        return Promise.resolve({ success: false, message: 'Item not found' });
+    }
+
+    const currentItem = items[itemIndex];
+    let new_image_data = currentItem.image_data;
+    let new_image_mimetype = currentItem.image_mimetype;
+
+    // Handle image removal first
+    if (data.removeImage) {
+        new_image_data = null;
+        new_image_mimetype = null;
+    }
+    // Handle new image upload (overrides removal if both flags/files are present)
+    if (data.imageFile) {
+         try {
+            const imageResult = await readFileAsBase64(data.imageFile);
+             if (imageResult) {
+                new_image_data = imageResult.base64Data;
+                new_image_mimetype = imageResult.mimeType;
+             } else {
+                 // If readFileAsBase64 returns null (e.g., empty file), clear image
+                 new_image_data = null;
+                 new_image_mimetype = null;
+             }
+        } catch (error) {
+            console.error("Failed to read image file during update:", error);
+            return Promise.resolve({ success: false, message: `Failed to process image update: ${error.message}` });
         }
-        return item;
-    });
+    }
+
+    // Create the updated item object
+    // Exclude temporary flags/files ('imageFile', 'removeImage') from being saved
+    const { imageFile, removeImage, ...restOfData } = data;
+    const updatedItem = {
+        ...currentItem,
+        ...restOfData, // Update with new name, description, location_id, etc.
+        image_data: new_image_data,
+        image_mimetype: new_image_mimetype,
+        updated_at: new Date().toISOString() // Set update timestamp
+    };
+
+    // Update the array immutably
+    const updatedItems = [
+        ...items.slice(0, itemIndex),
+        updatedItem,
+        ...items.slice(itemIndex + 1)
+    ];
+
     _setData('items', updatedItems);
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
 
-export const deleteItem = async (settings, itemId) => {
+export const deleteItem = async (settings, itemId) => { // eslint-disable-line no-unused-vars
     console.log(`localStorageProvider: deleteItem called for ID ${itemId}`);
-    // Placeholder: Implement actual logic later (including image deletion)
     const items = _getData('items');
     const updatedItems = items.filter(item => item.item_id !== itemId);
+    // No need for separate image deletion logic as it's embedded
+     if (items.length === updatedItems.length) {
+         return Promise.resolve({ success: false, message: 'Item not found' });
+    }
     _setData('items', updatedItems);
-    // Image deletion logic needed here
-    return Promise.resolve({ success: true }); // Simulate async
+    return Promise.resolve({ success: true });
 };
-
-// Note: Image handling (_insertImage, _updateImage, _deleteImage equivalents for localStorage)
-// needs to be designed and implemented. The stubs above only handle basic item data.
