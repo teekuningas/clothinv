@@ -848,8 +848,29 @@ export const importData = async (settings, zipFile) => {
 
             let imageFile = null;
             if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
-                const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
-                imageFile = new File([imageBlob], image_original_filename || image_zip_filename, { type: imageBlob.type });
+                try { // Add try...catch for robustness
+                    const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
+                    const originalFilename = image_original_filename || image_zip_filename;
+
+                    // *** Use the helper function to determine the MIME type ***
+                    const determinedMimeType = getMimeTypeFromFilename(originalFilename);
+
+                    // Create the File object, explicitly setting the determined type
+                    imageFile = new File([imageBlob], originalFilename, { type: determinedMimeType });
+
+                    // Optional: Log if the determined type differs from blob type (for debugging)
+                    if (imageBlob.type && imageBlob.type !== determinedMimeType) {
+                         console.warn(`Blob type (${imageBlob.type}) differs from determined type (${determinedMimeType}) for file ${originalFilename}`);
+                    } else if (!imageBlob.type) {
+                         console.log(`Determined MIME type ${determinedMimeType} for file ${originalFilename} (blob type was empty)`);
+                    }
+
+                } catch (zipError) {
+                     console.error(`Error processing image ${image_zip_filename} from zip:`, zipError);
+                     // Decide if you want to skip the item or throw the error
+                     // continue; // Example: skip item if image processing fails
+                     throw new Error(`Failed to process image ${image_zip_filename} from zip: ${zipError.message}`);
+                }
             }
 
             const newItemData = {
