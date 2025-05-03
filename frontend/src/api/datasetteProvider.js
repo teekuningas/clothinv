@@ -426,7 +426,7 @@ const _deleteImage = async (settings, imageId) => {
  * Expects data like { name, description, location_id, category_id, owner_id }
  * and optionally `imageFile` (a File object).
  */
-export const addItemSimple = async (settings, data) => {
+export const addItem = async (settings, data) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!data || !data.name || !data.location_id || !data.category_id || !data.owner_id) {
@@ -626,7 +626,3 @@ export const listItems = async (settings) => {
         // Or return []; // To show an empty list in case of error
     }
 };
-
-// addItem function (composite one) is also not needed based on current usage
-// export const addItem = async (settings, data) => { ... }
-// import { Buffer } from 'buffer'; // Removed as FileReader is used

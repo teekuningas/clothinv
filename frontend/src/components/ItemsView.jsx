@@ -197,7 +197,7 @@ const ItemsView = () => {
             setError(intl.formatMessage({ id: 'items.error.ownerMissing', defaultMessage: 'Please select an owner.' }));
             return;
         }
-        if (!api.config.isConfigured || typeof api.addItemSimple !== 'function') {
+        if (!api.config.isConfigured || typeof api.addItem !== 'function') {
             setError(api.config.isConfigured
                 ? intl.formatMessage({ id: 'items.addForm.notSupported', defaultMessage: 'Adding items is not supported by the current API Provider.' })
                 : intl.formatMessage({ id: 'common.status.apiNotConfigured' })
@@ -210,7 +210,7 @@ const ItemsView = () => {
         setSuccess(null);
 
         try {
-            const result = await api.addItemSimple({
+            const result = await api.addItem({
                 name: newItemName.trim(),
                 description: newItemDescription.trim() || null,
                 location_id: parseInt(newItemLocationId, 10), // Ensure ID is integer
@@ -448,7 +448,7 @@ const ItemsView = () => {
             {/* Add Item Form */}
             {!api.config.isConfigured ? (
                 <p className="status-warning">{intl.formatMessage({ id: 'common.status.apiNotConfigured' })}</p>
-            ) : typeof api.addItemSimple !== 'function' || typeof api.listLocations !== 'function' || typeof api.listCategories !== 'function' ? (
+            ) : typeof api.addItem !== 'function' || typeof api.listLocations !== 'function' || typeof api.listCategories !== 'function' ? (
                 <p className="status-warning">{intl.formatMessage({ id: 'items.addForm.notSupported', defaultMessage: 'Adding or listing required data is not supported by the current API Provider.' })}</p>
             ) : (
                 <form onSubmit={handleAddItem} className="add-item-form">
