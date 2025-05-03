@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "prettier --write \"**/*.jsx\""
+    "format:jsx": "prettier --write \"**/*.jsx\"",
+    "format:css": "stylelint \"**/*.css\" --fix"
   },
   "dependencies": {
     "jszip": "^3.10.1",
