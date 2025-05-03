@@ -110,8 +110,8 @@ function App() {
   return (
     // Wrap the entire app structure in BrowserRouter
     <BrowserRouter>
-      <div className="App">
-        <header className="App-header">
+      <div className="app">
+        <header className="app-header">
           <h1>
             {intl.formatMessage({
               id: "app.title",
