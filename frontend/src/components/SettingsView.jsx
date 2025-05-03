@@ -30,6 +30,12 @@ const SettingsView = () => {
     const [importStatus, setImportStatus] = useState('idle'); // 'idle', 'importing', 'success', 'error'
     const [importError, setImportError] = useState(null);
     const [importSummary, setImportSummary] = useState(''); // To show messages like "Import successful"
+
+    // State for Destroy
+    const [destroyStatus, setDestroyStatus] = useState('idle'); // 'idle', 'destroying', 'success', 'error'
+    const [destroyError, setDestroyError] = useState(null);
+    const [destroySummary, setDestroySummary] = useState('');
+
     useEffect(() => {
         setProviderDisplayNames(getProviderDisplayNames());
     }, []);
@@ -211,6 +217,44 @@ const SettingsView = () => {
         }
     }, [api, importFile, intl]);
 
+    // --- Destroy Handler ---
+    const handleDestroy = useCallback(async () => {
+        if (typeof api.destroyData !== 'function') {
+            setDestroyError(intl.formatMessage({ id: 'settings.data.destroyNotSupported', defaultMessage: 'Destroy is not supported by the current API provider.' }));
+            setDestroyStatus('error');
+            return;
+        }
+
+        // *** Confirmation Dialog ***
+        const confirmed = window.confirm(intl.formatMessage({ id: 'settings.data.destroyConfirm', defaultMessage: 'EXTREME WARNING: This will permanently delete ALL data (items, locations, categories, owners, images) from the current provider ({providerName}). This action CANNOT BE UNDONE. Are you absolutely sure you want to proceed?' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType }));
+
+        if (!confirmed) {
+            setDestroyStatus('idle'); // Reset status if cancelled
+            return;
+        }
+
+        setDestroyStatus('destroying');
+        setDestroyError(null);
+        setDestroySummary('');
+
+        try {
+            const result = await api.destroyData();
+            if (result.success) {
+                setDestroyStatus('success');
+                setDestroySummary(result.summary || intl.formatMessage({ id: 'settings.data.destroySuccessDefault', defaultMessage: 'All data destroyed successfully.' }));
+                // Consider forcing a refresh or notifying user to refresh other views
+                alert(intl.formatMessage({ id: 'settings.data.destroySuccessRefresh', defaultMessage: 'Data destruction successful! It is recommended to refresh the application or navigate away and back to view the changes.' }));
+            } else {
+                throw new Error(result.error || intl.formatMessage({ id: 'settings.data.destroyFailedUnknown', defaultMessage: 'Data destruction failed for an unknown reason.' }));
+            }
+        } catch (error) {
+            console.error("Data destruction failed:", error);
+            setDestroyError(error.message || intl.formatMessage({ id: 'settings.data.destroyUnexpectedError', defaultMessage: 'An unexpected error occurred during data destruction.' }));
+            setDestroyStatus('error');
+        }
+    }, [api, apiConfig.providerType, providerDisplayNames, intl]);
+
+
     // Get the definition for the currently selected provider in the local state
     const selectedProviderId = localApiSettings?.providerType || 'none';
     const selectedProvider = getProviderById(selectedProviderId);
@@ -361,6 +405,30 @@ const SettingsView = () => {
                         {importStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.importError', defaultMessage: 'Import Error: {error}' }, { error: importError })}</p>}
                     </div>
                 </div>
+
+                {/* Destroy Section */}
+                <div className="data-management-section">
+                    <h4>{intl.formatMessage({ id: 'settings.data.destroyTitle', defaultMessage: 'Destroy Data' })}</h4>
+                    <p className="warning-text">{intl.formatMessage({ id: 'settings.data.destroyWarning', defaultMessage: 'Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
+                    <div className="form-actions">
+                        <button
+                            type="button"
+                            onClick={handleDestroy}
+                            className="destroy-button" // Add specific class for styling
+                            disabled={destroyStatus === 'destroying' || !api.destroyData || !apiConfig.isConfigured}
+                        >
+                            {destroyStatus === 'destroying'
+                                ? intl.formatMessage({ id: 'settings.data.destroyButton.destroying', defaultMessage: 'Destroying...' })
+                                : intl.formatMessage({ id: 'settings.data.destroyButton', defaultMessage: 'Destroy All Data' })
+                            }
+                        </button>
+                    </div>
+                     <div className="feedback-section" style={{ minHeight: '40px' }}>
+                        {destroyStatus === 'success' && <p className="status-success">{destroySummary}</p>}
+                        {destroyStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.destroyError', defaultMessage: 'Destroy Error: {error}' }, { error: destroyError })}</p>}
+                    </div>
+                </div>
+
             </fieldset>
         </div>
     );

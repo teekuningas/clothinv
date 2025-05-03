@@ -78,6 +78,33 @@ const getAllFromStore = async (storeName) => {
     });
 };
 
+export const destroyData = async (settings) => { // eslint-disable-line no-unused-vars
+    console.log('IndexedDBProvider: destroyData called');
+    try {
+        console.log("Clearing all IndexedDB object stores...");
+        await clearStore(STORES.items);
+        await clearStore(STORES.images);
+        await clearStore(STORES.locations);
+        await clearStore(STORES.categories);
+        await clearStore(STORES.owners);
+        console.log("Object stores cleared.");
+
+        console.log("Resetting ID counters...");
+        _resetIdCounter('items');
+        _resetIdCounter('locations');
+        _resetIdCounter('categories');
+        _resetIdCounter('owners');
+        console.log("ID counters reset.");
+
+        console.log('IndexedDBProvider: Data destruction completed successfully.');
+        return { success: true, summary: `All data successfully destroyed.` };
+
+    } catch (error) {
+        console.error("Error during IndexedDB data destruction:", error);
+        return { success: false, error: `Data destruction failed: ${error.message}` };
+    }
+};
+
 // --- Export/Import ---
 
 const createCSV = (headers, data) => {

@@ -126,3 +126,37 @@
 .feedback-section { /* Container for status messages */
     margin-top: 10px;
 }
+
+.import-button { /* Style import button if needed */
+  background-color: #e2e6ea; /* Light grey */
+  color: #343a40;
+  border: 1px solid #dae0e5;
+}
+.import-button:hover:not(:disabled) {
+  background-color: #d3d9df;
+  border-color: #c6cdd4;
+}
+.import-button:disabled {
+  background-color: #e9ecef;
+  color: #6c757d;
+  border-color: #dee2e6;
+  cursor: not-allowed;
+}
+
+.destroy-button { /* Style destroy button */
+  background-color: #f8d7da; /* Bootstrap danger background */
+  color: #721c24; /* Bootstrap danger text */
+  border: 1px solid #f5c6cb; /* Bootstrap danger border */
+}
+.destroy-button:hover:not(:disabled) {
+  background-color: #f1b0b7;
+  border-color: #eba3aa;
+  color: #721c24;
+}
+.destroy-button:disabled {
+  background-color: #f5c6cb;
+  color: #721c24;
+  border-color: #f1b0b7;
+  opacity: 0.65;
+  cursor: not-allowed;
+}

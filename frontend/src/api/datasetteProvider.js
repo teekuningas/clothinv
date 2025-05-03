@@ -881,4 +881,37 @@ export const importData = async (settings, zipFile) => {
         return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
     }
 };
+
+export const destroyData = async (settings) => {
+    console.log('DatasetteProvider: destroyData called');
+    try {
+        // --- Clear existing data ---
+        console.log("Clearing existing Datasette data (Items first)...");
+        const existingItems = await listItems(settings);
+        // Delete items first to handle associated images
+        for (const item of existingItems) {
+            await deleteItem(settings, item.item_id); // deleteItem also handles image deletion
+        }
+        console.log(`Items (${existingItems.length}) cleared. Clearing Locations, Categories, Owners...`);
+
+        const existingLocations = await listLocations(settings);
+        for (const loc of existingLocations) await deleteLocation(settings, loc.location_id);
+        console.log(`Locations (${existingLocations.length}) cleared.`);
+
+        const existingCategories = await listCategories(settings);
+        for (const cat of existingCategories) await deleteCategory(settings, cat.category_id);
+        console.log(`Categories (${existingCategories.length}) cleared.`);
+
+        const existingOwners = await listOwners(settings);
+        for (const owner of existingOwners) await deleteOwner(settings, owner.owner_id);
+        console.log(`Owners (${existingOwners.length}) cleared.`);
+
+        console.log("Existing data cleared.");
+        return { success: true, summary: `All data successfully destroyed.` };
+
+    } catch (error) {
+        console.error("Error during Datasette data destruction:", error);
+        return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
+    }
+};
 import JSZip from 'jszip';

@@ -55,6 +55,7 @@ export const providers = {
             'deleteOwner',
             'exportData', // Add export
             'importData', // Add import
+            'destroyData', // Add this line
         ]
     },
 
@@ -85,6 +86,7 @@ export const providers = {
             'deleteOwner',
             'exportData', // Add export
             'importData', // Add import
+            'destroyData', // Add this line
         ]
     },
 };
