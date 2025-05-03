@@ -33,8 +33,6 @@
     width: calc(100% - 22px); /* Adjust for main.css padding/border */
 }
 
-.add-item-form .form-group select {
-}
 
 .add-item-form .form-group input[type="file"],
 .edit-item-form .form-group input[type="file"] {
@@ -188,8 +186,6 @@
 }
 
 
-.button-file-input {
-}
 
 .form-group-image-actions {
     /* Container for buttons related to image input */
@@ -245,26 +241,6 @@
     color: var(--color-text-base);
 }
 
-.filter-group {
-    margin-bottom: 15px;
-}
-
-.filter-group label,
-.filter-group legend { /* Style legend like label */
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    font-size: 0.9em;
-    color: var(--color-text-label); /* CHANGE */
-}
-
-.filter-group input[type="text"] {
-    width: calc(100% - 22px); /* Match add form style */
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1em;
-}
 
 .checkbox-group {
     border: none; /* Remove default fieldset border */
@@ -278,6 +254,28 @@
     margin-bottom: 8px; /* Space below legend */
 }
 
+.filter-group label,
+.filter-group legend { /* Style legend like label */
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 0.9em;
+    color: var(--color-text-label); /* CHANGE */
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group input[type="text"] {
+    width: calc(100% - 22px); /* Match add form style */
+    padding: 8px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1em;
+ }
+
+
 .checkbox-item {
     display: flex; /* Align checkbox and label */
     align-items: center;
@@ -290,6 +288,13 @@
     width: 16px;
     height: 16px;
     accent-color: var(--color-primary); /* Style checkbox color */
+}
+
+
+/* Specific width override for text inputs in add/edit forms */
+.add-item-form .form-group input[type="text"],
+.edit-item-form .form-group input[type="text"] {
+    width: calc(100% - 22px); /* Adjust for main.css padding/border */
 }
 
 .checkbox-item label {

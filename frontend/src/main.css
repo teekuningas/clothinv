@@ -169,75 +169,7 @@ button:disabled {
      color: var(--color-primary-text);
      border-color: var(--color-primary);
 
-     /* Inherits opacity: 0.65 */
-}
-
-/* Secondary uses dark grey bg, white text */
-.button-secondary {
-    background-color: var(--color-secondary);
-    color: var(--color-secondary-text);
-    border-color: var(--color-secondary);
-}
-
-.button-secondary:hover:not(:disabled) {
-    background-color: var(--color-secondary-hover);
-    border-color: var(--color-secondary-hover);
-    color: var(--color-secondary-text);
-}
-
-.button-secondary:disabled {
-    background-color: var(--color-secondary);
-    color: var(--color-secondary-text);
-    border-color: var(--color-secondary);
-
-    /* Inherits opacity: 0.65 */
-}
-
-/* New Light variant for subtle actions */
-.button-light {
-    background-color: var(--color-bg-subtle);
-    color: var(--color-text-base); /* Dark text on light bg */
-    border-color: var(--color-border); /* Use default border */
-}
-
-.button-light:hover:not(:disabled) {
-    background-color: #d3d9df; /* Slightly darker subtle bg */
-    border-color: #adb5bd; /* Slightly darker border */
-    color: var(--color-text-base);
-}
-
-.button-light:disabled {
-    background-color: var(--color-bg-subtle);
-    color: var(--color-text-muted); /* Muted text when disabled */
-    border-color: var(--color-border);
-
-    /* Inherits opacity: 0.65 */
-}
-
-
-.button-danger {
-    background-color: var(--color-danger);
-    color: var(--color-danger-text);
-    border-color: var(--color-danger);
-}
-
-.button-danger:hover:not(:disabled) {
-    background-color: var(--color-danger-hover);
-    border-color: var(--color-danger-hover);
-    color: var(--color-danger-text);
-}
-
-.button-danger:disabled {
-    background-color: var(--color-danger);
-    color: var(--color-danger-text);
-    border-color: var(--color-danger);
-
-    /* Inherits opacity: 0.65 */
-}
-
-/* REMOVE .button-danger-strong rule */
-
-/* --- Common View Padding --- */
+/* Applied via view container class names */
 
 /* Applied via view container class names */
 .locations-view,
@@ -264,15 +196,6 @@ button:disabled {
     color: var(--color-text-base);
 }
 
-.form-group input:disabled,
-.form-group select:disabled {
-    background-color: var(--color-bg-subtle); /* CHANGE */
-    cursor: not-allowed;
-
-    /* Optional: slightly muted text color for disabled inputs */
-    color: var(--color-text-muted);
-}
-
 /* Select Arrow Styling */
 .form-group select {
      appearance: none;
@@ -283,6 +206,15 @@ button:disabled {
      background-position: right 10px center;
      background-size: 0.65em auto;
      padding-right: 30px;
+}
+
+.form-group input:disabled,
+.form-group select:disabled {
+    background-color: var(--color-bg-subtle); /* CHANGE */
+    cursor: not-allowed;
+
+    /* Optional: slightly muted text color for disabled inputs */
+    color: var(--color-text-muted);
 }
 
 /* --- Common Modal Action Styles --- */
