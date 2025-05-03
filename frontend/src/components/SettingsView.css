@@ -112,7 +112,6 @@
     cursor: pointer;
     text-align: center;
     vertical-align: middle; /* Align with text if needed */
-    margin-top: 5px; /* Add some space above */
     margin-bottom: 5px; /* Add some space below */
 }
 
