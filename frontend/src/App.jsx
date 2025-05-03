@@ -98,6 +98,8 @@ function App() {
   };
 
   return (
+    // Wrap the entire app structure in BrowserRouter
+    <BrowserRouter>
     <div className="App">
       <header className="App-header">
         <h1>{intl.formatMessage({ id: 'app.title', defaultMessage: 'Inventory Management' })}</h1>
