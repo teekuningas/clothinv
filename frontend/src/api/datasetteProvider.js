@@ -1,3 +1,15 @@
+// Helper function to get MIME type from filename
+const getMimeTypeFromFilename = (filename) => {
+    if (!filename) return 'application/octet-stream'; // Default if no filename
+    const lowerCaseFilename = filename.toLowerCase();
+    if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) return 'image/jpeg';
+    if (lowerCaseFilename.endsWith('.png')) return 'image/png';
+    if (lowerCaseFilename.endsWith('.gif')) return 'image/gif';
+    if (lowerCaseFilename.endsWith('.webp')) return 'image/webp';
+    if (lowerCaseFilename.endsWith('.svg')) return 'image/svg+xml';
+    // Add other common image types as needed
+    return 'application/octet-stream'; // Fallback for unknown types
+};
 
 // Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings) => {
