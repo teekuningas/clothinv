@@ -171,6 +171,11 @@
     gap: 8px; /* Optional: Adjust gap for wrapped buttons */
   }
 
+  /* Make data management buttons full width on mobile */
+  .data-management-section .form-actions button {
+    width: 100%;
+  }
+
   /* Optional: Reduce padding on fieldsets for very small screens if needed */
   /*
   .settings-fieldset {

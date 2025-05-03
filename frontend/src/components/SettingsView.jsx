@@ -347,92 +347,92 @@ const SettingsView = () => {
                         {saveStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.api.saveError', defaultMessage: 'API Save Error: {error}' }, { error: saveError })}</p>}
                     </div>
                 </fieldset>
+
+                {/* --- Data Management (MOVED INSIDE FORM) --- */}
+                <fieldset className="settings-fieldset">
+                    <legend>{intl.formatMessage({ id: 'settings.data.legend', defaultMessage: 'Data Management' })}</legend>
+
+                    {/* Export Section */}
+                    <div className="data-management-section">
+                        <h4>{intl.formatMessage({ id: 'settings.data.exportTitle', defaultMessage: 'Export Data' })}</h4>
+                        <p>{intl.formatMessage({ id: 'settings.data.exportDescription', defaultMessage: 'Export all items, locations, categories, and owners from the currently active provider ({providerName}) into a downloadable .zip file.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                onClick={handleExport}
+                                className="export-button" // Use specific class if needed, or rely on general button styles
+                                disabled={exportStatus === 'exporting' || !api.exportData || !apiConfig.isConfigured}
+                            >
+                                {exportStatus === 'exporting'
+                                    ? intl.formatMessage({ id: 'settings.data.exportButton.exporting', defaultMessage: 'Exporting...' })
+                                    : intl.formatMessage({ id: 'settings.data.exportButton', defaultMessage: 'Export All Data' })
+                                }
+                            </button>
+                        </div>
+                        <div className="feedback-section" style={{ minHeight: '20px' }}>
+                            {exportStatus === 'success' && <p className="status-success">{intl.formatMessage({ id: 'settings.data.exportSuccess', defaultMessage: 'Export started successfully. Check your downloads.' })}</p>}
+                            {exportStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.exportError', defaultMessage: 'Export Error: {error}' }, { error: exportError })}</p>}
+                        </div>
+                    </div>
+
+                    {/* Import Section */}
+                    <div className="data-management-section">
+                        <h4>{intl.formatMessage({ id: 'settings.data.importTitle', defaultMessage: 'Import Data' })}</h4>
+                        <p className="warning-text">{intl.formatMessage({ id: 'settings.data.importWarning', defaultMessage: 'Warning: Importing data will REPLACE ALL existing data in the currently active provider ({providerName}). This action cannot be undone.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
+                        <div className="form-group">
+                            <label htmlFor="import-file-input">{intl.formatMessage({ id: 'settings.data.importFileLabel', defaultMessage: 'Select .zip file to import:' })}</label>
+                            <input
+                                type="file"
+                                id="import-file-input"
+                                accept=".zip,application/zip,application/x-zip-compressed" // Be generous with MIME types
+                                onChange={handleFileChange}
+                                disabled={importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
+                            />
+                        </div>
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                onClick={handleImport}
+                                className="import-button" // Use specific class if needed
+                                disabled={!importFile || importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
+                            >
+                                {importStatus === 'importing'
+                                    ? intl.formatMessage({ id: 'settings.data.importButton.importing', defaultMessage: 'Importing...' })
+                                    : intl.formatMessage({ id: 'settings.data.importButton', defaultMessage: 'Import Data (Replace All)' })
+                                }
+                            </button>
+                        </div>
+                         <div className="feedback-section" style={{ minHeight: '40px' }}> {/* More space for summary */}
+                            {importStatus === 'success' && <p className="status-success">{importSummary}</p>}
+                            {importStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.importError', defaultMessage: 'Import Error: {error}' }, { error: importError })}</p>}
+                        </div>
+                    </div>
+
+                    {/* Destroy Section */}
+                    <div className="data-management-section">
+                        <h4>{intl.formatMessage({ id: 'settings.data.destroyTitle', defaultMessage: 'Destroy Data' })}</h4>
+                        <p className="warning-text">{intl.formatMessage({ id: 'settings.data.destroyWarning', defaultMessage: 'Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
+                        <div className="form-actions">
+                            <button
+                                type="button"
+                                onClick={handleDestroy}
+                                className="destroy-button" // Add specific class for styling
+                                disabled={destroyStatus === 'destroying' || !api.destroyData || !apiConfig.isConfigured}
+                            >
+                                {destroyStatus === 'destroying'
+                                    ? intl.formatMessage({ id: 'settings.data.destroyButton.destroying', defaultMessage: 'Destroying...' })
+                                    : intl.formatMessage({ id: 'settings.data.destroyButton', defaultMessage: 'Destroy All Data' })
+                                }
+                            </button>
+                        </div>
+                         <div className="feedback-section" style={{ minHeight: '40px' }}>
+                            {destroyStatus === 'success' && <p className="status-success">{destroySummary}</p>}
+                            {destroyStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.destroyError', defaultMessage: 'Destroy Error: {error}' }, { error: destroyError })}</p>}
+                        </div>
+                    </div>
+
+                </fieldset>
             </form>
-
-            {/* --- Data Management --- */}
-            <fieldset className="settings-fieldset">
-                <legend>{intl.formatMessage({ id: 'settings.data.legend', defaultMessage: 'Data Management' })}</legend>
-
-                {/* Export Section */}
-                <div className="data-management-section">
-                    <h4>{intl.formatMessage({ id: 'settings.data.exportTitle', defaultMessage: 'Export Data' })}</h4>
-                    <p>{intl.formatMessage({ id: 'settings.data.exportDescription', defaultMessage: 'Export all items, locations, categories, and owners from the currently active provider ({providerName}) into a downloadable .zip file.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
-                    <div className="form-actions">
-                        <button
-                            type="button"
-                            onClick={handleExport}
-                            className="export-button" // Use specific class if needed, or rely on general button styles
-                            disabled={exportStatus === 'exporting' || !api.exportData || !apiConfig.isConfigured}
-                        >
-                            {exportStatus === 'exporting'
-                                ? intl.formatMessage({ id: 'settings.data.exportButton.exporting', defaultMessage: 'Exporting...' })
-                                : intl.formatMessage({ id: 'settings.data.exportButton', defaultMessage: 'Export All Data' })
-                            }
-                        </button>
-                    </div>
-                    <div className="feedback-section" style={{ minHeight: '20px' }}>
-                        {exportStatus === 'success' && <p className="status-success">{intl.formatMessage({ id: 'settings.data.exportSuccess', defaultMessage: 'Export started successfully. Check your downloads.' })}</p>}
-                        {exportStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.exportError', defaultMessage: 'Export Error: {error}' }, { error: exportError })}</p>}
-                    </div>
-                </div>
-
-                {/* Import Section */}
-                <div className="data-management-section">
-                    <h4>{intl.formatMessage({ id: 'settings.data.importTitle', defaultMessage: 'Import Data' })}</h4>
-                    <p className="warning-text">{intl.formatMessage({ id: 'settings.data.importWarning', defaultMessage: 'Warning: Importing data will REPLACE ALL existing data in the currently active provider ({providerName}). This action cannot be undone.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
-                    <div className="form-group">
-                        <label htmlFor="import-file-input">{intl.formatMessage({ id: 'settings.data.importFileLabel', defaultMessage: 'Select .zip file to import:' })}</label>
-                        <input
-                            type="file"
-                            id="import-file-input"
-                            accept=".zip,application/zip,application/x-zip-compressed" // Be generous with MIME types
-                            onChange={handleFileChange}
-                            disabled={importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
-                        />
-                    </div>
-                    <div className="form-actions">
-                        <button
-                            type="button"
-                            onClick={handleImport}
-                            className="import-button" // Use specific class if needed
-                            disabled={!importFile || importStatus === 'importing' || !api.importData || !apiConfig.isConfigured}
-                        >
-                            {importStatus === 'importing'
-                                ? intl.formatMessage({ id: 'settings.data.importButton.importing', defaultMessage: 'Importing...' })
-                                : intl.formatMessage({ id: 'settings.data.importButton', defaultMessage: 'Import Data (Replace All)' })
-                            }
-                        </button>
-                    </div>
-                     <div className="feedback-section" style={{ minHeight: '40px' }}> {/* More space for summary */}
-                        {importStatus === 'success' && <p className="status-success">{importSummary}</p>}
-                        {importStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.importError', defaultMessage: 'Import Error: {error}' }, { error: importError })}</p>}
-                    </div>
-                </div>
-
-                {/* Destroy Section */}
-                <div className="data-management-section">
-                    <h4>{intl.formatMessage({ id: 'settings.data.destroyTitle', defaultMessage: 'Destroy Data' })}</h4>
-                    <p className="warning-text">{intl.formatMessage({ id: 'settings.data.destroyWarning', defaultMessage: 'Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.' }, { providerName: providerDisplayNames[apiConfig.providerType] || apiConfig.providerType })}</p>
-                    <div className="form-actions">
-                        <button
-                            type="button"
-                            onClick={handleDestroy}
-                            className="destroy-button" // Add specific class for styling
-                            disabled={destroyStatus === 'destroying' || !api.destroyData || !apiConfig.isConfigured}
-                        >
-                            {destroyStatus === 'destroying'
-                                ? intl.formatMessage({ id: 'settings.data.destroyButton.destroying', defaultMessage: 'Destroying...' })
-                                : intl.formatMessage({ id: 'settings.data.destroyButton', defaultMessage: 'Destroy All Data' })
-                            }
-                        </button>
-                    </div>
-                     <div className="feedback-section" style={{ minHeight: '40px' }}>
-                        {destroyStatus === 'success' && <p className="status-success">{destroySummary}</p>}
-                        {destroyStatus === 'error' && <p className="status-error">{intl.formatMessage({ id: 'settings.data.destroyError', defaultMessage: 'Destroy Error: {error}' }, { error: destroyError })}</p>}
-                    </div>
-                </div>
-
-            </fieldset>
         </div>
     );
 };
