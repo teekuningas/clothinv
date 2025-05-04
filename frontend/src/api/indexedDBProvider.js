@@ -6,15 +6,16 @@ import {
 } from './providerUtils'; // Import shared utilities
 // --- IndexedDB Setup ---
 const DB_NAME = 'ClothingInventoryDB';
-const DB_VERSION = 1; // Increment this if schema changes
+const DB_VERSION = 2; // Increment this if schema changes
 const STORES = {
     items: 'items',
-    images: 'images',
-    locations: 'locations',
-    categories: 'categories',
-    owners: 'owners',
+    images: 'images', // Note: Stores File objects, keyed by item_id
+    locations: 'locations', // Stores location metadata, keyed by location_id
+    categories: 'categories', // Stores category metadata, keyed by category_id
+    owners: 'owners', // Stores owner metadata, keyed by owner_id
+    counters: 'counters', // Stores next available ID for each entity type
 };
-const ID_COUNTERS_KEY_PREFIX = 'indexeddb_id_counter_'; // Use different prefix from localStorageProvider
+// Removed ID_COUNTERS_KEY_PREFIX
 
 let dbPromise = null;
 
@@ -35,30 +36,50 @@ const openDB = () => {
         };
 
         request.onupgradeneeded = (event) => {
-            console.log("IndexedDB upgrade needed");
+            console.log(`IndexedDB upgrade needed from version ${event.oldVersion} to ${event.newVersion}`);
             const db = event.target.result;
+            const transaction = event.target.transaction; // Get transaction for initialization
 
-            // Create object stores if they don't exist
-            if (!db.objectStoreNames.contains(STORES.items)) {
-                // Use item_id as the key path
-                db.createObjectStore(STORES.items, { keyPath: 'item_id' });
-                // Example: Create index for searching/sorting if needed later
-                // store.createIndex('name', 'name', { unique: false });
-                // store.createIndex('created_at', 'created_at');
+            // Version 1: Create initial stores
+            if (event.oldVersion < 1) {
+                console.log("Creating initial object stores (items, images, locations, categories, owners)...");
+                if (!db.objectStoreNames.contains(STORES.items)) {
+                    db.createObjectStore(STORES.items, { keyPath: 'item_id' });
+                }
+                if (!db.objectStoreNames.contains(STORES.images)) {
+                    db.createObjectStore(STORES.images); // Keyed externally by item_id
+                }
+                if (!db.objectStoreNames.contains(STORES.locations)) {
+                    db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
+                }
+                if (!db.objectStoreNames.contains(STORES.categories)) {
+                    db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
+                }
+                if (!db.objectStoreNames.contains(STORES.owners)) {
+                    db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
+                }
             }
-            if (!db.objectStoreNames.contains(STORES.images)) {
-                // Use item_id as the key (images are 1:1 with items)
-                db.createObjectStore(STORES.images);
+
+            // Version 2: Create counters store and initialize
+            if (event.oldVersion < 2) {
+                console.log("Creating and initializing counters store...");
+                if (!db.objectStoreNames.contains(STORES.counters)) {
+                    const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
+                    // Initialize counters within the upgrade transaction
+                    // Use the transaction associated with the upgrade event
+                    console.log("Initializing default counters...");
+                    const entities = ['items', 'locations', 'categories', 'owners'];
+                    entities.forEach(entity => {
+                        // Use transaction.objectStore to ensure it happens within the upgrade
+                        const store = transaction.objectStore(STORES.counters);
+                        store.put({ entity: entity, nextId: 1 }).onerror = (e) => {
+                             console.error(`Error initializing counter for ${entity}:`, e.target.error);
+                        };
+                    });
+                     console.log("Counters initialized.");
+                }
             }
-            if (!db.objectStoreNames.contains(STORES.locations)) {
-                db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.categories)) {
-                db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
-            }
-             if (!db.objectStoreNames.contains(STORES.owners)) {
-                db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
-            }
+
             console.log("IndexedDB upgrade complete");
         };
     });
@@ -92,14 +113,27 @@ export const destroyData = async (settings) => { // eslint-disable-line no-unuse
         await clearStore(STORES.locations);
         await clearStore(STORES.categories);
         await clearStore(STORES.owners);
-        console.log("Object stores cleared.");
+        // Don't clear counters store here, reset it below
+        console.log("Main data stores cleared.");
 
-        console.log("Resetting ID counters...");
-        _resetIdCounter('items');
-        _resetIdCounter('locations');
-        _resetIdCounter('categories');
-        _resetIdCounter('owners');
-        console.log("ID counters reset.");
+        console.log("Resetting ID counters in IndexedDB...");
+        const db = await openDB();
+        const transaction = db.transaction(STORES.counters, 'readwrite');
+        const counterStore = transaction.objectStore(STORES.counters);
+        const entities = ['items', 'locations', 'categories', 'owners'];
+        const promises = entities.map(entity => {
+            return new Promise((resolve, reject) => {
+                const request = counterStore.put({ entity: entity, nextId: 1 });
+                request.onsuccess = resolve;
+                request.onerror = (e) => {
+                    console.error(`Error resetting counter for ${entity}:`, e.target.error);
+                    reject(`Error resetting counter for ${entity}`);
+                };
+            });
+        });
+
+        await Promise.all(promises); // Wait for all counters to be reset
+        console.log("ID counters reset in IndexedDB.");
 
         console.log('IndexedDBProvider: Data destruction completed successfully.');
         return { success: true, summary: `All data successfully destroyed.` };
@@ -197,68 +231,118 @@ export const importData = async (settings, zipFile) => { // eslint-disable-line 
         await clearStore(STORES.categories);
         await clearStore(STORES.owners);
         _resetIdCounter('items');
-        _resetIdCounter('locations');
-        _resetIdCounter('categories');
-        _resetIdCounter('owners');
+        // Don't reset counters here, do it after parsing below
         console.log("Existing data cleared.");
- 
-        // Parse and import data (simplified - assumes IDs can be reused after clearing)
+
+        // --- Parse Data ---
         const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
+        const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
+        const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
+        const items = parseCSV(await loadedZip.file('items.csv').async('string'));
+
+        // --- Reset Counters Based on Max Imported IDs ---
+        console.log("Resetting ID counters based on imported data...");
+        const maxLocId = Math.max(0, ...locations.map(l => parseInt(l.location_id, 10) || 0));
+        const maxCatId = Math.max(0, ...categories.map(c => parseInt(c.category_id, 10) || 0));
+        const maxOwnerId = Math.max(0, ...owners.map(o => parseInt(o.owner_id, 10) || 0));
+        const maxItemId = Math.max(0, ...items.map(i => parseInt(i.item_id, 10) || 0));
+
+        const dbCounters = await openDB();
+        const counterTx = dbCounters.transaction(STORES.counters, 'readwrite');
+        const counterStore = counterTx.objectStore(STORES.counters);
+        const counterPromises = [
+            { entity: 'locations', nextId: maxLocId + 1 },
+            { entity: 'categories', nextId: maxCatId + 1 },
+            { entity: 'owners', nextId: maxOwnerId + 1 },
+            { entity: 'items', nextId: maxItemId + 1 },
+        ].map(counter => {
+            return new Promise((resolve, reject) => {
+                const req = counterStore.put(counter);
+                req.onsuccess = resolve;
+                req.onerror = (e) => {
+                    console.error(`Error setting counter for ${counter.entity}:`, e.target.error);
+                    reject(`Failed to set counter for ${counter.entity}`);
+                };
+            });
+        });
+        await Promise.all(counterPromises);
+        console.log("ID counters reset based on imported data.");
+
+        // --- Import Data (using imported IDs) ---
+        console.log("Importing locations...");
         for (const loc of locations) {
             // Ensure timestamps are preserved or set defaults if missing in older exports
             loc.created_at = loc.created_at || new Date().toISOString();
             loc.updated_at = loc.updated_at || null;
-            await addToStore(STORES.locations, loc);
+            // Ensure IDs are numbers
+            loc.location_id = parseInt(loc.location_id, 10);
+            // Preserve timestamps or set defaults
+            loc.created_at = loc.created_at || new Date().toISOString();
+            loc.updated_at = loc.updated_at || null;
+            // Use putInStore which handles add/update based on key
+            await updateInStore(STORES.locations, loc);
         }
- 
-        const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
+        console.log("Locations imported.");
+
+        console.log("Importing categories...");
         for (const cat of categories) {
+            cat.category_id = parseInt(cat.category_id, 10);
             cat.created_at = cat.created_at || new Date().toISOString();
             cat.updated_at = cat.updated_at || null;
-            await addToStore(STORES.categories, cat);
+            await updateInStore(STORES.categories, cat);
         }
- 
-        const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
+        console.log("Categories imported.");
+
+        console.log("Importing owners...");
         for (const owner of owners) {
+            owner.owner_id = parseInt(owner.owner_id, 10);
             owner.created_at = owner.created_at || new Date().toISOString();
             owner.updated_at = owner.updated_at || null;
-            await addToStore(STORES.owners, owner);
+            await updateInStore(STORES.owners, owner);
         }
- 
-        const items = parseCSV(await loadedZip.file('items.csv').async('string'));
+        console.log("Owners imported.");
+
+        console.log("Importing items and images...");
         for (const item of items) {
             const { image_zip_filename, image_original_filename, ...itemMetadata } = item;
+            itemMetadata.item_id = parseInt(itemMetadata.item_id, 10); // Ensure item_id is number
             let imageFile = null;
             if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
                 const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
                 imageFile = new File([imageBlob], image_original_filename || image_zip_filename, { type: imageBlob.type });
             }
-            // Add item metadata and image (similar logic to addItem, but using imported IDs)
-            // Preserve timestamps from CSV
+            // Preserve timestamps or set defaults
             itemMetadata.created_at = itemMetadata.created_at || new Date().toISOString();
             itemMetadata.updated_at = itemMetadata.updated_at || null;
-            await addToStore(STORES.items, itemMetadata);
+
+            // Use a transaction to add item and image together
+            const dbItem = await openDB();
+            const itemTx = dbItem.transaction([STORES.items, STORES.images], 'readwrite');
+            const itemsStore = itemTx.objectStore(STORES.items);
+            const imagesStore = itemTx.objectStore(STORES.images);
+
+            const itemReq = itemsStore.put(itemMetadata); // Use put for add/update
+            itemReq.onerror = (e) => console.error(`Error importing item ${itemMetadata.item_id}:`, e.target.error);
+
             if (imageFile) {
-                // Use putInStore to handle potential key conflicts if needed, or ensure keys are unique
-                // Using add assumes item_id from CSV is the key and doesn't exist yet
-                const imageAddRequest = await addToStore(STORES.images, imageFile, itemMetadata.item_id); // Use item_id as key
-                 if (!imageAddRequest.success) {
-                    console.warn(`Could not add image for item ${itemMetadata.item_id}. It might already exist or another error occurred.`);
-                 }
+                const imageReq = imagesStore.put(imageFile, itemMetadata.item_id); // Use put for add/update, key is item_id
+                imageReq.onerror = (e) => console.error(`Error importing image for item ${itemMetadata.item_id}:`, e.target.error);
             }
+
+            // Wait for transaction to complete for this item
+            await new Promise((resolve, reject) => {
+                itemTx.oncomplete = resolve;
+                itemTx.onerror = (e) => {
+                    console.error(`Transaction error importing item ${itemMetadata.item_id}:`, e.target.error);
+                    reject(e.target.error); // Reject if transaction fails
+                };
+                 itemTx.onabort = (e) => {
+                    console.error(`Transaction aborted importing item ${itemMetadata.item_id}:`, e.target.error);
+                    reject(e.target.error); // Reject if transaction aborts
+                };
+            });
         }
-
-        // Reset ID counters based on max imported IDs (optional but good practice)
-        const maxLocId = Math.max(0, ...locations.map(l => l.location_id));
-        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}locations`, String(maxLocId));
-        const maxCatId = Math.max(0, ...categories.map(c => c.category_id));
-        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}categories`, String(maxCatId));
-        const maxOwnerId = Math.max(0, ...owners.map(o => o.owner_id));
-        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}owners`, String(maxOwnerId));
-        const maxItemId = Math.max(0, ...items.map(i => i.item_id));
-        localStorage.setItem(`${ID_COUNTERS_KEY_PREFIX}items`, String(maxItemId));
-        console.log("ID counters reset based on imported data.");
-
+        console.log("Items and images imported.");
 
         console.log('IndexedDBProvider: Import completed successfully.');
         return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
@@ -357,21 +441,7 @@ const getFromStore = async (storeName, key) => {
     });
 };
 
-
-// --- ID Generation (using localStorage for simplicity) ---
-const _getNextId = (key) => {
-    const counterKey = `${ID_COUNTERS_KEY_PREFIX}${key}`;
-    let nextId = parseInt(localStorage.getItem(counterKey) || '0', 10) + 1;
-    localStorage.setItem(counterKey, nextId.toString());
-    console.log(`Generated next ID for ${key}: ${nextId}`);
-    return nextId;
-};
-
-const _resetIdCounter = (key) => {
-    const counterKey = `${ID_COUNTERS_KEY_PREFIX}${key}`;
-    localStorage.setItem(counterKey, '0');
-    console.log(`Reset ID counter for ${key}`);
-};
+// Removed _getNextId and _resetIdCounter functions
 
 // --- Exported API Methods ---
 
@@ -383,15 +453,61 @@ export const listLocations = async (settings) => { // eslint-disable-line no-unu
 
 export const addLocation = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addLocation called with data:', data);
-    const newId = _getNextId('locations');
-    const newLocation = {
-        ...data,
-        location_id: newId,
-        created_at: new Date().toISOString(),
-        updated_at: null // Set updated_at to null on creation
-    };
-    await addToStore(STORES.locations, newLocation);
-    return { success: true, newId: newId };
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORES.locations, STORES.counters], 'readwrite');
+        const locationStore = transaction.objectStore(STORES.locations);
+        const counterStore = transaction.objectStore(STORES.counters);
+        const entity = 'locations';
+        let newId;
+
+        const counterRequest = counterStore.get(entity);
+
+        counterRequest.onerror = (event) => {
+            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            transaction.abort();
+            reject(`Error getting counter: ${event.target.error}`);
+        };
+
+        counterRequest.onsuccess = (event) => {
+            const counter = event.target.result || { entity: entity, nextId: 1 }; // Default if not found
+            newId = counter.nextId;
+            counter.nextId++; // Increment
+
+            const updateCounterRequest = counterStore.put(counter);
+            updateCounterRequest.onerror = (event) => {
+                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                transaction.abort();
+                reject(`Error updating counter: ${event.target.error}`);
+            };
+
+            const newLocation = {
+                ...data,
+                location_id: newId,
+                created_at: new Date().toISOString(),
+                updated_at: null
+            };
+            const addLocationRequest = locationStore.add(newLocation);
+            addLocationRequest.onerror = (event) => {
+                console.error("Error adding location:", event.target.error);
+                transaction.abort();
+                reject(`Error adding location: ${event.target.error}`);
+            };
+        };
+
+        transaction.oncomplete = () => {
+            console.log(`IndexedDBProvider: Location ${newId} added successfully.`);
+            resolve({ success: true, newId: newId });
+        };
+        transaction.onerror = (event) => {
+            console.error("Transaction error adding location:", event.target.error);
+            reject(`Transaction error: ${event.target.error}`);
+        };
+         transaction.onabort = (event) => {
+            console.error("Transaction aborted adding location:", event.target.error);
+            // Reject is likely already called by specific request error handler
+        };
+    });
 };
 
 export const updateLocation = async (settings, locationId, data) => { // eslint-disable-line no-unused-vars
@@ -431,15 +547,60 @@ export const listCategories = async (settings) => { // eslint-disable-line no-un
 
 export const addCategory = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addCategory called with data:', data);
-    const newId = _getNextId('categories');
-    const newCategory = {
-        ...data,
-        category_id: newId,
-        created_at: new Date().toISOString(),
-        updated_at: null
-    };
-    await addToStore(STORES.categories, newCategory);
-    return { success: true, newId: newId };
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORES.categories, STORES.counters], 'readwrite');
+        const categoryStore = transaction.objectStore(STORES.categories);
+        const counterStore = transaction.objectStore(STORES.counters);
+        const entity = 'categories';
+        let newId;
+
+        const counterRequest = counterStore.get(entity);
+
+        counterRequest.onerror = (event) => {
+            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            transaction.abort();
+            reject(`Error getting counter: ${event.target.error}`);
+        };
+
+        counterRequest.onsuccess = (event) => {
+            const counter = event.target.result || { entity: entity, nextId: 1 };
+            newId = counter.nextId;
+            counter.nextId++;
+
+            const updateCounterRequest = counterStore.put(counter);
+            updateCounterRequest.onerror = (event) => {
+                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                transaction.abort();
+                reject(`Error updating counter: ${event.target.error}`);
+            };
+
+            const newCategory = {
+                ...data,
+                category_id: newId,
+                created_at: new Date().toISOString(),
+                updated_at: null
+            };
+            const addCategoryRequest = categoryStore.add(newCategory);
+            addCategoryRequest.onerror = (event) => {
+                console.error("Error adding category:", event.target.error);
+                transaction.abort();
+                reject(`Error adding category: ${event.target.error}`);
+            };
+        };
+
+        transaction.oncomplete = () => {
+            console.log(`IndexedDBProvider: Category ${newId} added successfully.`);
+            resolve({ success: true, newId: newId });
+        };
+        transaction.onerror = (event) => {
+            console.error("Transaction error adding category:", event.target.error);
+            reject(`Transaction error: ${event.target.error}`);
+        };
+         transaction.onabort = (event) => {
+            console.error("Transaction aborted adding category:", event.target.error);
+        };
+    });
 };
 
 export const updateCategory = async (settings, categoryId, data) => { // eslint-disable-line no-unused-vars
@@ -476,15 +637,60 @@ export const listOwners = async (settings) => { // eslint-disable-line no-unused
 
 export const addOwner = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addOwner called with data:', data);
-    const newId = _getNextId('owners');
-    const newOwner = {
-        ...data,
-        owner_id: newId,
-        created_at: new Date().toISOString(),
-        updated_at: null
-    };
-    await addToStore(STORES.owners, newOwner);
-    return { success: true, newId: newId };
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORES.owners, STORES.counters], 'readwrite');
+        const ownerStore = transaction.objectStore(STORES.owners);
+        const counterStore = transaction.objectStore(STORES.counters);
+        const entity = 'owners';
+        let newId;
+
+        const counterRequest = counterStore.get(entity);
+
+        counterRequest.onerror = (event) => {
+            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            transaction.abort();
+            reject(`Error getting counter: ${event.target.error}`);
+        };
+
+        counterRequest.onsuccess = (event) => {
+            const counter = event.target.result || { entity: entity, nextId: 1 };
+            newId = counter.nextId;
+            counter.nextId++;
+
+            const updateCounterRequest = counterStore.put(counter);
+            updateCounterRequest.onerror = (event) => {
+                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                transaction.abort();
+                reject(`Error updating counter: ${event.target.error}`);
+            };
+
+            const newOwner = {
+                ...data,
+                owner_id: newId,
+                created_at: new Date().toISOString(),
+                updated_at: null
+            };
+            const addOwnerRequest = ownerStore.add(newOwner);
+            addOwnerRequest.onerror = (event) => {
+                console.error("Error adding owner:", event.target.error);
+                transaction.abort();
+                reject(`Error adding owner: ${event.target.error}`);
+            };
+        };
+
+        transaction.oncomplete = () => {
+            console.log(`IndexedDBProvider: Owner ${newId} added successfully.`);
+            resolve({ success: true, newId: newId });
+        };
+        transaction.onerror = (event) => {
+            console.error("Transaction error adding owner:", event.target.error);
+            reject(`Transaction error: ${event.target.error}`);
+        };
+         transaction.onabort = (event) => {
+            console.error("Transaction aborted adding owner:", event.target.error);
+        };
+    });
 };
 
 export const updateOwner = async (settings, ownerId, data) => { // eslint-disable-line no-unused-vars
@@ -538,55 +744,75 @@ export const listItems = async (settings) => { // eslint-disable-line no-unused-
 
 export const addItem = async (settings, data) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: addItem called with data:', data);
-    const newId = _getNextId('items');
-
-    // Prepare item metadata
     const { imageFile, ...restOfData } = data; // Separate image file
-    const newItemMetadata = {
-        ...restOfData,
-        item_id: newId,
-        created_at: new Date().toISOString(),
-        updated_at: null // Explicitly set updated_at to null on creation
-    };
-
-    // Use transaction for atomicity (add metadata and image together)
     const db = await openDB();
+
     return new Promise((resolve, reject) => {
-        const transaction = db.transaction([STORES.items, STORES.images], 'readwrite');
+        // Transaction covers items, images, and the counter
+        const transaction = db.transaction([STORES.items, STORES.images, STORES.counters], 'readwrite');
         const itemsStore = transaction.objectStore(STORES.items);
         const imagesStore = transaction.objectStore(STORES.images);
+        const counterStore = transaction.objectStore(STORES.counters);
+        const entity = 'items';
+        let newId;
 
-        let imageAddRequest;
-        if (imageFile instanceof File) {
-            // Add image using item_id as key
-            imageAddRequest = imagesStore.add(imageFile, newId);
-            imageAddRequest.onerror = (event) => {
-                console.error("Error adding image to IndexedDB:", event.target.error);
-                transaction.abort(); // Abort transaction on image add error
-                reject(`Error adding image: ${event.target.error}`);
-            };
-        }
+        const counterRequest = counterStore.get(entity);
 
-        const itemAddRequest = itemsStore.add(newItemMetadata);
-        itemAddRequest.onerror = (event) => {
-            console.error("Error adding item metadata to IndexedDB:", event.target.error);
-            transaction.abort(); // Abort transaction on item add error
-            reject(`Error adding item metadata: ${event.target.error}`);
+        counterRequest.onerror = (event) => {
+            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            transaction.abort();
+            reject(`Error getting counter: ${event.target.error}`);
         };
+
+        counterRequest.onsuccess = (event) => {
+            const counter = event.target.result || { entity: entity, nextId: 1 };
+            newId = counter.nextId;
+            counter.nextId++; // Increment
+
+            const updateCounterRequest = counterStore.put(counter);
+            updateCounterRequest.onerror = (event) => {
+                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                transaction.abort();
+                reject(`Error updating counter: ${event.target.error}`);
+            };
+
+            // Prepare item metadata with the new ID
+            const newItemMetadata = {
+                ...restOfData,
+                item_id: newId,
+                created_at: new Date().toISOString(),
+                updated_at: null
+            };
+
+            // Add item metadata
+            const itemAddRequest = itemsStore.add(newItemMetadata);
+            itemAddRequest.onerror = (event) => {
+                console.error("Error adding item metadata:", event.target.error);
+                transaction.abort();
+                reject(`Error adding item metadata: ${event.target.error}`);
+            };
+
+            // Add image if present
+            if (imageFile instanceof File) {
+                const imageAddRequest = imagesStore.add(imageFile, newId); // Key is newId
+                imageAddRequest.onerror = (event) => {
+                    console.error("Error adding image:", event.target.error);
+                    transaction.abort();
+                    reject(`Error adding image: ${event.target.error}`);
+                };
+            }
+        }; // End counterRequest.onsuccess
 
         transaction.oncomplete = () => {
             console.log(`IndexedDBProvider: Item ${newId} added successfully.`);
             resolve({ success: true, newId: newId });
         };
-
         transaction.onerror = (event) => {
-            // This catches errors not handled by individual requests (like abort)
-            console.error("IndexedDB transaction error on add:", event.target.error);
-            reject(`Transaction error on add: ${event.target.error}`);
+            console.error("Transaction error adding item:", event.target.error);
+            reject(`Transaction error: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("IndexedDB transaction aborted on add:", event.target.error);
-            // Reject is likely already called by the specific request error handler
+            console.error("Transaction aborted adding item:", event.target.error);
         };
     });
 };
