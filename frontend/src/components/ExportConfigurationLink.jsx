@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+// Removed useSearchParams import
 import { useIntl } from "react-intl";
+// Import localStorage keys
+import { LS_API_PROVIDER_CONFIG_KEY } from "../api/ApiContext";
+import { LS_LOCALE_KEY } from "../translations/i18n";
 
 const ExportConfigurationLink = () => {
-  const [searchParams] = useSearchParams();
+  // Removed useSearchParams hook
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
@@ -40,7 +43,96 @@ const ExportConfigurationLink = () => {
       );
       setGeneratedUrl("");
     }
-  }, [searchParams, intl]);
+    // Inside useEffect(() => { ... }, [intl]);
+
+    const configParams = new URLSearchParams();
+    let foundConfig = false;
+
+    // 1. Get Locale from localStorage
+    try {
+      const localeValue = localStorage.getItem(LS_LOCALE_KEY);
+      if (localeValue) {
+        configParams.set("userLocale", localeValue);
+        foundConfig = true;
+        console.log("ExportConfig: Added userLocale from localStorage:", localeValue);
+      }
+    } catch (e) {
+      console.error("ExportConfig: Error reading locale from localStorage:", e);
+      // Optionally set a non-critical error/warning here if needed
+    }
+
+    // 2. Get API Config from localStorage
+    try {
+      const savedApiConfig = localStorage.getItem(LS_API_PROVIDER_CONFIG_KEY);
+      if (savedApiConfig) {
+        const apiConfig = JSON.parse(savedApiConfig); // Parse the JSON string
+
+        // Add providerType
+        if (apiConfig.providerType) {
+          configParams.set("apiProviderConfig.providerType", apiConfig.providerType);
+          foundConfig = true;
+          console.log("ExportConfig: Added apiProviderConfig.providerType from localStorage:", apiConfig.providerType);
+        }
+
+        // Add settings if they exist and are an object
+        if (apiConfig.settings && typeof apiConfig.settings === 'object') {
+          for (const [key, value] of Object.entries(apiConfig.settings)) {
+            // Ensure value is not null/undefined before setting
+            if (value !== null && value !== undefined) {
+               configParams.set(`apiProviderConfig.settings.${key}`, String(value)); // Convert value to string
+               foundConfig = true;
+               console.log(`ExportConfig: Added apiProviderConfig.settings.${key} from localStorage:`, String(value));
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error("ExportConfig: Error reading or parsing API config from localStorage:", e);
+      setError(
+        intl.formatMessage({
+          id: "exportConfig.error.localStorageReadFailed", // New ID
+          defaultMessage: "Error: Failed to read or parse configuration from local storage.",
+        }),
+      );
+      setGeneratedUrl("");
+      return; // Stop processing if API config fails critically
+    }
+
+    // 3. Check if any config was found
+    if (!foundConfig) {
+      setError(
+        intl.formatMessage({
+          id: "exportConfig.error.noConfigInLocalStorage", // New ID
+          defaultMessage: "Error: No configuration found in local storage to export.",
+        }),
+      );
+      setGeneratedUrl("");
+      return;
+    }
+
+    // 4. Generate the URL
+    try {
+      const queryString = configParams.toString();
+      console.log("ExportConfig: Generated query string:", queryString);
+      const base64String = btoa(queryString);
+      const configureUrl = `${window.location.origin}/configure?values=${base64String}`;
+
+      setGeneratedUrl(configureUrl);
+      setError(""); // Clear previous errors
+      console.log("ExportConfig: Generated URL:", configureUrl);
+    } catch (e) {
+      console.error("ExportConfig: Error encoding query string:", e);
+      setError(
+        intl.formatMessage({
+          id: "exportConfig.error.encodingFailed", // Keep existing ID
+          defaultMessage: "Error: Failed to generate configuration link.",
+        }),
+      );
+      setGeneratedUrl("");
+    }
+
+    // End of useEffect body
+  }, [intl]); // Dependency array changed to [intl]
 
   const handleCopyUrl = () => {
     if (!generatedUrl) return; // Don't copy if URL generation failed
