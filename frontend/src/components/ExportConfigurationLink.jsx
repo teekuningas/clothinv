@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
-// Removed unused imports: getProviderById, getLocaleCodes
 
 const ExportConfigurationLink = () => {
   const [searchParams] = useSearchParams();
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
-  // Removed encodedString and configDetails states
 
   useEffect(() => {
     const queryString = searchParams.toString();
