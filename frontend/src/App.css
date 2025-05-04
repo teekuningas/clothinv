@@ -6,12 +6,6 @@
   font-size: 1.2rem;
 }
 
-/* --- General App Styles --- */
-
-
-/* --- App Header --- */
-
-/* Main App Header Styles */
 .app-header {
   background-color: var(--color-bg-container); /* Use white */
   padding: 15px 20px 10px; /* Adjust padding */
@@ -85,15 +79,6 @@
   border-color: var(--color-primary);
 }
 
-/* --- Global Warnings Area --- */
-.global-warnings {
-    /* Add some styling if needed, e.g., */
-
-    /* text-align: left; */
-
- /* Align warnings left if preferred */
-}
-
 .global-warnings p {
     margin: 5px 0;
     font-size: 0.9em;
@@ -150,8 +135,6 @@
     cursor: pointer;
     line-height: 1;
     padding: 5px; /* Add some padding */
-
-    /* Ensure close button is clickable above overlay content if needed */
     z-index: 1110; /* Higher than overlay */
 }
 
@@ -178,7 +161,7 @@
     .app-header {
         /* Ensure header has relative positioning for absolute children */
         position: relative;
-        padding: 15px 70px 5px 15px; /* Increased padding to ensure space for hamburger */ /* Adjust left padding if needed */ /* Adjust top/bottom padding */
+        padding: 15px 70px 5px 15px;
     }
 
     /* Hide the standard desktop navigation */

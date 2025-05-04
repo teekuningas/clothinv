@@ -1,5 +1,3 @@
-/* Settings View Styles */
-
 .settings-view h2 {
     margin-bottom: 20px; /* Space below title */
 }
@@ -20,14 +18,16 @@
     color: var(--color-text-label);
 }
 
-
-.form-actions {
+.settings-fieldset .form-actions {
   margin-top: 20px; /* Reduced margin */
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
+.settings-fieldset .feedback-section { /* Container for status messages */
+    margin-top: 10px;
+}
 
 /* --- Data Management Section --- */
 .data-management-section {
@@ -43,14 +43,7 @@
     border-top: none; /* No top border for the first section */
 }
 
-
-/* Specific margin for file input label button */
-.button-file-input {
-    margin-bottom: 5px;
-}
-
-
-.selected-file-name {
+.data-management-section .selected-file-name {
     margin-top: 8px;
     font-size: 0.9em;
     color: var(--color-text-label);
@@ -71,7 +64,7 @@
     overflow-wrap: break-word; /* Ensure long text wraps */
 }
 
-.warning-text {
+.data-management-section .warning-text {
     color: var(--color-warning-text);
     background-color: var(--color-warning-bg);
     border: 1px solid var(--color-warning-bg);
@@ -83,14 +76,8 @@
 }
 
 
-.feedback-section { /* Container for status messages */
-    margin-top: 10px;
-}
-
-
-/* --- Responsive Adjustments --- */
 @media (width <= 768px) {
-  .form-actions {
+  .settings-fieldset .form-actions {
     flex-wrap: wrap; /* Allow buttons to wrap */
     justify-content: flex-start; /* Align wrapped buttons to the start */
     gap: 8px; /* Optional: Adjust gap for wrapped buttons */

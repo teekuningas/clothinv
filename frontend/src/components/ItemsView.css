@@ -1,7 +1,3 @@
-/* frontend/src/components/ItemsView.css */
-
-
-/* --- Add Item Form --- */
 .add-item-form {
     margin-bottom: 30px;
     padding: 15px;
@@ -43,13 +39,10 @@
     font-weight: bold;
 }
 
-
-
 .add-item-form .form-group input[type="file"],
 .edit-item-form .form-group input[type="file"] {
     margin-top: 5px; /* Space above file input */
 }
-
 
 /* Image Preview Styles */
 .image-preview {
@@ -208,7 +201,6 @@
     }
 }
 
-
 /* --- Filters --- */
 .filter-toggle-button {
     margin-bottom: 15px;
@@ -230,7 +222,6 @@
     padding-bottom: 8px;
     color: var(--color-text-base);
 }
-
 
 .checkbox-group {
     border: none; /* Remove default fieldset border */
@@ -255,7 +246,6 @@
     border-radius: 4px;
     font-size: 1em;
  }
-
 
 .checkbox-item {
     display: flex; /* Align checkbox and label */

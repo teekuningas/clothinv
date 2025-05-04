@@ -11,16 +11,12 @@
     color: var(--color-text-base);
 }
 
-/* Input styling within forms in this view */
-
 /* Specific width override for text inputs in this view */
 .add-owner-form .form-group input[type="text"],
 .edit-owner-form .form-group input[type="text"] {
     width: calc(100% - 22px);
 }
 
-
-/* --- Owner Card Styles --- */
 .owners-list { /* Container for cards */
     padding: 0;
     margin-top: 20px;
@@ -52,8 +48,6 @@
     font-size: 0.95em;
 }
 
-
-/* --- Edit/Delete Modal Styles --- */
-.edit-owner-form { /* Styles specific to the form inside the edit modal */
+.edit-owner-form {
     padding: 10px 0 0; /* Add padding top, remove others */
 }

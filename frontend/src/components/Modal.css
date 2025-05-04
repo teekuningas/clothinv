@@ -49,7 +49,3 @@
 .modal-close-button:hover {
     color: var(--color-text-base);
 }
-
-.modal-body {
-    /* Content styles are handled by the component using the modal */
-}

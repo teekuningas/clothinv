@@ -11,8 +11,6 @@
     color: var(--color-text-base);
 }
 
-/* Input styling within forms in this view */
-
 /* Specific width override for text inputs in this view */
 .add-category-form .form-group input[type="text"],
 .edit-category-form .form-group input[type="text"] {
@@ -20,7 +18,6 @@
 }
 
 
-/* --- Category Card Styles --- */
 .categories-list { /* Container for cards */
     padding: 0;
     margin-top: 20px;
@@ -52,8 +49,6 @@
     font-size: 0.95em;
 }
 
-
-/* --- Edit/Delete Modal Styles --- */
-.edit-category-form { /* Styles specific to the form inside the edit modal */
+.edit-category-form {
     padding: 10px 0 0; /* Add padding top, remove others */
 }
