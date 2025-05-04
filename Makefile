@@ -11,7 +11,7 @@ DATASATTE_DB_FILE := $(DATASATTE_DB_DIR)/inventory.db
 # PostgreSQL / Docker
 POSTGRES_DB := inventory_db
 POSTGRES_USER := inventory_user
-POSTGRES_PASSWORD := supersecretpassword # Change this in production!
+POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_CONTAINER_NAME := inventory-postgres-dev
 POSTGRES_PORT := 5432
 # Use a Docker volume for persistent data during development
