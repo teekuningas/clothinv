@@ -1,7 +1,6 @@
-.PHONY: help shell init-db-datasette start-backend-datasette init-db-postgres start-backend-postgres watch-frontend clean
+.PHONY: help shell init-db-datasette start-backend-datasette init-db-postgres start-backend-postgres watch-frontend
 
 # --- Configuration ---
-# SCHEMA_FILE := db/schema.sql # Original schema file reference (now split)
 SCHEMA_SQLITE_FILE := db/schema_sqlite.sql
 SCHEMA_POSTGRES_FILE := db/schema_postgres.sql
 
@@ -26,7 +25,6 @@ help:
 	@echo "  init-db-postgres      - Initialize the PostgreSQL database from $(SCHEMA_POSTGRES_FILE) (requires running 'start-backend-postgres' first)"
 	@echo "  start-backend-postgres - Start the PostgreSQL server in a Docker container (Ctrl+C to stop)"
 	@echo "  watch-frontend        - Start the frontend development server (Vite)"
-	@echo "  clean                 - Remove SQLite database file/directory and frontend build artifacts (Postgres data volume is preserved)"
 
 shell:
 	nix develop
@@ -51,7 +49,7 @@ start-backend-postgres:
 	@echo "Starting PostgreSQL container '$(POSTGRES_CONTAINER_NAME)' on port $(POSTGRES_PORT)..."
 	@echo "Using volume '$(POSTGRES_VOLUME_NAME)' for data persistence."
 	@echo "DB: $(POSTGRES_DB), User: $(POSTGRES_USER)"
-	-@sudo docker rm -f $(POSTGRES_CONTAINER_NAME) > /dev/null 2>&1 # Stop and remove if already running
+	@sudo docker rm -f $(POSTGRES_CONTAINER_NAME) > /dev/null 2>&1 # Stop and remove if already running
 	@sudo docker run --name $(POSTGRES_CONTAINER_NAME) \
 		-e POSTGRES_DB=$(POSTGRES_DB) \
 		-e POSTGRES_USER=$(POSTGRES_USER) \
@@ -65,13 +63,6 @@ start-backend-postgres:
 watch-frontend:
 	@echo "Starting frontend development server..."
 	@cd frontend && npm install && npm run dev
-
-clean:
-	@echo "Removing SQLite database directory and frontend build artifacts..."
-	@rm -rf $(DATASATTE_DB_DIR)
-	@rm -rf frontend/dist frontend/node_modules
-	@echo "Note: PostgreSQL Docker volume '$(POSTGRES_VOLUME_NAME)' is preserved."
-	@echo "To remove the Postgres volume, run: sudo docker volume rm $(POSTGRES_VOLUME_NAME)"
 
 # Default target
 default: help
