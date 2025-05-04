@@ -15,6 +15,14 @@ POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_CONTAINER_NAME := inventory-postgres-dev
 POSTGRES_PORT := 5432
 
+# --- Dynamic JWT Configuration (Generated on each 'make' invocation) ---
+# Generate a 64-character alphanumeric secret ONCE during Make parsing
+JWT_SECRET := $(shell head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64)
+# Define the payload using the configured user
+JWT_PAYLOAD := '{"role":"$(POSTGRES_USER)"}'
+# Generate the JWT Token ONCE during Make parsing using the generated secret
+JWT_TOKEN := $(shell echo -n $(JWT_PAYLOAD) | jwt encode --secret $(JWT_SECRET) --alg HS256 -)
+
 shell:
 	nix develop
 
@@ -51,23 +59,25 @@ start-backend-postgres:
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
 
 start-backend-postgres-api:
-	@JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
-	echo "Generated temporary JWT Secret (for container): $$JWT_SECRET"; \
-	PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
-	echo ""; \
-	echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
-	echo ""; \
-	JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
-	echo "$$JWT_TOKEN"; \
-	echo ""; \
-	echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."; \
-	echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"; \
-	echo ">>> JWT Authentication Required (using generated token above) <<<"; \
-	sudo docker run --name inventory-postgrest-dev \
+	# --- Output Token for UI ---
+	@echo ""; \
+	@echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
+	@echo ""; \
+	@echo "$(JWT_TOKEN)"; \
+	@echo ""; \
+	@echo ">>> END OF JWT TOKEN <<<"; \
+	@echo ""; \
+	\
+	# --- Start PostgREST Container ---
+	@echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."; \
+	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"; \
+	@echo ">>> JWT Authentication Required (using generated token above) <<<"; \
+	@echo "Using JWT Secret (internal to container): $(JWT_SECRET)"; \
+	@sudo docker run --name inventory-postgrest-dev \
 		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
 		-e PGRST_DB_SCHEMA="public" \
 		-e PGRST_DB_ANON_ROLE="anon_role" \
-		-e PGRST_JWT_SECRET="$$JWT_SECRET" \
+		-e PGRST_JWT_SECRET="$(JWT_SECRET)" \
 		-e PGRST_SERVER_PORT="4000" \
 		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
 		--rm \
