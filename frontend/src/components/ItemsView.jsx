@@ -932,27 +932,6 @@ const ItemsView = () => {
       {/* Sort and Filter Controls Container */}
       {api.config.isConfigured && typeof api.listItems === 'function' && items.length > 0 && (
         <div className="list-controls-container">
-          {/* Sort Widget */}
-          <div className="sort-widget form-group"> {/* Reuse form-group for structure */}
-            <label htmlFor="sort-criteria">
-              {intl.formatMessage({ id: "items.sort.label", defaultMessage: "Sort by:" })}
-            </label>
-            <select
-              id="sort-criteria"
-              value={sortCriteria}
-              onChange={(e) => setSortCriteria(e.target.value)}
-              disabled={loading}
-            >
-              <option value="created_at_desc">
-                {intl.formatMessage({ id: "items.sort.newestFirst", defaultMessage: "Newest First" })}
-              </option>
-              <option value="created_at_asc">
-                {intl.formatMessage({ id: "items.sort.oldestFirst", defaultMessage: "Oldest First" })}
-              </option>
-              {/* Add other sort options here later if needed */}
-            </select>
-          </div>
-
           {/* Filter Toggle Button - Use button-light */}
           <button
             onClick={handleFilterToggle}
@@ -978,6 +957,27 @@ const ItemsView = () => {
               defaultMessage: "Filter Items",
             })}
           </h4>
+          {/* Sort Widget - Moved here */}
+          <div className="filter-group"> {/* Changed class from sort-widget form-group */}
+            <label htmlFor="sort-criteria">
+              {intl.formatMessage({ id: "items.sort.label", defaultMessage: "Sort by:" })}
+            </label>
+            <select
+              id="sort-criteria"
+              value={sortCriteria}
+              onChange={(e) => setSortCriteria(e.target.value)}
+              disabled={loading}
+            >
+              <option value="created_at_desc">
+                {intl.formatMessage({ id: "items.sort.newestFirst", defaultMessage: "Newest First" })}
+              </option>
+              <option value="created_at_asc">
+                {intl.formatMessage({ id: "items.sort.oldestFirst", defaultMessage: "Oldest First" })}
+              </option>
+              {/* Add other sort options here later if needed */}
+            </select>
+          </div>
+          {/* Text Filter */}
           <div className="filter-group">
             <label htmlFor="filter-text">
               {intl.formatMessage({
@@ -1171,6 +1171,15 @@ const ItemsView = () => {
                     defaultMessage: "Owner",
                   })}
                   : {getOwnerNameById(item.owner_id)}
+                </p>
+                <p className="item-meta">
+                  {intl.formatMessage({ id: "items.card.createdAt", defaultMessage: "Created:" })}
+                  {' '}
+                  {item.created_at ? intl.formatDate(new Date(item.created_at), {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    // Optional: Add time if desired and available
+                    // hour: 'numeric', minute: 'numeric'
+                  }) : intl.formatMessage({ id: "items.card.unknownDate", defaultMessage: "Unknown" })}
                 </p>
               </div>
               {/* Show Edit button only if provider configured and update method exists - Use button-light */}

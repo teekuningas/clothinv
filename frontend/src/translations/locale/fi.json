@@ -210,6 +210,8 @@
     "items.error.delete": "Vaatteen poisto epäonnistui: {error}",
     "items.error.deleteInvalid": "Poisto epäonnistui. Virheelliset tiedot tai poistotoiminto ei ole käytettävissä.",
     "items.list.emptyFiltered": "Yksikään vaate ei vastaa nykyisiä suodattimia.",
+    "items.card.createdAt": "Luotu:",
+    "items.card.unknownDate": "Tuntematon",
     "items.filter.toggleButton": "Suodattimet",
     "items.filter.title": "Suodata vaatteita",
     "items.filter.textLabel": "Sisältää tekstin:",

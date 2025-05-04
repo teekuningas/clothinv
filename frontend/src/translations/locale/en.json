@@ -210,6 +210,8 @@
     "items.error.delete": "Failed to delete item: {error}",
     "items.error.deleteInvalid": "Cannot delete. Invalid data or delete function unavailable.",
     "items.list.emptyFiltered": "No items match the current filters.",
+    "items.card.createdAt": "Created:",
+    "items.card.unknownDate": "Unknown",
     "items.filter.toggleButton": "Filters",
     "items.filter.title": "Filter Clothes",
     "items.filter.textLabel": "Text contains:",
