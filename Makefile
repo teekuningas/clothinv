@@ -53,10 +53,13 @@ start-backend-postgres:
 start-backend-postgres-api:
 	@echo "Starting PostgREST container 'inventory-postgrest-dev' in the foreground on port 4000..."
 	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
+	@echo ">>> JWT Authentication Required <<<"
 	@sudo docker run --name inventory-postgrest-dev \
 		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
 		-e PGRST_DB_SCHEMA="public" \
-		-e PGRST_DB_ANON_ROLE="$(POSTGRES_USER)" \
+		-e PGRST_DB_ANON_ROLE="anon_role" \
+		# Development JWT Secret - Replace for production!
+		-e PGRST_JWT_SECRET="KJhgfdsAPoiuytrewqLKJHGFDSAmnbvcxzPOIUYTREWQ1234567890" \
 		-e PGRST_SERVER_PORT="4000" \
 		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
 		--rm \
