@@ -24,6 +24,7 @@ help:
 	@echo "  start-backend-datasette - Start the Datasette server for SQLite"
 	@echo "  init-db-postgres      - Initialize the PostgreSQL database from $(SCHEMA_POSTGRES_FILE) (requires running 'start-backend-postgres' first)"
 	@echo "  start-backend-postgres - Start the PostgreSQL server in a Docker container (Ctrl+C to stop)"
+	@echo "  start-backend-postgres-api - Start the PostgREST API server in a Docker container (requires running 'start-backend-postgres' first, Ctrl+C to stop)"
 	@echo "  watch-frontend        - Start the frontend development server (Vite)"
 
 shell:
@@ -60,6 +61,19 @@ start-backend-postgres:
 		--rm \
 		postgres:15 # Use a specific version, e.g., postgres:15
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
+
+start-backend-postgres-api:
+	@echo "Starting PostgREST container 'inventory-postgrest-dev' in the foreground on port 4000..."
+	@echo "Connecting to PostgreSQL at host.docker.internal:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
+	@sudo docker run --name inventory-postgrest-dev \
+		-p 4000:3000 \
+		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@host.docker.internal:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
+		-e PGRST_DB_SCHEMA="public" \
+		-e PGRST_DB_ANON_ROLE="$(POSTGRES_USER)" \
+		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
+		--rm \
+		postgrest/postgrest
+	@echo "PostgREST container stopped."
 
 watch-frontend:
 	@echo "Starting frontend development server..."

@@ -1,0 +1,984 @@
+// --- PostgREST API Provider ---
+// Interacts with a PostgREST endpoint which exposes a PostgreSQL database.
+import JSZip from 'jszip';
+
+// Helper function to get MIME type from filename
+const getMimeTypeFromFilename = (filename) => {
+    if (!filename) return 'application/octet-stream'; // Default if no filename
+    const lowerCaseFilename = filename.toLowerCase();
+    if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) return 'image/jpeg';
+    if (lowerCaseFilename.endsWith('.png')) return 'image/png';
+    if (lowerCaseFilename.endsWith('.gif')) return 'image/gif';
+    if (lowerCaseFilename.endsWith('.webp')) return 'image/webp';
+    if (lowerCaseFilename.endsWith('.svg')) return 'image/svg+xml';
+    // Add other common image types as needed
+    return 'application/octet-stream'; // Fallback for unknown types
+};
+
+// Helper to generate headers, extracting token from settings
+const defaultHeaders = (settings, preferRepresentation = true) => {
+    const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json', // Expect JSON responses
+    };
+    // Crucial for getting created/updated records back from POST/PATCH
+    if (preferRepresentation) {
+        headers['Prefer'] = 'return=representation';
+    }
+    // Access the token via the settings object using the key defined in the registry
+    if (settings?.postgrestApiToken) {
+        headers['Authorization'] = `Bearer ${settings.postgrestApiToken}`;
+    }
+    return headers;
+};
+
+// Helper to read file as Base64 (used within provider functions)
+const readFileAsBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]); // Get only the base64 part
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+    });
+};
+
+// Helper function to convert base64 to Blob
+const base64ToBlob = (base64, mimeType) => {
+    try {
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        return new Blob([byteArray], { type: mimeType });
+    } catch (e) {
+        console.error("Error converting base64 to Blob:", e);
+        return null;
+    }
+};
+
+
+// Assume createCSV is available (copy/import from localStorageProvider or use a library)
+const createCSV = (headers, data) => {
+    const headerRow = headers.join(',');
+    const dataRows = data.map(row =>
+        headers.map(header => {
+            let value = row[header];
+            if (value === null || typeof value === 'undefined') return '';
+            value = String(value);
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+                value = value.replace(/"/g, '""');
+                return `"${value}"`;
+            }
+            return value;
+        }).join(',')
+    );
+    return [headerRow, ...dataRows].join('\n');
+};
+
+// Assume parseCSV is available (copy/import from localStorageProvider or use PapaParse)
+// Basic CSV parser (consider using a library like PapaParse for robustness)
+const parseCSV = (csvString) => {
+    const lines = csvString.trim().split('\n');
+    if (lines.length < 1) return [];
+    const headers = lines[0].split(',').map(h => h.trim());
+    const data = [];
+    for (let i = 1; i < lines.length; i++) {
+        // Very basic split, doesn't handle quoted commas correctly
+        // TODO: Improve CSV parsing to handle quoted commas/newlines correctly
+        const values = lines[i].split(',');
+        const row = {};
+        headers.forEach((header, index) => {
+            let value = values[index] ? values[index].trim() : '';
+            // Basic unquoting
+            if (value.startsWith('"') && value.endsWith('"')) {
+                value = value.slice(1, -1).replace(/""/g, '"');
+            }
+            // Attempt to convert numbers (adjust as needed)
+            // PostgREST returns numbers, so less conversion needed here than Datasette
+            if (header.endsWith('_id') && value !== '') {
+                row[header] = parseInt(value, 10); // Keep parsing for CSV import
+            } else if (header.endsWith('_at') && value === '') {
+                row[header] = null; // Handle empty timestamps as null
+            } else {
+                row[header] = value;
+            }
+        });
+        data.push(row);
+    }
+    return data;
+};
+
+// handleResponse updated for PostgREST error format
+const handleResponse = async (res, operation, entityDescription) => {
+    if (!res.ok) {
+        let errorText = `Status ${res.status}`;
+        let errorDetails = '';
+        try {
+            const errorJson = await res.json();
+            // Extract message, details, hint from PostgREST error response
+            errorText = errorJson.message || errorText;
+            errorDetails = errorJson.details ? ` Details: ${errorJson.details}` : '';
+            if (errorJson.hint) errorDetails += ` Hint: ${errorJson.hint}`;
+            if (errorJson.code) errorDetails += ` Code: ${errorJson.code}`;
+        } catch (e) {
+            // If response is not JSON, use the raw text
+            errorText = await res.text() || errorText;
+        }
+        const fullError = `Failed to ${operation} ${entityDescription}: ${errorText}${errorDetails}`;
+        console.error(fullError, res);
+        throw new Error(fullError);
+    }
+    // For successful POST/PATCH with Prefer: return=representation, response body contains the data
+    // For successful GET, response body contains the data
+    // For successful DELETE or PATCH without representation, body might be empty
+    if (res.status === 204) { // No Content
+        return { success: true, status: res.status, data: null };
+    }
+    try {
+        const responseData = await res.json();
+        return { success: true, status: res.status, data: responseData };
+    } catch (e) {
+        // Handle cases where response is OK but not JSON (shouldn't happen with Accept header)
+        console.warn(`Could not parse JSON response for ${operation} ${entityDescription}, status ${res.status}`);
+        return { success: true, status: res.status, data: null };
+    }
+};
+
+// --- Internal Helper Functions (Not Exported Directly to Context) ---
+
+// --- Exported API Methods (Bound by ApiContext) ---
+// These are the functions listed in the providerRegistry 'methods' array.
+// They receive the 'settings' object as the first argument from ApiContext.
+
+// --- Locations ---
+export const listLocations = async (settings) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    const queryUrl = `${baseUrl}/locations?order=created_at.desc`; // Order by creation date
+    const res = await fetch(queryUrl, {
+        method: 'GET',
+        headers: defaultHeaders(settings, false) // No representation needed for GET list
+    });
+
+    const result = await handleResponse(res, 'list', 'locations');
+    console.log("Fetched locations:", result.data);
+    return result.data || []; // PostgREST returns an array directly
+};
+
+export const addLocation = async (settings, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    const locationData = { ...data, updated_at: null }; // PG trigger handles created_at
+
+    const res = await fetch(`${baseUrl}/locations`, {
+        method: 'POST',
+        headers: defaultHeaders(settings), // Request representation
+        body: JSON.stringify(locationData),
+    });
+
+    const result = await handleResponse(res, 'add', 'location');
+    // Response is an array with the new object: [{ "location_id": 123, ... }]
+    if (!result.data || result.data.length === 0 || !result.data[0].location_id) {
+        console.error("Could not find location_id in PostgREST response:", result.data);
+        throw new Error("Failed to retrieve location_id after insert.");
+    }
+    const newLocationId = result.data[0].location_id;
+    console.log("Retrieved new location ID:", newLocationId);
+    return { success: true, status: result.status, newId: newLocationId };
+};
+
+export const updateLocation = async (settings, locationId, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!locationId) throw new Error("Location ID is required for update.");
+
+    const updateUrl = `${baseUrl}/locations?location_id=eq.${locationId}`;
+    // PG trigger handles updated_at
+    const payload = { ...data };
+
+    const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: defaultHeaders(settings, false), // Representation not strictly needed, trigger handles timestamp
+        body: JSON.stringify(payload),
+    });
+
+    return handleResponse(res, 'update', `location ID ${locationId}`);
+};
+
+export const deleteLocation = async (settings, locationId) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!locationId) throw new Error("Location ID is required for deletion.");
+
+    // Constraint Check: Check if any items use this location
+    const checkUrl = `${baseUrl}/items?location_id=eq.${locationId}&select=item_id&limit=1`;
+    const checkRes = await fetch(checkUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
+    const checkResult = await handleResponse(checkRes, 'check usage for', `location ID ${locationId}`);
+    if (checkResult.data && checkResult.data.length > 0) {
+        console.warn(`Attempted to delete location ${locationId} which is in use.`);
+        return { success: false, message: 'Cannot delete location: It is currently assigned to one or more items.' };
+    }
+
+    // Proceed with deletion
+    const deleteUrl = `${baseUrl}/locations?location_id=eq.${locationId}`;
+    const res = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: defaultHeaders(settings, false),
+    });
+
+    return handleResponse(res, 'delete', `location ID ${locationId}`);
+};
+
+// --- Categories (Mirror Locations structure) ---
+export const listCategories = async (settings) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    const queryUrl = `${baseUrl}/categories?order=created_at.desc`;
+    const res = await fetch(queryUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
+    const result = await handleResponse(res, 'list', 'categories');
+    console.log("Fetched categories:", result.data);
+    return result.data || [];
+};
+
+export const addCategory = async (settings, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    const categoryData = { ...data, updated_at: null };
+    const res = await fetch(`${baseUrl}/categories`, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(categoryData),
+    });
+    const result = await handleResponse(res, 'add', 'category');
+    if (!result.data || result.data.length === 0 || !result.data[0].category_id) {
+        console.error("Could not find category_id in PostgREST response:", result.data);
+        throw new Error("Failed to retrieve category_id after insert.");
+    }
+    const newCategoryId = result.data[0].category_id;
+    console.log("Retrieved new category ID:", newCategoryId);
+    return { success: true, status: result.status, newId: newCategoryId };
+};
+
+export const updateCategory = async (settings, categoryId, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!categoryId) throw new Error("Category ID is required for update.");
+    const updateUrl = `${baseUrl}/categories?category_id=eq.${categoryId}`;
+    const payload = { ...data };
+    const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: defaultHeaders(settings, false),
+        body: JSON.stringify(payload),
+    });
+    return handleResponse(res, 'update', `category ID ${categoryId}`);
+};
+
+export const deleteCategory = async (settings, categoryId) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!categoryId) throw new Error("Category ID is required for deletion.");
+
+    // Constraint Check
+    const checkUrl = `${baseUrl}/items?category_id=eq.${categoryId}&select=item_id&limit=1`;
+    const checkRes = await fetch(checkUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
+    const checkResult = await handleResponse(checkRes, 'check usage for', `category ID ${categoryId}`);
+    if (checkResult.data && checkResult.data.length > 0) {
+        console.warn(`Attempted to delete category ${categoryId} which is in use.`);
+        return { success: false, message: 'Cannot delete category: It is currently assigned to one or more items.' };
+    }
+
+    const deleteUrl = `${baseUrl}/categories?category_id=eq.${categoryId}`;
+    const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
+    return handleResponse(res, 'delete', `category ID ${categoryId}`);
+};
+
+// --- Owners (Mirror Locations structure) ---
+export const listOwners = async (settings) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    const queryUrl = `${baseUrl}/owners?order=created_at.desc`;
+    const res = await fetch(queryUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
+    const result = await handleResponse(res, 'list', 'owners');
+    console.log("Fetched owners:", result.data);
+    return result.data || [];
+};
+
+export const addOwner = async (settings, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    const ownerData = { ...data, updated_at: null };
+    const res = await fetch(`${baseUrl}/owners`, {
+        method: 'POST',
+        headers: defaultHeaders(settings),
+        body: JSON.stringify(ownerData),
+    });
+    const result = await handleResponse(res, 'add', 'owner');
+    if (!result.data || result.data.length === 0 || !result.data[0].owner_id) {
+        console.error("Could not find owner_id in PostgREST response:", result.data);
+        throw new Error("Failed to retrieve owner_id after insert.");
+    }
+    const newOwnerId = result.data[0].owner_id;
+    console.log("Retrieved new owner ID:", newOwnerId);
+    return { success: true, status: result.status, newId: newOwnerId };
+};
+
+export const updateOwner = async (settings, ownerId, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!ownerId) throw new Error("Owner ID is required for update.");
+    const updateUrl = `${baseUrl}/owners?owner_id=eq.${ownerId}`;
+    const payload = { ...data };
+    const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: defaultHeaders(settings, false),
+        body: JSON.stringify(payload),
+    });
+    return handleResponse(res, 'update', `owner ID ${ownerId}`);
+};
+
+export const deleteOwner = async (settings, ownerId) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!ownerId) throw new Error("Owner ID is required for deletion.");
+
+    // Constraint Check
+    const checkUrl = `${baseUrl}/items?owner_id=eq.${ownerId}&select=item_id&limit=1`;
+    const checkRes = await fetch(checkUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
+    const checkResult = await handleResponse(checkRes, 'check usage for', `owner ID ${ownerId}`);
+    if (checkResult.data && checkResult.data.length > 0) {
+        console.warn(`Attempted to delete owner ${ownerId} which is in use.`);
+        return { success: false, message: 'Cannot delete owner: They are currently assigned to one or more items.' };
+    }
+
+    const deleteUrl = `${baseUrl}/owners?owner_id=eq.${ownerId}`;
+    const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
+    return handleResponse(res, 'delete', `owner ID ${ownerId}`);
+};
+
+// --- Image Handling ---
+
+/**
+ * Internal: Inserts image data and filename, returns the new ID.
+ */
+const _insertImage = async (settings, base64Data, mimeType, filename) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    const imageData = {
+        // PG trigger handles created_at
+        image_data: base64Data, // Store base64 string directly
+        image_mimetype: mimeType,
+        image_filename: filename || 'image', // Store filename, provide default
+    };
+
+    const res = await fetch(`${baseUrl}/images`, {
+        method: 'POST',
+        headers: defaultHeaders(settings), // Request representation
+        body: JSON.stringify(imageData),
+    });
+    const result = await handleResponse(res, 'insert', 'image');
+    if (!result.data || result.data.length === 0 || !result.data[0].image_id) {
+        console.error("Could not find image_id in PostgREST response:", result.data);
+        throw new Error("Failed to retrieve image_id after insert.");
+    }
+    return result.data[0].image_id;
+};
+
+/**
+ * Internal: Updates image data and filename for an existing image ID.
+ */
+const _updateImage = async (settings, imageId, base64Data, mimeType, filename) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    const updateUrl = `${baseUrl}/images?image_id=eq.${imageId}`;
+    const payload = {
+        image_data: base64Data,
+        image_mimetype: mimeType,
+        image_filename: filename || 'image', // Update filename too
+    };
+    const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: defaultHeaders(settings, false), // No representation needed
+        body: JSON.stringify(payload)
+    });
+    return handleResponse(res, 'update', `image ID ${imageId}`);
+};
+
+/**
+ * Internal: Deletes an image record by ID.
+ */
+const _deleteImage = async (settings, imageId) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!imageId) {
+        console.warn("_deleteImage called with null/undefined imageId");
+        return { success: true }; // Nothing to delete
+    }
+
+    const deleteUrl = `${baseUrl}/images?image_id=eq.${imageId}`;
+    const res = await fetch(deleteUrl, {
+        method: 'DELETE',
+        headers: defaultHeaders(settings, false)
+    });
+    // Ignore 404 errors if image was already deleted somehow
+    if (!res.ok && res.status !== 404) {
+        return handleResponse(res, 'delete', `image ID ${imageId}`);
+    }
+    console.log(`Deleted or confirmed deletion of image ID ${imageId}`);
+    return { success: true };
+};
+
+// --- Items ---
+
+/**
+ * Adds a single item record with basic details.
+ * Expects data like { name, description, location_id, category_id, owner_id }
+ * and optionally `imageFile` (a File object).
+ */
+export const addItem = async (settings, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!data || !data.name || !data.location_id || !data.category_id || !data.owner_id) {
+        throw new Error("Item name, location ID, category ID, and owner ID are required.");
+    }
+
+    let imageId = null;
+    if (data.imageFile instanceof File) { // Ensure it's a File object
+        try {
+            const base64Data = await readFileAsBase64(data.imageFile);
+            imageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+        } catch (error) {
+            console.error("Failed to process or insert image:", error);
+            throw new Error(`Failed to handle image upload: ${error.message}`);
+        }
+    }
+
+    // Prepare the row data, ensuring description is null if empty
+    const itemRowData = {
+        name: data.name,
+        description: data.description || null,
+        location_id: data.location_id,
+        category_id: data.category_id,
+        owner_id: data.owner_id,
+        image_id: imageId, // Use the inserted image ID or null
+        updated_at: null // Explicitly set updated_at to null on creation
+        // PG trigger handles created_at
+    };
+
+    const res = await fetch(`${baseUrl}/items`, {
+        method: 'POST',
+        headers: defaultHeaders(settings), // Request representation
+        body: JSON.stringify(itemRowData),
+    });
+
+    // Use handleResponse for the item insert result
+    const result = await handleResponse(res, 'add', 'item');
+    // Extract item_id from response if needed, though not strictly required by current UI flow
+    if (!result.data || result.data.length === 0 || !result.data[0].item_id) {
+        console.error("Could not find item_id in PostgREST response:", result.data);
+        // Don't throw error here, as the operation might have succeeded, just log
+    } else {
+        console.log("Added item with ID:", result.data[0].item_id);
+    }
+    return { success: true, status: result.status }; // Return simple success
+};
+
+
+/**
+ * Updates an item's details, including potentially the image.
+ * Expects itemId and data like { name, description, location_id, category_id, owner_id, imageFile?, removeImage? }
+ */
+export const updateItem = async (settings, itemId, data) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!itemId) throw new Error("Item ID is required for update.");
+    if (!data || !data.name || !data.location_id || !data.category_id || !data.owner_id) {
+        throw new Error("Item name, location ID, category ID, and owner ID are required for update.");
+    }
+
+    // Fetch current item data to get existing image_id
+    const currentItemUrl = `${baseUrl}/items?item_id=eq.${itemId}&select=image_id`;
+    const currentItemRes = await fetch(currentItemUrl, { headers: defaultHeaders(settings, false) });
+    // Handle case where item might have been deleted between listing and updating
+    if (!currentItemRes.ok && currentItemRes.status !== 404) {
+        await handleResponse(currentItemRes, 'fetch current item data for update', `item ID ${itemId}`); // Throw error
+    }
+    const currentItemData = currentItemRes.ok ? await currentItemRes.json() : [];
+    const existingImageId = currentItemData[0]?.image_id; // PostgREST returns array
+
+    let newImageId = existingImageId; // Assume image doesn't change initially
+
+    if (data.removeImage && existingImageId) {
+        await _deleteImage(settings, existingImageId);
+        newImageId = null;
+    } else if (data.imageFile instanceof File) { // Check it's a File
+        try {
+            const base64Data = await readFileAsBase64(data.imageFile);
+            if (existingImageId) {
+                // Update existing image record
+                await _updateImage(settings, existingImageId, base64Data, data.imageFile.type, data.imageFile.name);
+                newImageId = existingImageId; // ID remains the same
+            } else {
+                // Insert new image record
+                newImageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+            }
+        } catch (error) {
+            console.error("Failed to process or update/insert image:", error);
+            throw new Error(`Failed to handle image update: ${error.message}`);
+        }
+    }
+
+    const updateUrl = `${baseUrl}/items?item_id=eq.${itemId}`;
+    const payload = {
+        // PG trigger handles updated_at
+        name: data.name,
+        description: data.description || null,
+        location_id: data.location_id,
+        category_id: data.category_id,
+        owner_id: data.owner_id,
+        image_id: newImageId, // Set the potentially updated image ID
+    };
+
+    const res = await fetch(updateUrl, {
+        method: 'PATCH',
+        headers: defaultHeaders(settings, false), // No representation needed
+        body: JSON.stringify(payload),
+    });
+
+    return handleResponse(res, 'update', `item ID ${itemId}`);
+};
+
+/**
+ * Deletes an item record.
+ */
+export const deleteItem = async (settings, itemId) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!itemId) throw new Error("Item ID is required for deletion.");
+
+    // 1. Get the image_id associated with the item *before* deleting the item
+    const itemUrl = `${baseUrl}/items?item_id=eq.${itemId}&select=image_id`;
+    const itemRes = await fetch(itemUrl, { headers: defaultHeaders(settings, false) });
+
+    let imageIdToDelete = null;
+    if (itemRes.ok) {
+        const itemData = await itemRes.json();
+        imageIdToDelete = itemData[0]?.image_id;
+    } else if (itemRes.status !== 404) {
+        // If item fetch fails for reason other than not found, throw error
+        await handleResponse(itemRes, 'fetch item for deletion', `item ID ${itemId}`);
+    } // If 404, item already gone, proceed to ensure image is gone if we somehow know its ID (unlikely here)
+
+    // 2. Delete the item record
+    const deleteItemUrl = `${baseUrl}/items?item_id=eq.${itemId}`;
+    const deleteItemRes = await fetch(deleteItemUrl, {
+        method: 'DELETE',
+        headers: defaultHeaders(settings, false),
+    });
+
+    // Check item deletion result (ignore 404)
+    if (!deleteItemRes.ok && deleteItemRes.status !== 404) {
+        return handleResponse(deleteItemRes, 'delete', `item ID ${itemId}`); // Throw error
+    }
+
+    // 3. If item deletion was successful (or item was already gone) AND we found an image ID, delete the image
+    if (imageIdToDelete) {
+        await _deleteImage(settings, imageIdToDelete); // _deleteImage handles its own errors/404s
+    }
+
+    console.log(`Deletion process completed for item ID ${itemId}`);
+    return { success: true }; // Return success even if item/image was already gone
+};
+
+export const listItems = async (settings) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    try {
+        // 1. Fetch all items (basic data + image_id)
+        const itemsUrl = `${baseUrl}/items?order=created_at.desc`;
+        const itemsRes = await fetch(itemsUrl, {
+            method: 'GET',
+            headers: defaultHeaders(settings, false)
+        });
+        const itemsResult = await handleResponse(itemsRes, 'list', 'items');
+        const itemsData = itemsResult.data || [];
+
+        // If no items, return early
+        if (itemsData.length === 0) {
+            console.log("Fetched 0 items.");
+            return [];
+        }
+
+        // 2. Fetch all images (including filename, mimetype, base64 data)
+        // Optimization: Only fetch images whose IDs are present in the items list?
+        // For simplicity now, fetch all. Consider optimization if image table grows large.
+        const imageIds = itemsData.map(item => item.image_id).filter(id => id != null);
+        let imageMap = {};
+        if (imageIds.length > 0) {
+            // Construct query like ?image_id=in.(1,5,12)
+            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})`;
+            const imagesRes = await fetch(imagesUrl, {
+                method: 'GET',
+                headers: defaultHeaders(settings, false)
+            });
+            if (imagesRes.ok) {
+                const imagesResult = await handleResponse(imagesRes, 'list', 'images');
+                const imagesData = imagesResult.data || [];
+                // 3. Create a map of image_id -> { blob, filename }
+                imageMap = imagesData.reduce((map, img) => {
+                    if (img.image_id && img.image_data && img.image_mimetype) {
+                        const blob = base64ToBlob(img.image_data, img.image_mimetype);
+                        if (blob) {
+                            map[img.image_id] = {
+                                blob: blob,
+                                filename: img.image_filename || `image_${img.image_id}` // Use stored filename or generate one
+                            };
+                        }
+                    }
+                    return map;
+                }, {});
+            } else {
+                console.warn(`Failed to fetch images: ${imagesRes.status}. Items will be listed without images.`);
+                // Don't throw error, just proceed without images
+            }
+        }
+
+
+        // 4. Merge image File object into items
+        const itemsWithFiles = itemsData.map(item => {
+            let imageFile = null;
+            if (item.image_id && imageMap[item.image_id]) {
+                const { blob, filename } = imageMap[item.image_id];
+                // Create a File object from the Blob
+                imageFile = new File([blob], filename, { type: blob.type });
+            }
+            // Remove base64 data if it was somehow included in item fetch (it shouldn't be)
+            const { image_data, ...restOfItem } = item; // eslint-disable-line no-unused-vars
+            return {
+                ...restOfItem,
+                imageFile: imageFile // Add the File object (or null)
+            };
+        });
+
+        console.log(`Fetched ${itemsWithFiles.length} items and converted images to File objects.`);
+        return itemsWithFiles; // Returns array of item objects including imageFile property
+
+    } catch (error) {
+        // Log the error and re-throw or return empty array based on desired handling
+        console.error("Error in listItems:", error);
+        throw error; // Re-throw the error to be caught by the component
+    }
+};
+
+// --- Export/Import ---
+
+export const exportData = async (settings) => {
+    console.log('PostgRESTProvider: exportData called');
+    const zip = new JSZip();
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    try {
+        // 1. Fetch all data using list functions
+        const locations = await listLocations(settings);
+        const categories = await listCategories(settings);
+        const owners = await listOwners(settings);
+        // Fetch items *without* processing images here for efficiency
+        const itemsRes = await fetch(`${baseUrl}/items?order=created_at.desc`, { headers: defaultHeaders(settings, false) });
+        const itemsResult = await handleResponse(itemsRes, 'list items for export', 'items');
+        const itemsMetadata = itemsResult.data || [];
+
+        // 2. Create CSVs
+        const locationHeaders = ['location_id', 'name', 'description', 'created_at', 'updated_at'];
+        zip.file('locations.csv', createCSV(locationHeaders, locations));
+
+        const categoryHeaders = ['category_id', 'name', 'description', 'created_at', 'updated_at'];
+        zip.file('categories.csv', createCSV(categoryHeaders, categories));
+
+        const ownerHeaders = ['owner_id', 'name', 'description', 'created_at', 'updated_at'];
+        zip.file('owners.csv', createCSV(ownerHeaders, owners));
+
+        const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemsForCsv = [];
+        const imagesFolder = zip.folder('images');
+
+        // Fetch all images needed for the export
+        const imageIds = itemsMetadata.map(item => item.image_id).filter(id => id != null);
+        let imageExportMap = {};
+        if (imageIds.length > 0) {
+            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})`;
+            const imagesRes = await fetch(imagesUrl, { headers: defaultHeaders(settings, false) });
+            if (imagesRes.ok) {
+                const imagesResult = await handleResponse(imagesRes, 'list images for export', 'images');
+                const imagesData = imagesResult.data || [];
+                imageExportMap = imagesData.reduce((map, img) => {
+                    if (img.image_id && img.image_data && img.image_mimetype) {
+                        const blob = base64ToBlob(img.image_data, img.image_mimetype);
+                        if (blob) {
+                            map[img.image_id] = {
+                                blob: blob,
+                                filename: img.image_filename || `image_${img.image_id}`
+                            };
+                        }
+                    }
+                    return map;
+                }, {});
+            } else {
+                console.warn(`Failed to fetch images for export: ${imagesRes.status}. Export will not contain images.`);
+            }
+        }
+
+        for (const item of itemsMetadata) {
+            const itemCsvRow = { ...item };
+            itemCsvRow.image_zip_filename = '';
+            itemCsvRow.image_original_filename = '';
+
+            if (item.image_id && imageExportMap[item.image_id]) {
+                const { blob, filename } = imageExportMap[item.image_id];
+                const fileExtension = filename.split('.').pop() || 'bin';
+                const zipFilename = `${item.item_id}.${fileExtension}`; // Use item_id for unique name in zip
+                itemCsvRow.image_zip_filename = zipFilename;
+                itemCsvRow.image_original_filename = filename;
+                imagesFolder.file(zipFilename, blob); // Add blob to zip
+            }
+            // Remove image_id before adding to CSV data? No, keep it for import reference.
+            itemsForCsv.push(itemCsvRow);
+        }
+        zip.file('items.csv', createCSV(itemHeaders, itemsForCsv));
+
+        // 3. Create Manifest
+        const manifest = {
+            exportFormatVersion: "1.0",
+            exportedAt: new Date().toISOString(),
+            sourceProvider: "postgrest" // Identify source
+        };
+        zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+
+        // 4. Generate ZIP
+        const blob = await zip.generateAsync({ type: "blob" });
+        console.log('PostgRESTProvider: Export generated successfully.');
+        return blob;
+
+    } catch (error) {
+        console.error("Error during PostgREST export:", error);
+        throw new Error(`Export failed: ${error.message}`);
+    }
+};
+
+export const importData = async (settings, zipFile) => {
+    console.log('PostgRESTProvider: importData called');
+    const zip = new JSZip();
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    try {
+        const loadedZip = await zip.loadAsync(zipFile);
+
+        // Validate essential files
+        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv')) {
+            throw new Error("Import file is missing required CSV or manifest files.");
+        }
+
+        // --- Clear existing data ---
+        console.log("Clearing existing PostgREST data (Items first)...");
+        await destroyData(settings); // Use destroyData for thorough cleaning
+        console.log("Existing data cleared.");
+
+        // --- Parse and Import ---
+        const locationMap = {}; // exported_id -> new_postgrest_id
+        const categoryMap = {};
+        const ownerMap = {};
+
+        // Import Locations
+        const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
+        for (const loc of locations) {
+            const { location_id: exportedId, ...locData } = loc;
+            // Preserve timestamps if they exist in the CSV
+            const payload = {
+                name: locData.name,
+                description: locData.description,
+                created_at: locData.created_at || undefined, // Let PG handle if null/missing
+                updated_at: locData.updated_at || null, // Set explicitly null or use value
+            };
+            // Remove undefined keys
+            Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+            const result = await addLocation(settings, payload); // addLocation handles POST and gets new ID
+            if (result.success) locationMap[exportedId] = result.newId;
+            else throw new Error(`Failed to import location: ${loc.name}`);
+        }
+
+        // Import Categories
+        const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
+        for (const cat of categories) {
+            const { category_id: exportedId, ...catData } = cat;
+            const payload = {
+                name: catData.name,
+                description: catData.description,
+                created_at: catData.created_at || undefined,
+                updated_at: catData.updated_at || null,
+            };
+            Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+            const result = await addCategory(settings, payload);
+            if (result.success) categoryMap[exportedId] = result.newId;
+            else throw new Error(`Failed to import category: ${cat.name}`);
+        }
+
+        // Import Owners
+        const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
+        for (const owner of owners) {
+            const { owner_id: exportedId, ...ownerData } = owner;
+            const payload = {
+                name: ownerData.name,
+                description: ownerData.description,
+                created_at: ownerData.created_at || undefined,
+                updated_at: ownerData.updated_at || null,
+            };
+            Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
+            const result = await addOwner(settings, payload);
+            if (result.success) ownerMap[exportedId] = result.newId;
+            else throw new Error(`Failed to import owner: ${owner.name}`);
+        }
+
+        // Import Items
+        const items = parseCSV(await loadedZip.file('items.csv').async('string'));
+        for (const item of items) {
+            const { item_id: exportedItemId, image_zip_filename, image_original_filename, location_id, category_id, owner_id, ...itemMetadata } = item;
+
+            let newImageId = null;
+            if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
+                try {
+                    const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
+                    const originalFilename = image_original_filename || image_zip_filename;
+                    const determinedMimeType = getMimeTypeFromFilename(originalFilename);
+                    // Convert blob back to base64 for sending to PostgREST
+                    const imageFileForBase64 = new File([imageBlob], originalFilename, { type: determinedMimeType });
+                    const base64Data = await readFileAsBase64(imageFileForBase64);
+                    // Insert image and get its new ID
+                    newImageId = await _insertImage(settings, base64Data, determinedMimeType, originalFilename);
+                } catch (zipError) {
+                     console.error(`Error processing image ${image_zip_filename} from zip for item ${item.name}:`, zipError);
+                     // Decide if you want to skip the item or throw the error
+                     // continue; // Example: skip item if image processing fails
+                     throw new Error(`Failed to process image ${image_zip_filename} from zip: ${zipError.message}`);
+                }
+            }
+
+            const newItemData = {
+                name: itemMetadata.name,
+                description: itemMetadata.description,
+                location_id: locationMap[location_id], // Map to new ID
+                category_id: categoryMap[category_id], // Map to new ID
+                owner_id: ownerMap[owner_id],       // Map to new ID
+                image_id: newImageId,               // Use new image ID
+                created_at: itemMetadata.created_at || undefined, // Preserve timestamp or let PG handle
+                updated_at: itemMetadata.updated_at || null   // Preserve timestamp or set null
+            };
+
+            // Ensure mapped IDs are valid before adding
+            if (!newItemData.location_id || !newItemData.category_id || !newItemData.owner_id) {
+                 console.warn(`Skipping item "${item.name}" due to missing mapped ID (Location: ${location_id}=>${newItemData.location_id}, Category: ${category_id}=>${newItemData.category_id}, Owner: ${owner_id}=>${newItemData.owner_id})`);
+                 continue; // Skip this item if any mapping failed
+            }
+
+            // Remove undefined keys
+            Object.keys(newItemData).forEach(key => newItemData[key] === undefined && delete newItemData[key]);
+
+            // POST the item data (addItem is not suitable here as it generates ID)
+            const res = await fetch(`${baseUrl}/items`, {
+                method: 'POST',
+                headers: defaultHeaders(settings, false), // Don't need representation back here
+                body: JSON.stringify(newItemData),
+            });
+            // Check response, throw error if import failed for this item
+            await handleResponse(res, 'import', `item "${item.name}"`);
+        }
+
+        console.log('PostgRESTProvider: Import completed successfully.');
+        return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
+
+    } catch (error) {
+        console.error("Error during PostgREST import:", error);
+        // PostgREST uses transactions implicitly per request, but full rollback is hard here.
+        return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
+    }
+};
+
+export const destroyData = async (settings) => {
+    console.log('PostgRESTProvider: destroyData called');
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+
+    try {
+        // Order: Items (handles images via deleteItem), then Owners, Categories, Locations
+        // (Reverse dependency order)
+
+        // 1. Delete Items (which should trigger image deletion via deleteItem logic)
+        console.log("Fetching items to delete...");
+        const itemsToDelete = await listItems(settings); // Fetches items with image info
+        console.log(`Deleting ${itemsToDelete.length} items...`);
+        for (const item of itemsToDelete) {
+            await deleteItem(settings, item.item_id); // deleteItem handles image deletion
+        }
+        console.log("Items cleared.");
+
+        // 2. Delete Owners
+        console.log("Fetching owners to delete...");
+        const ownersToDelete = await listOwners(settings);
+        console.log(`Deleting ${ownersToDelete.length} owners...`);
+        for (const owner of ownersToDelete) {
+            // Use direct DELETE here as constraint check is implicitly handled by item deletion above
+            const deleteUrl = `${baseUrl}/owners?owner_id=eq.${owner.owner_id}`;
+            const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
+            if (!res.ok && res.status !== 404) await handleResponse(res, 'delete', `owner ID ${owner.owner_id}`);
+        }
+        console.log("Owners cleared.");
+
+        // 3. Delete Categories
+        console.log("Fetching categories to delete...");
+        const categoriesToDelete = await listCategories(settings);
+        console.log(`Deleting ${categoriesToDelete.length} categories...`);
+        for (const cat of categoriesToDelete) {
+            const deleteUrl = `${baseUrl}/categories?category_id=eq.${cat.category_id}`;
+            const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
+             if (!res.ok && res.status !== 404) await handleResponse(res, 'delete', `category ID ${cat.category_id}`);
+        }
+        console.log("Categories cleared.");
+
+        // 4. Delete Locations
+        console.log("Fetching locations to delete...");
+        const locationsToDelete = await listLocations(settings);
+        console.log(`Deleting ${locationsToDelete.length} locations...`);
+        for (const loc of locationsToDelete) {
+            const deleteUrl = `${baseUrl}/locations?location_id=eq.${loc.location_id}`;
+            const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
+             if (!res.ok && res.status !== 404) await handleResponse(res, 'delete', `location ID ${loc.location_id}`);
+        }
+        console.log("Locations cleared.");
+
+        // 5. Verify Images are gone (optional sanity check - they should be gone via item deletion)
+        const remainingImagesRes = await fetch(`${baseUrl}/images?select=image_id&limit=1`, { headers: defaultHeaders(settings, false) });
+        if (remainingImagesRes.ok) {
+            const remainingImages = await remainingImagesRes.json();
+            if (remainingImages.length > 0) {
+                console.warn("Some images might remain after destroy operation. Manual cleanup may be needed.");
+                // Optionally attempt direct image deletion here if needed
+            } else {
+                 console.log("Image table confirmed empty.");
+            }
+        }
+
+
+        console.log("PostgRESTProvider: Data destruction completed successfully.");
+        return { success: true, summary: `All data successfully destroyed.` };
+
+    } catch (error) {
+        console.error("Error during PostgREST data destruction:", error);
+        return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
+    }
+};

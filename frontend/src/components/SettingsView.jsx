@@ -483,6 +483,16 @@ const SettingsView = () => {
               </div>
             ))}
 
+          {/* Conditional Description for PostgREST */}
+          {selectedProviderId === 'postgrest' && (
+              <p className="provider-description"> {/* TODO: Add CSS for this class if needed */}
+                  {intl.formatMessage({
+                      id: 'settings.api.postgrestDescription', // Need to add this translation key
+                      defaultMessage: 'Connects to a PostgREST API server, which provides a REST interface for a PostgreSQL database. Ensure PostgREST is running and accessible at the URL below.'
+                  })}
+              </p>
+          )}
+
           {/* Action Buttons for API Settings */}
           <div className="form-actions">
             {/* Use button-primary */}

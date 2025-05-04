@@ -1,6 +1,6 @@
 import * as datasetteProvider from './datasetteProvider';
-// Import other provider modules here when added
 import * as localStorageProvider from './localStorageProvider'; // Add this import
+import * as postgrestProvider from './postgrestProvider';
 // import * as homeboxProvider from './homeboxProvider';
 
 /**
@@ -87,6 +87,41 @@ export const providers = {
             'exportData', // Add export
             'importData', // Add import
             'destroyData', // Add this line
+        ]
+    },
+
+    // --- PostgREST Provider Definition ---
+    'postgrest': {
+        id: 'postgrest',
+        displayName: 'PostgREST API', // Clarify it's the API layer
+        module: postgrestProvider,
+        configFields: [
+            {
+                key: 'postgrestApiUrl',
+                label: 'settings.api.fields.postgrestApiUrl.label', // Need to add this translation key
+                type: 'text',
+                placeholder: 'settings.api.fields.postgrestApiUrl.placeholder', // Need to add this translation key
+                envVar: 'VITE_POSTGREST_URL', // Optional ENV var support
+                localStorageKey: 'postgrestApiUrl', // Matches key
+                required: true,
+            },
+            {
+                key: 'postgrestApiToken', // For JWT auth if PostgREST is configured for it
+                label: 'settings.api.fields.postgrestApiToken.label', // Need to add this translation key
+                type: 'password',
+                placeholder: 'settings.api.fields.postgrestApiToken.placeholder', // Need to add this translation key
+                envVar: 'VITE_POSTGREST_TOKEN', // Optional ENV var support
+                localStorageKey: 'postgrestApiToken', // Matches key
+                required: false, // Assuming anon role initially, token might be optional
+            }
+        ],
+        isConfiguredCheck: (settings) => !!settings?.postgrestApiUrl,
+        methods: [ // Copy this list exactly from localStorage or datasette provider
+            'listLocations', 'addLocation', 'updateLocation', 'deleteLocation',
+            'listCategories', 'addCategory', 'updateCategory', 'deleteCategory',
+            'listOwners', 'addOwner', 'updateOwner', 'deleteOwner',
+            'listItems', 'addItem', 'updateItem', 'deleteItem',
+            'exportData', 'importData', 'destroyData',
         ]
     },
 };
