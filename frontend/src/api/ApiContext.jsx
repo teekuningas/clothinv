@@ -47,6 +47,7 @@ export const ApiProvider = ({ children }) => {
         initialConfig.providerType = initialConfig.providerType || "none";
         // Ensure settings is an object, even if null/undefined was saved
         initialConfig.settings = initialConfig.settings || {};
+        // REMOVE imageCompressionEnabled initialization
         // Ensure provider exists
         if (!getProviderById(initialConfig.providerType)) {
           console.warn(
@@ -71,10 +72,12 @@ export const ApiProvider = ({ children }) => {
       initialConfig = {
         providerType: hardcodedDefaultProviderType,
         settings: {},
+        // REMOVE imageCompressionEnabled default
       };
     }
 
     // Always calculate isConfigured based on loaded/default provider and settings
+    // Note: isConfigured doesn't depend on imageCompressionEnabled
     initialConfig.isConfigured = checkConfiguration(
       initialConfig.providerType,
       initialConfig.settings,
@@ -122,7 +125,7 @@ export const ApiProvider = ({ children }) => {
     // { providerType: 'datasette', settings: { datasetteBaseUrl: '...', datasetteApiToken: '...' } }
     // coming from the SettingsView save handler.
 
-    const { providerType, settings } = newConfigData;
+    const { providerType, settings } = newConfigData; // DO NOT get compression setting here
     const provider = getProviderById(providerType);
 
     if (!provider) {
@@ -149,6 +152,7 @@ export const ApiProvider = ({ children }) => {
     const updatedFullConfig = {
       providerType: providerType,
       settings: relevantSettings, // Store only relevant settings
+      // REMOVE imageCompressionEnabled from state object
       isConfigured: isConfigured,
     };
 
@@ -159,6 +163,7 @@ export const ApiProvider = ({ children }) => {
     const configToSave = {
       providerType: updatedFullConfig.providerType,
       settings: updatedFullConfig.settings,
+      // REMOVE imageCompressionEnabled from saved object
     };
     // 6. Persist only providerType and settings to localStorage
     try {
@@ -175,7 +180,7 @@ export const ApiProvider = ({ children }) => {
   // --- Context Value ---
   // Expose the config object, bound API methods, and the update function
   const value = {
-    config: config, // Contains { providerType, settings, isConfigured }
+    config: config, // Contains { providerType, settings, isConfigured } ONLY
     ...apiMethods, // Spread bound methods (e.g., addItem)
     updateConfiguration, // Function to update settings
   };
