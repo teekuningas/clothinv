@@ -201,7 +201,35 @@
     }
 }
 
+/* Container for Sort and Filter controls */
+.list-controls-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 15px; /* Space between sort and filter */
+    align-items: flex-end; /* Align items to the bottom */
+    margin-bottom: 20px; /* Space below the controls */
+}
+
+/* Sort Widget Specific Styles */
+.sort-widget {
+    /* Inherits form-group margin-bottom if needed, but container handles spacing */
+    margin-bottom: 0 !important; /* Override form-group margin */
+    min-width: 200px; /* Give the sort dropdown some minimum width */
+    flex-grow: 1; /* Allow it to grow */
+    max-width: 300px; /* But not too wide */
+}
+
+.sort-widget label {
+    /* Styles inherited from .form-group label */
+}
+
+.sort-widget select {
+    /* Styles inherited from .form-group select */
+    width: 100%; /* Ensure it takes full width of its container */
+}
+
 /* --- Filters --- */
+/* .filter-toggle-button styling is now handled by the button-light class and the container */
 .filter-toggle-button {
     /* margin handled by container now */
 }
