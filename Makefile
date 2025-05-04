@@ -14,8 +14,8 @@ POSTGRES_USER := inventory_user
 POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_CONTAINER_NAME := inventory-postgres-dev
 POSTGRES_PORT := 5432
-# Use a Docker volume for persistent data during development
-POSTGRES_VOLUME_NAME := inventory-postgres-data
+# Use a bind mount for persistent data during development in ./db/postgres
+# POSTGRES_VOLUME_NAME := inventory-postgres-data # No longer used
 
 help:
 	@echo "Available targets:"
@@ -48,14 +48,15 @@ init-db-postgres:
 
 start-backend-postgres:
 	@echo "Starting PostgreSQL container '$(POSTGRES_CONTAINER_NAME)' in the foreground on port $(POSTGRES_PORT)... (Press Ctrl+C to stop)"
-	@echo "Using volume '$(POSTGRES_VOLUME_NAME)' for data persistence."
+	@echo "Using bind mount './db/postgres' for data persistence."
 	@echo "DB: $(POSTGRES_DB), User: $(POSTGRES_USER)"
+	@mkdir -p db/postgres # Ensure the host directory exists
 	@sudo docker run --name $(POSTGRES_CONTAINER_NAME) \
 		-e POSTGRES_DB=$(POSTGRES_DB) \
 		-e POSTGRES_USER=$(POSTGRES_USER) \
 		-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 		-p $(POSTGRES_PORT):5432 \
-		-v $(POSTGRES_VOLUME_NAME):/var/lib/postgresql/data \
+		-v $(shell pwd)/db/postgres:/var/lib/postgresql/data \
 		--rm \
 		postgres:15 # Use a specific version, e.g., postgres:15
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
