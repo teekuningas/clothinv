@@ -212,6 +212,7 @@
     display: flex;
     flex-wrap: wrap; /* Allow wrapping on small screens */
     gap: 15px; /* Space between sort and filter */
+
     /* REMOVED: align-items: flex-end; */
     margin-bottom: 20px; /* Space below the controls */
     justify-content: center; /* Center the button */
@@ -220,6 +221,7 @@
 /* REMOVED: .sort-widget specific styles */
 
 /* --- Filters --- */
+
 /* .filter-toggle-button styling is now handled by the button-light class and the container */
 .filter-toggle-button {
     /* margin handled by container now */

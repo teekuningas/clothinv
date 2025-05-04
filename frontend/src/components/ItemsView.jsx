@@ -195,10 +195,10 @@ const ItemsView = () => {
       switch (sortCriteria) {
         case "created_at_asc":
           // Handle potential null/undefined created_at defensively
-          return (new Date(a.created_at || 0)) - (new Date(b.created_at || 0));
+          return new Date(a.created_at || 0) - new Date(b.created_at || 0);
         case "created_at_desc":
         default:
-          return (new Date(b.created_at || 0)) - (new Date(a.created_at || 0));
+          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
         // Add cases for other criteria like 'name_asc', 'name_desc' here if needed later
       }
     });
@@ -208,7 +208,8 @@ const ItemsView = () => {
   // Effect to create/revoke Blob URLs for item list display
   useEffect(() => {
     const newItemImageUrls = {};
-    sortedItems.forEach((item) => { // Use sortedItems for URL generation
+    sortedItems.forEach((item) => {
+      // Use sortedItems for URL generation
       if (item.imageFile instanceof File) {
         newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
       }
@@ -930,23 +931,26 @@ const ItemsView = () => {
       </h3>
 
       {/* Sort and Filter Controls Container */}
-      {api.config.isConfigured && typeof api.listItems === 'function' && items.length > 0 && (
-        <div className="list-controls-container">
-          {/* Filter Toggle Button - Use button-light */}
-          <button
-            onClick={handleFilterToggle}
-            className="button-light filter-toggle-button"
-            aria-controls="filters-container"
-            aria-expanded={isFilterVisible}
-          >
-            {intl.formatMessage({
-              id: "items.filter.toggleButton",
-              defaultMessage: "Filters",
-            })}{" "}
-            ({filteredItems.length}/{items.length}) {/* Show filtered/total count */}
-          </button>
-        </div>
-      )}
+      {api.config.isConfigured &&
+        typeof api.listItems === "function" &&
+        items.length > 0 && (
+          <div className="list-controls-container">
+            {/* Filter Toggle Button - Use button-light */}
+            <button
+              onClick={handleFilterToggle}
+              className="button-light filter-toggle-button"
+              aria-controls="filters-container"
+              aria-expanded={isFilterVisible}
+            >
+              {intl.formatMessage({
+                id: "items.filter.toggleButton",
+                defaultMessage: "Filters",
+              })}{" "}
+              ({filteredItems.length}/{items.length}){" "}
+              {/* Show filtered/total count */}
+            </button>
+          </div>
+        )}
 
       {/* Collapsible Filter Container */}
       {isFilterVisible && (
@@ -958,9 +962,14 @@ const ItemsView = () => {
             })}
           </h4>
           {/* Sort Widget - Moved here */}
-          <div className="filter-group"> {/* Changed class from sort-widget form-group */}
+          <div className="filter-group">
+            {" "}
+            {/* Changed class from sort-widget form-group */}
             <label htmlFor="sort-criteria">
-              {intl.formatMessage({ id: "items.sort.label", defaultMessage: "Sort by:" })}
+              {intl.formatMessage({
+                id: "items.sort.label",
+                defaultMessage: "Sort by:",
+              })}
             </label>
             <select
               id="sort-criteria"
@@ -969,10 +978,16 @@ const ItemsView = () => {
               disabled={loading}
             >
               <option value="created_at_desc">
-                {intl.formatMessage({ id: "items.sort.newestFirst", defaultMessage: "Newest First" })}
+                {intl.formatMessage({
+                  id: "items.sort.newestFirst",
+                  defaultMessage: "Newest First",
+                })}
               </option>
               <option value="created_at_asc">
-                {intl.formatMessage({ id: "items.sort.oldestFirst", defaultMessage: "Oldest First" })}
+                {intl.formatMessage({
+                  id: "items.sort.oldestFirst",
+                  defaultMessage: "Oldest First",
+                })}
               </option>
               {/* Add other sort options here later if needed */}
             </select>
@@ -1116,97 +1131,112 @@ const ItemsView = () => {
             })}
           </p>
         )}
-      {typeof api.listItems === "function" && sortedItems.length > 0 && ( // Check sortedItems
-        <div className="items-list">
-          {sortedItems.map((item) => ( // Iterate over sortedItems
-            <div key={item.item_id} className="item-card">
-              {/* Display image using Blob URL from state */}
-              <div
-                className={`item-image-container ${!itemImageUrls[item.item_id] ? "placeholder" : ""} ${itemImageUrls[item.item_id] ? "clickable" : ""}`}
-                // Pass the File object to handleImageClick
-                onClick={() =>
-                  item.imageFile && handleImageClick(item.imageFile, item.name)
-                }
-                title={
-                  itemImageUrls[item.item_id]
-                    ? intl.formatMessage({
-                        id: "items.card.viewImageTooltip",
-                        defaultMessage: "Click to view full image",
-                      })
-                    : ""
-                }
-              >
-                {
-                  itemImageUrls[item.item_id] ? (
-                    <img
-                      src={itemImageUrls[item.item_id]} // Use Blob URL from state
-                      alt={item.name}
-                      className="item-image"
-                    />
-                  ) : null /* Background handles placeholder */
-                }
-              </div>
-              <div className="item-card-content">
-                <h4>{item.name}</h4>
-                {item.description && (
-                  <p className="item-description">{item.description}</p>
-                )}
-                <p className="item-meta">
-                  {intl.formatMessage({
-                    id: "locations.titleSingular",
-                    defaultMessage: "Location",
-                  })}
-                  : {getLocationNameById(item.location_id)}
-                </p>
-                <p className="item-meta">
-                  {intl.formatMessage({
-                    id: "categories.titleSingular",
-                    defaultMessage: "Category",
-                  })}
-                  : {getCategoryNameById(item.category_id)}
-                </p>
-                <p className="item-meta">
-                  {intl.formatMessage({
-                    id: "owners.titleSingular",
-                    defaultMessage: "Owner",
-                  })}
-                  : {getOwnerNameById(item.owner_id)}
-                </p>
-                <p className="item-meta">
-                  {intl.formatMessage({ id: "items.card.createdAt", defaultMessage: "Created:" })}
-                  {' '}
-                  {item.created_at ? intl.formatDate(new Date(item.created_at), {
-                    year: 'numeric', month: 'short', day: 'numeric',
-                    // Optional: Add time if desired and available
-                    // hour: 'numeric', minute: 'numeric'
-                  }) : intl.formatMessage({ id: "items.card.unknownDate", defaultMessage: "Unknown" })}
-                </p>
-              </div>
-              {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-              {api.config.isConfigured &&
-                typeof api.updateItem === "function" && (
-                  <button
-                    onClick={() => handleEditClick(item)}
-                    className="edit-button button-light" /* Add button-light */
-                    aria-label={intl.formatMessage(
-                      {
-                        id: "items.editButton.label",
-                        defaultMessage: "Edit {name}",
-                      },
-                      { name: item.name },
-                    )}
-                    disabled={loading || isUpdating || isDeleting}
+      {typeof api.listItems === "function" &&
+        sortedItems.length > 0 && ( // Check sortedItems
+          <div className="items-list">
+            {sortedItems.map(
+              (
+                item, // Iterate over sortedItems
+              ) => (
+                <div key={item.item_id} className="item-card">
+                  {/* Display image using Blob URL from state */}
+                  <div
+                    className={`item-image-container ${!itemImageUrls[item.item_id] ? "placeholder" : ""} ${itemImageUrls[item.item_id] ? "clickable" : ""}`}
+                    // Pass the File object to handleImageClick
+                    onClick={() =>
+                      item.imageFile &&
+                      handleImageClick(item.imageFile, item.name)
+                    }
+                    title={
+                      itemImageUrls[item.item_id]
+                        ? intl.formatMessage({
+                            id: "items.card.viewImageTooltip",
+                            defaultMessage: "Click to view full image",
+                          })
+                        : ""
+                    }
                   >
-                    {intl.formatMessage({
-                      id: "common.edit",
-                      defaultMessage: "Edit",
-                    })}
-                  </button>
-                )}
-            </div>
-          ))}
-        </div>
-      )}
+                    {
+                      itemImageUrls[item.item_id] ? (
+                        <img
+                          src={itemImageUrls[item.item_id]} // Use Blob URL from state
+                          alt={item.name}
+                          className="item-image"
+                        />
+                      ) : null /* Background handles placeholder */
+                    }
+                  </div>
+                  <div className="item-card-content">
+                    <h4>{item.name}</h4>
+                    {item.description && (
+                      <p className="item-description">{item.description}</p>
+                    )}
+                    <p className="item-meta">
+                      {intl.formatMessage({
+                        id: "locations.titleSingular",
+                        defaultMessage: "Location",
+                      })}
+                      : {getLocationNameById(item.location_id)}
+                    </p>
+                    <p className="item-meta">
+                      {intl.formatMessage({
+                        id: "categories.titleSingular",
+                        defaultMessage: "Category",
+                      })}
+                      : {getCategoryNameById(item.category_id)}
+                    </p>
+                    <p className="item-meta">
+                      {intl.formatMessage({
+                        id: "owners.titleSingular",
+                        defaultMessage: "Owner",
+                      })}
+                      : {getOwnerNameById(item.owner_id)}
+                    </p>
+                    <p className="item-meta">
+                      {intl.formatMessage({
+                        id: "items.card.createdAt",
+                        defaultMessage: "Created:",
+                      })}{" "}
+                      {item.created_at
+                        ? intl.formatDate(new Date(item.created_at), {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            // Optional: Add time if desired and available
+                            // hour: 'numeric', minute: 'numeric'
+                          })
+                        : intl.formatMessage({
+                            id: "items.card.unknownDate",
+                            defaultMessage: "Unknown",
+                          })}
+                    </p>
+                  </div>
+                  {/* Show Edit button only if provider configured and update method exists - Use button-light */}
+                  {api.config.isConfigured &&
+                    typeof api.updateItem === "function" && (
+                      <button
+                        onClick={() => handleEditClick(item)}
+                        className="edit-button button-light" /* Add button-light */
+                        aria-label={intl.formatMessage(
+                          {
+                            id: "items.editButton.label",
+                            defaultMessage: "Edit {name}",
+                          },
+                          { name: item.name },
+                        )}
+                        disabled={loading || isUpdating || isDeleting}
+                      >
+                        {intl.formatMessage({
+                          id: "common.edit",
+                          defaultMessage: "Edit",
+                        })}
+                      </button>
+                    )}
+                </div>
+              ),
+            )}
+          </div>
+        )}
 
       {/* Edit Item Modal */}
       {editingItemId && (
