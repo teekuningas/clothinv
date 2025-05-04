@@ -55,6 +55,7 @@ start-backend-postgres:
 		-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
 		-p $(POSTGRES_PORT):5432 \
 		-v $(POSTGRES_VOLUME_NAME):/var/lib/postgresql/data \
+		--rm \
 		postgres:15 # Use a specific version, e.g., postgres:15
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
 
