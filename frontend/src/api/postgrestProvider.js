@@ -621,8 +621,8 @@ export const listItems = async (settings) => {
         const imageIds = itemsData.map(item => item.image_id).filter(id => id != null);
         let imageMap = {};
         if (imageIds.length > 0) {
-            // Construct query like ?image_id=in.(1,5,12)
-            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})`;
+            // Construct query like ?image_id=in.(1,5,12)&select=...
+            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})&select=image_id,image_data,image_mimetype,image_filename`;
             const imagesRes = await fetch(imagesUrl, {
                 method: 'GET',
                 headers: defaultHeaders(settings, false)
