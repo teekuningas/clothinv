@@ -201,6 +201,12 @@
     }
 }
 
+/* Add this new rule */
+.edit-item-form .image-preview {
+    align-self: center; /* Center the preview horizontally */
+    margin-bottom: 8px; /* Add space below the centered preview */
+}
+
 /* Container for Sort and Filter controls */
 .list-controls-container {
     display: flex;
@@ -208,6 +214,7 @@
     gap: 15px; /* Space between sort and filter */
     /* REMOVED: align-items: flex-end; */
     margin-bottom: 20px; /* Space below the controls */
+    justify-content: center; /* Center the button */
 }
 
 /* REMOVED: .sort-widget specific styles */
@@ -233,6 +240,11 @@
     border-bottom: 1px solid var(--color-border-divider);
     padding-bottom: 8px;
     color: var(--color-text-base);
+}
+
+/* Add this new rule */
+.filters-container #sort-criteria {
+    min-width: 250px; /* Make the sort dropdown wider */
 }
 
 .checkbox-group {
