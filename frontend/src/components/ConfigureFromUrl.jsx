@@ -160,7 +160,10 @@ const ConfigureFromUrl = () => {
         );
         // Use replace: true so the /configure URL isn't in the browser history
         // Redirect slightly delayed to allow state update and potential message visibility
-        setTimeout(() => navigate("/items", { replace: true }), 50);
+        setTimeout(() => {
+          // Use window.location.replace for a full page reload without adding to history
+          window.location.replace("/items");
+        }, 50); // Keep a small delay for message visibility
       } else {
         setStatusMessage(
           intl.formatMessage({
