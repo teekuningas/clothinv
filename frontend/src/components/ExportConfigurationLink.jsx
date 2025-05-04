@@ -21,7 +21,10 @@ const ExportConfigurationLink = () => {
       if (localeValue) {
         configParams.set("userLocale", localeValue);
         foundConfig = true;
-        console.log("ExportConfig: Added userLocale from localStorage:", localeValue);
+        console.log(
+          "ExportConfig: Added userLocale from localStorage:",
+          localeValue,
+        );
       }
     } catch (e) {
       console.error("ExportConfig: Error reading locale from localStorage:", e);
@@ -36,29 +39,45 @@ const ExportConfigurationLink = () => {
 
         // Add providerType
         if (apiConfig.providerType) {
-          configParams.set("apiProviderConfig.providerType", apiConfig.providerType);
+          configParams.set(
+            "apiProviderConfig.providerType",
+            apiConfig.providerType,
+          );
           foundConfig = true;
-          console.log("ExportConfig: Added apiProviderConfig.providerType from localStorage:", apiConfig.providerType);
+          console.log(
+            "ExportConfig: Added apiProviderConfig.providerType from localStorage:",
+            apiConfig.providerType,
+          );
         }
 
         // Add settings if they exist and are an object
-        if (apiConfig.settings && typeof apiConfig.settings === 'object') {
+        if (apiConfig.settings && typeof apiConfig.settings === "object") {
           for (const [key, value] of Object.entries(apiConfig.settings)) {
             // Ensure value is not null/undefined before setting
             if (value !== null && value !== undefined) {
-               configParams.set(`apiProviderConfig.settings.${key}`, String(value)); // Convert value to string
-               foundConfig = true;
-               console.log(`ExportConfig: Added apiProviderConfig.settings.${key} from localStorage:`, String(value));
+              configParams.set(
+                `apiProviderConfig.settings.${key}`,
+                String(value),
+              ); // Convert value to string
+              foundConfig = true;
+              console.log(
+                `ExportConfig: Added apiProviderConfig.settings.${key} from localStorage:`,
+                String(value),
+              );
             }
           }
         }
       }
     } catch (e) {
-      console.error("ExportConfig: Error reading or parsing API config from localStorage:", e);
+      console.error(
+        "ExportConfig: Error reading or parsing API config from localStorage:",
+        e,
+      );
       setError(
         intl.formatMessage({
           id: "exportConfig.error.localStorageReadFailed", // New ID
-          defaultMessage: "Error: Failed to read or parse configuration from local storage.",
+          defaultMessage:
+            "Error: Failed to read or parse configuration from local storage.",
         }),
       );
       setGeneratedUrl("");
@@ -70,7 +89,8 @@ const ExportConfigurationLink = () => {
       setError(
         intl.formatMessage({
           id: "exportConfig.error.noConfigInLocalStorage", // New ID
-          defaultMessage: "Error: No configuration found in local storage to export.",
+          defaultMessage:
+            "Error: No configuration found in local storage to export.",
         }),
       );
       setGeneratedUrl("");

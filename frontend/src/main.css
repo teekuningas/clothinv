@@ -175,6 +175,7 @@ button:disabled {
     background-color: var(--color-secondary);
     color: var(--color-secondary-text);
     border-color: var(--color-secondary);
+
     /* Opacity is handled globally */
 }
 
@@ -205,6 +206,7 @@ button:disabled {
     background-color: var(--color-bg-subtle);
     color: var(--color-text-muted); /* Muted text when disabled */
     border-color: var(--color-border);
+
     /* Opacity is handled globally */
 }
 
@@ -225,6 +227,7 @@ button:disabled {
     background-color: var(--color-danger);
     color: var(--color-danger-text);
     border-color: var(--color-danger);
+
     /* Opacity is handled globally */
 }
 
@@ -244,6 +247,7 @@ button:disabled {
     background-color: var(--color-danger-light-bg);
     color: var(--color-danger-light-text);
     border-color: var(--color-danger-light-border);
+
     /* Opacity is handled globally */
 }
 
@@ -341,7 +345,9 @@ button:disabled {
 /* Apply .button-light class in JSX for visual styling */
 .button-file-input {
     display: inline-block; /* Keep display */
+
     /* Remove background-color, color, border-color */
+
     /* Keep padding, cursor, text-align, vertical-align, margin, radius, font-weight, line-height, font-size, transition */
     padding: 10px 15px;
     cursor: pointer;
