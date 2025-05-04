@@ -12,39 +12,6 @@ const ExportConfigurationLink = () => {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const queryString = searchParams.toString();
-
-    if (!queryString) {
-      setError(
-        intl.formatMessage({
-          id: "exportConfig.error.noParamsProvided", // New ID
-          defaultMessage: "Error: No configuration parameters provided in the URL.",
-        }),
-      );
-      setGeneratedUrl("");
-      return;
-    }
-
-    try {
-      // Directly encode the entire query string
-      const base64String = btoa(queryString);
-      // Construct the configure URL using the current origin
-      const configureUrl = `${window.location.origin}/configure?values=${base64String}`;
-
-      setGeneratedUrl(configureUrl);
-      setError(""); // Clear previous errors
-    } catch (e) {
-      console.error("Error encoding query string:", e);
-      setError(
-        intl.formatMessage({
-          id: "exportConfig.error.encodingFailed",
-          defaultMessage: "Error: Failed to generate configuration link.",
-        }),
-      );
-      setGeneratedUrl("");
-    }
-    // Inside useEffect(() => { ... }, [intl]);
-
     const configParams = new URLSearchParams();
     let foundConfig = false;
 
