@@ -15,7 +15,6 @@ const STORES = {
     owners: 'owners', // Stores owner metadata, keyed by owner_id
     counters: 'counters', // Stores next available ID for each entity type
 };
-// Removed ID_COUNTERS_KEY_PREFIX
 
 let dbPromise = null;
 
@@ -230,7 +229,6 @@ export const importData = async (settings, zipFile) => { // eslint-disable-line 
         await clearStore(STORES.locations);
         await clearStore(STORES.categories);
         await clearStore(STORES.owners);
-        _resetIdCounter('items');
         // Don't reset counters here, do it after parsing below
         console.log("Existing data cleared.");
 
