@@ -52,12 +52,12 @@ start-backend-postgres:
 
 start-backend-postgres-api:
 	@echo "Generating temporary JWT secret and token for development session..."
-	@JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
+	JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
 	echo "Generated temporary JWT Secret (for container): $$JWT_SECRET"; \
-	@PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
+	PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
 	@echo ""; \
 	@echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
-	@JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt sign --secret $$JWT_SECRET --alg HS256 -); \
+	JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt sign --secret $$JWT_SECRET --alg HS256 -); \
 	echo "$$JWT_TOKEN"; \
 	@echo ">>> END OF JWT TOKEN <<<"; \
 	@echo ""; \
