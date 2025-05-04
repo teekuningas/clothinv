@@ -9,6 +9,12 @@
   --color-danger: #dc3545;           /* Bootstrap Red */
   --color-danger-hover: #bb2d3b;      /* Darker Red */
   --color-danger-text: #fff;       /* White */
+  --color-danger-light-bg: #f8d7da;    /* Light Red (matches error bg) */
+  --color-danger-light-text: #842029;   /* Dark Red (matches error text) */
+  --color-danger-light-border: #f5c2c7; /* Slightly darker red border */
+  --color-danger-light-hover-bg: #f1b0b7; /* Darker light red */
+  --color-danger-light-hover-text: #6a1a21; /* Darker red text */
+  --color-danger-light-hover-border: #ec9fa9; /* Darker border */
 
   /* Text */
   --color-text-base: #212529;         /* Near Black */
@@ -158,23 +164,87 @@ button:disabled {
     color: var(--color-primary-text);
 }
 
-/* Light Button (often for secondary actions, edit buttons) */
+/* Secondary Button (e.g., Cancel) */
+.button-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-text);
+    border-color: var(--color-secondary);
+}
+
+.button-secondary:disabled {
+    background-color: var(--color-secondary);
+    color: var(--color-secondary-text);
+    border-color: var(--color-secondary);
+    /* Opacity is handled globally */
+}
+
+.button-secondary:hover:not(:disabled) {
+    background-color: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+    color: var(--color-secondary-text);
+}
+
+
+/* Light Button (Choose File, Take Picture, Edit, Filters) */
 .button-light {
     background-color: var(--color-bg-subtle); /* Light grey background */
     color: var(--color-text-base); /* Standard text color */
-    border-color: var(--color-border); /* Standard border */
+    border-color: var(--color-border-input); /* Use input border for slightly more definition */
 }
 
 .button-light:disabled {
     background-color: var(--color-bg-subtle);
     color: var(--color-text-muted); /* Muted text when disabled */
     border-color: var(--color-border);
+    /* Opacity is handled globally */
 }
 
 .button-light:hover:not(:disabled) {
     background-color: var(--color-border-divider); /* Slightly darker grey on hover */
-    border-color: var(--color-border-input); /* Slightly darker border */
+    border-color: var(--color-border-input); /* Keep border consistent or slightly darken */
+    color: var(--color-text-base); /* Keep text color */
 }
+
+/* Danger Button (Confirm Delete, Import, Destroy) */
+.button-danger {
+    background-color: var(--color-danger);
+    color: var(--color-danger-text);
+    border-color: var(--color-danger);
+}
+
+.button-danger:disabled {
+    background-color: var(--color-danger);
+    color: var(--color-danger-text);
+    border-color: var(--color-danger);
+    /* Opacity is handled globally */
+}
+
+.button-danger:hover:not(:disabled) {
+    background-color: var(--color-danger-hover);
+    border-color: var(--color-danger-hover);
+    color: var(--color-danger-text);
+}
+
+/* NEW: Light Danger Button (e.g., Remove Image Preview) */
+.button-danger-light {
+    background-color: var(--color-danger-light-bg);
+    color: var(--color-danger-light-text);
+    border-color: var(--color-danger-light-border);
+}
+
+.button-danger-light:disabled {
+    background-color: var(--color-danger-light-bg);
+    color: var(--color-danger-light-text);
+    border-color: var(--color-danger-light-border);
+    /* Opacity is handled globally */
+}
+
+.button-danger-light:hover:not(:disabled) {
+    background-color: var(--color-danger-light-hover-bg);
+    border-color: var(--color-danger-light-hover-border);
+    color: var(--color-danger-light-hover-text);
+}
+
 
 /* Applied via view container class names */
 .locations-view,
@@ -263,7 +333,9 @@ button:disabled {
 
 /* Apply .button-light class in JSX for visual styling */
 .button-file-input {
-    display: inline-block;
+    display: inline-block; /* Keep display */
+    /* Remove background-color, color, border-color */
+    /* Keep padding, cursor, text-align, vertical-align, margin, radius, font-weight, line-height, font-size, transition */
     padding: 10px 15px;
     cursor: pointer;
     text-align: center;

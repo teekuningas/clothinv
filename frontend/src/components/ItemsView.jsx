@@ -760,12 +760,12 @@ const ItemsView = () => {
                   defaultMessage: "Choose File",
                 })}
               </label>
-              {/* Use button-secondary for webcam */}
+              {/* Use button-secondary for webcam -> CHANGE TO button-light */}
               <button
                 type="button"
                 onClick={() => handleOpenWebcam("add")}
                 disabled={loading}
-                className="button-secondary"
+                className="button-light" // CHANGED from button-secondary
               >
                 {intl.formatMessage({
                   id: "items.addForm.takePicture",
@@ -777,7 +777,7 @@ const ItemsView = () => {
                 <button
                   type="button"
                   onClick={handleRemoveNewImage}
-                  className="button-danger remove-image-button" // Keep danger class
+                  className="button-danger-light remove-image-button" // CHANGED from button-danger
                 >
                   {intl.formatMessage({
                     id: "items.editForm.removeImage",
@@ -1253,12 +1253,12 @@ const ItemsView = () => {
                         defaultMessage: "Choose File",
                       })}
                     </label>
-                    {/* Use button-secondary for webcam */}
+                    {/* Use button-secondary for webcam -> CHANGE TO button-light */}
                     <button
                       type="button"
                       onClick={() => handleOpenWebcam("edit")}
                       disabled={isUpdating || isDeleting}
-                      className="button-secondary"
+                      className="button-light" // CHANGED from button-secondary
                     >
                       {intl.formatMessage({
                         id: "items.addForm.takePicture",
@@ -1271,7 +1271,7 @@ const ItemsView = () => {
                         <button
                           type="button"
                           onClick={handleRemoveEditImage}
-                          className="button-danger remove-image-button" // Keep danger class
+                          className="button-danger-light remove-image-button" // CHANGED from button-danger
                           disabled={isUpdating || isDeleting}
                         >
                           {intl.formatMessage({
