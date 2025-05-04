@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom"; // Removed useNavigate
 import { useIntl } from "react-intl";
 // Import keys from their source files
 import { LS_API_PROVIDER_CONFIG_KEY } from "../api/ApiContext";
@@ -36,7 +36,7 @@ const updateNestedObject = (obj, path, value) => {
 
 const ConfigureFromUrl = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  // Removed useNavigate hook
   const intl = useIntl();
   const [statusMessage, setStatusMessage] = useState(
     intl.formatMessage({
@@ -194,7 +194,7 @@ const ConfigureFromUrl = () => {
       );
       setIsError(true);
     }
-  }, [searchParams, navigate, intl]); // Dependencies
+  }, [searchParams, intl]); // Removed navigate from dependencies
   return (
     // Use settings-view class for consistent padding/styling
     <div className="settings-view" style={{ textAlign: "center" }}>
