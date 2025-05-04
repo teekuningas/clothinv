@@ -439,8 +439,6 @@ const getFromStore = async (storeName, key) => {
     });
 };
 
-// Removed _getNextId and _resetIdCounter functions
-
 // --- Exported API Methods ---
 
 // Locations
