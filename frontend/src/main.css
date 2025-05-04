@@ -119,7 +119,7 @@ body {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
-  color: var(--color-text-label); /* CHANGE */
+  color: var(--color-text-label);
 }
 
 /* Applied globally to button elements */
@@ -189,7 +189,16 @@ button:disabled {
 .button-light {
     background-color: var(--color-bg-subtle); /* Light grey background */
     color: var(--color-text-base); /* Standard text color */
-    border-color: var(--color-border-input); /* Use input border for slightly more definition */
+    border-color: var(--color-border-input);
+}
+
+.form-group label.button-light,
+.form-group-image label.button-light {
+    border-style: solid;
+    border-width: 1px;
+    border-color: var(--color-border-input);
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-base);
 }
 
 .button-light:disabled {
@@ -225,7 +234,6 @@ button:disabled {
     color: var(--color-danger-text);
 }
 
-/* NEW: Light Danger Button (e.g., Remove Image Preview) */
 .button-danger-light {
     background-color: var(--color-danger-light-bg);
     color: var(--color-danger-light-text);
@@ -244,7 +252,6 @@ button:disabled {
     border-color: var(--color-danger-light-hover-border);
     color: var(--color-danger-light-hover-text);
 }
-
 
 /* Applied via view container class names */
 .locations-view,
