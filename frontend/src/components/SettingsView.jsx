@@ -677,7 +677,6 @@ const SettingsView = () => {
                   {intl.formatMessage({
                     id: "settings.image.compressionEnabled.label",
                     defaultMessage: "Enable image compression (reduces size before saving):",
-                    defaultMessage: "Enable image compression (reduces size before saving):",
                   })}
                 </label>
               </div>
