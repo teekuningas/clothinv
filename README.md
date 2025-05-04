@@ -1,13 +1,5 @@
 # To start
 
-## Backend Setup
-
-```
-$ make shell
-$ make init_db
-$ make start-backend
-```
-
 ## Frontend Setup
 
 1.  **Configure API Connection:**
@@ -32,7 +24,7 @@ $ make start-backend
         # .env
         VITE_API_PROVIDER="datasette"
         VITE_DATASATTE_URL="http://127.0.0.1:8001/inventory"
-        VITE_DATASATTE_TOKEN="YOUR_DATASATTE_API_TOKEN_HERE" # Optional, needed for write operations if Datasette requires auth
+        VITE_DATASATTE_TOKEN="YOUR_DATASATTE_API_TOKEN_HERE"
         ```
 
     *   **Using PostgREST:**
