@@ -8,6 +8,7 @@ import {
 } from "../api/providerRegistry";
 import { useApi } from "../api/ApiContext"; // Import useApi hook
 import { useTranslationContext } from "../translations/TranslationContext"; // Import translation hook
+import { useSettings } from "../settings/SettingsContext"; // Import useSettings hook
 import "./SettingsView.css";
 // SettingsView now gets its state and save functions from context
 const SettingsView = () => {
@@ -17,6 +18,7 @@ const SettingsView = () => {
     changeLocale,
     availableLocales,
   } = useTranslationContext(); // Get Translation context
+  const { settings: appSettings, updateSettings: updateAppSettings } = useSettings(); // Get general app settings
   const api = useApi(); // Get full API context to access export/import methods
 
   // Local state ONLY holds the API configuration being edited
@@ -540,6 +542,35 @@ const SettingsView = () => {
                 )}
               </p>
             )}
+          </div>
+        </fieldset>
+
+        {/* --- Image Settings --- */}
+        <fieldset className="settings-fieldset">
+          <legend>
+            {intl.formatMessage({
+              id: "settings.image.legend",
+              defaultMessage: "Image Processing",
+            })}
+          </legend>
+          <div className="form-group checkbox-group"> {/* Use checkbox-group for alignment */}
+             <div className="checkbox-item"> {/* Wrap label and input */}
+                <input
+                  type="checkbox"
+                  id="imageCompressionEnabled"
+                  name="imageCompressionEnabled"
+                  checked={appSettings.imageCompressionEnabled}
+                  onChange={(e) =>
+                    updateAppSettings({ imageCompressionEnabled: e.target.checked })
+                  }
+                />
+                <label htmlFor="imageCompressionEnabled">
+                  {intl.formatMessage({
+                    id: "settings.image.compressionEnabled.label",
+                    defaultMessage: "Enable image compression (reduces size before saving):",
+                  })}
+                </label>
+             </div>
           </div>
         </fieldset>
 

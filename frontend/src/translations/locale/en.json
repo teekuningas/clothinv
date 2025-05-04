@@ -159,6 +159,8 @@
     "settings.data.destroyNotSupported": "Destroy is not supported by the current API provider.",
     "settings.data.destroyFailedUnknown": "Data destruction failed for an unknown reason.",
     "settings.data.destroyUnexpectedError": "An unexpected error occurred during data destruction.",
+    "settings.image.legend": "Image Processing",
+    "settings.image.compressionEnabled.label": "Enable image compression (reduces size before saving):",
     "settings.data.importChooseFile": "Choose File",
     "settings.data.importSelectedFile": "Selected:",
     "locations.titleSingular": "Location",

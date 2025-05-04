@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApi } from "../api/ApiContext";
+import { useSettings } from "../settings/SettingsContext"; // Import useSettings
 import { useIntl } from "react-intl";
+import imageCompression from 'browser-image-compression'; // Import the library
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
 import WebcamCapture from "./WebcamCapture"; // Import the webcam component
@@ -74,6 +76,7 @@ const ItemsView = () => {
 
   // --- Hooks ---
   const api = useApi();
+  const { settings: appSettings } = useSettings(); // Get app settings
   const intl = useIntl();
 
   // --- Data Fetching ---
@@ -264,6 +267,37 @@ const ItemsView = () => {
     setAddImageUrl(null);
   };
 
+  // --- Image Compression Helper ---
+  const processImageFile = useCallback(async (file) => {
+    if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
+      console.log("Image compression skipped (disabled or not a file).");
+      return file; // Return original if disabled or not a file
+    }
+
+    console.log(`Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+
+    const options = {
+      maxSizeMB: 1,          // Max size in MB
+      maxWidthOrHeight: 1024, // Max width or height
+      useWebWorker: true,    // Use web worker for performance
+      // fileType: 'image/jpeg', // Optional: force output type
+      // initialQuality: 0.8, // Optional: set initial quality
+    };
+
+    try {
+      console.log("Compressing image...");
+      const compressedFile = await imageCompression(file, options);
+      console.log(`Compressed image size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+      return compressedFile;
+    } catch (error) {
+      console.error("Image compression failed:", error);
+      // Fallback to original file if compression fails
+      setError(intl.formatMessage({ id: "webcam.error.captureFailed", defaultMessage: "Failed to process captured image. Please try again."}) + ` (Compression Error: ${error.message})`); // Show error to user
+      return file;
+    }
+  }, [appSettings.imageCompressionEnabled, intl]); // Depend on the setting
+
+
   // --- Add Item Handler ---
   const handleAddItem = async (e) => {
     e.preventDefault();
@@ -321,13 +355,21 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
+      let fileToSend = newItemImageFile;
+      // Process image before sending if a file exists
+      if (newItemImageFile instanceof File) {
+        setLoading(true); // Show loading specifically for compression potentially
+        fileToSend = await processImageFile(newItemImageFile);
+        setLoading(false); // Hide loading after compression attempt
+      }
+
       const result = await api.addItem({
         name: newItemName.trim(),
         description: newItemDescription.trim() || null,
         location_id: parseInt(newItemLocationId, 10), // Ensure ID is integer
         category_id: parseInt(newItemCategoryId, 10), // Ensure ID is integer
         owner_id: parseInt(newItemOwnerId, 10), // Ensure ID is integer
-        imageFile: newItemImageFile, // Pass the File object
+        imageFile: fileToSend, // Pass the potentially compressed File object
       });
 
       if (result.success) {
@@ -487,13 +529,21 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
+      let fileToSend = editItemImageFile;
+      // Process image before sending if a new file was selected
+      if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
+         setIsUpdating(true); // Show updating specifically for compression potentially
+         fileToSend = await processImageFile(editItemImageFile);
+         setIsUpdating(false); // Hide updating after compression attempt
+      }
+
       const result = await api.updateItem(editingItemId, {
         name: editName.trim(),
         description: editDescription.trim() || null,
         location_id: parseInt(editLocationId, 10), // Include location_id
         category_id: parseInt(editCategoryId, 10), // Include category_id
         owner_id: parseInt(editOwnerId, 10), // Include owner_id
-        imageFile: editItemImageFile, // Pass the new file (if any)
+        imageFile: fileToSend, // Pass the potentially compressed file
         removeImage: imageMarkedForRemoval, // Pass the explicit removal flag
       });
 
@@ -644,23 +694,26 @@ const ItemsView = () => {
 
   const handleWebcamCapture = useCallback(
     async (imageFile) => {
-      if (!imageFile) return;
+      if (!(imageFile instanceof File)) return;
+
+      // Process the captured image *before* setting state/URL
+      const processedFile = await processImageFile(imageFile);
 
       if (webcamTarget === "add") {
         if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke previous
-        setNewItemImageFile(imageFile);
-        setAddImageUrl(URL.createObjectURL(imageFile)); // Set new blob URL
+        setNewItemImageFile(processedFile); // Use processed file
+        setAddImageUrl(URL.createObjectURL(processedFile)); // Set new blob URL from processed file
       } else if (webcamTarget === "edit") {
         if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous
-        setEditItemImageFile(imageFile);
-        setEditImageUrl(URL.createObjectURL(imageFile)); // Set new blob URL
-        setImageMarkedForRemoval(false); // Captured new image
+        setEditItemImageFile(processedFile); // Use processed file
+        setEditImageUrl(URL.createObjectURL(processedFile)); // Set new blob URL from processed file
+        setImageMarkedForRemoval(false); // Captured new image, don't remove
       }
 
       setIsWebcamOpen(false); // Close the modal
     },
-    [webcamTarget],
-  ); // Dependency: webcamTarget
+    [webcamTarget, processImageFile, addImageUrl, editImageUrl], // Add dependencies
+  );
 
   // --- Render ---
   return (

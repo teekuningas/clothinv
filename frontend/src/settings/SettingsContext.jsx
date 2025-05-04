@@ -5,8 +5,7 @@ export const LS_APP_SETTINGS_KEY = 'appSettings';
 
 // Define default settings
 const defaultSettings = {
-  // Add default settings here in the future, e.g.:
-  // imageCompressionEnabled: true,
+  imageCompressionEnabled: true, // Default to enabled
   // theme: 'light',
 };
 
