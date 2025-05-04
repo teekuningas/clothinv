@@ -57,23 +57,6 @@ export const SettingsProvider = ({ children }) => {
     });
   }, []);
 
-  // Effect to potentially handle external changes (optional, maybe not needed for simple settings)
-  // useEffect(() => {
-  //   const handleStorageChange = (event) => {
-  //     if (event.key === LS_APP_SETTINGS_KEY) {
-  //       try {
-  //         const newSettings = JSON.parse(event.newValue);
-  //         setSettings({ ...defaultSettings, ...newSettings });
-  //       } catch (e) {
-  //         console.error('Error processing storage event for app settings:', e);
-  //       }
-  //     }
-  //   };
-  //   window.addEventListener('storage', handleStorageChange);
-  //   return () => window.removeEventListener('storage', handleStorageChange);
-  // }, []);
-
-
   // The context value includes the current settings and the update function
   const value = {
     settings,
