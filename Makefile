@@ -82,3 +82,6 @@ watch-frontend:
 	@echo "Starting frontend development server..."
 	@cd frontend && npm install && npm run dev
 
+format:
+	@cd frontend && npm run format:jsx
+	@cd frontend && npm run format:css
