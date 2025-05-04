@@ -200,7 +200,7 @@ button:disabled {
 }
 
 .button-light:hover:not(:disabled) {
-    background-color: var(--color-border-divider); /* Slightly darker grey on hover */
+    background-color: var(--color-border); /* Use border color for subtle darker hover */
     border-color: var(--color-border-input); /* Keep border consistent or slightly darken */
     color: var(--color-text-base); /* Keep text color */
 }
