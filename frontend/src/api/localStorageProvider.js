@@ -161,7 +161,7 @@ export const exportData = async (settings) => { // eslint-disable-line no-unused
         const manifest = {
             exportFormatVersion: "1.0",
             exportedAt: new Date().toISOString(),
-            sourceProvider: "localStorage"
+            sourceProvider: "indexedDB" // <-- Change this value
         };
         zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 

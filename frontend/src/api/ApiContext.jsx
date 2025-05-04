@@ -67,7 +67,7 @@ export const ApiProvider = ({ children }) => {
     if (!initialConfig) {
       // Determine default provider type: ENV ('VITE_API_PROVIDER') or fallback to 'datasette'
       const envProviderType = import.meta.env.VITE_API_PROVIDER; // Check ENV first
-      const hardcodedDefaultProviderType = "localStorage"; // <<< CHANGE THIS to 'localStorage'
+      const hardcodedDefaultProviderType = "indexedDB"; // <-- Change this default
       let defaultProviderType = hardcodedDefaultProviderType; // Start with the hardcoded default
 
       // Check if ENV var specifies a valid provider

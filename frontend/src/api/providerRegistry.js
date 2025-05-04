@@ -1,5 +1,5 @@
 import * as datasetteProvider from './datasetteProvider';
-import * as localStorageProvider from './localStorageProvider'; // Add this import
+import * as indexedDBProvider from './indexedDBProvider'; // <-- Change import name and path
 import * as postgrestProvider from './postgrestProvider';
 // import * as homeboxProvider from './homeboxProvider';
 
@@ -59,11 +59,11 @@ export const providers = {
         ]
     },
 
-    // --- Local Storage Provider Definition ---
-    'localStorage': {
-        id: 'localStorage',
-        displayName: 'Local Storage (Browser)',
-        module: localStorageProvider, // Reference the new module
+    // --- IndexedDB Provider Definition ---
+    'indexedDB': { // <-- Change key
+        id: 'indexedDB', // <-- Change id
+        displayName: 'IndexedDB (Browser)', // <-- Change display name
+        module: indexedDBProvider, // <-- Change module reference
         configFields: [],
         isConfiguredCheck: () => true, // Always configured as it needs no settings
         // Ensure this list matches the methods provided by datasetteProvider
