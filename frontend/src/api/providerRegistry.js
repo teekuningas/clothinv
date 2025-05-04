@@ -112,10 +112,10 @@ export const providers = {
                 placeholder: 'settings.api.fields.postgrestApiToken.placeholder', // Need to add this translation key
                 envVar: 'VITE_POSTGREST_TOKEN', // Optional ENV var support
                 localStorageKey: 'postgrestApiToken', // Matches key
-                required: false, // Assuming anon role initially, token might be optional
+                required: true, // Token is now mandatory for authenticated access
             }
         ],
-        isConfiguredCheck: (settings) => !!settings?.postgrestApiUrl,
+        isConfiguredCheck: (settings) => !!settings?.postgrestApiUrl && !!settings?.postgrestApiToken, // Check both URL and Token
         methods: [ // Copy this list exactly from localStorage or datasette provider
             'listLocations', 'addLocation', 'updateLocation', 'deleteLocation',
             'listCategories', 'addCategory', 'updateCategory', 'deleteCategory',
