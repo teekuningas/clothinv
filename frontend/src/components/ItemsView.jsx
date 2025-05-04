@@ -929,10 +929,31 @@ const ItemsView = () => {
         })}
       </h3>
 
-      {/* Filter Toggle Button - Use button-light */}
-      {api.config.isConfigured &&
-        typeof api.listItems === "function" &&
-        items.length > 0 && (
+      {/* Sort and Filter Controls Container */}
+      {api.config.isConfigured && typeof api.listItems === 'function' && items.length > 0 && (
+        <div className="list-controls-container">
+          {/* Sort Widget */}
+          <div className="sort-widget form-group"> {/* Reuse form-group for structure */}
+            <label htmlFor="sort-criteria">
+              {intl.formatMessage({ id: "items.sort.label", defaultMessage: "Sort by:" })}
+            </label>
+            <select
+              id="sort-criteria"
+              value={sortCriteria}
+              onChange={(e) => setSortCriteria(e.target.value)}
+              disabled={loading}
+            >
+              <option value="created_at_desc">
+                {intl.formatMessage({ id: "items.sort.newestFirst", defaultMessage: "Newest First" })}
+              </option>
+              <option value="created_at_asc">
+                {intl.formatMessage({ id: "items.sort.oldestFirst", defaultMessage: "Oldest First" })}
+              </option>
+              {/* Add other sort options here later if needed */}
+            </select>
+          </div>
+
+          {/* Filter Toggle Button - Use button-light */}
           <button
             onClick={handleFilterToggle}
             className="button-light filter-toggle-button"
@@ -943,10 +964,10 @@ const ItemsView = () => {
               id: "items.filter.toggleButton",
               defaultMessage: "Filters",
             })}{" "}
-            ({filteredItems.length}/{items.length}){" "}
-            {/* Show filtered/total count */}
+            ({filteredItems.length}/{items.length}) {/* Show filtered/total count */}
           </button>
-        )}
+        </div>
+      )}
 
       {/* Collapsible Filter Container */}
       {isFilterVisible && (
