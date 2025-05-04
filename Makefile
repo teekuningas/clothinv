@@ -51,20 +51,37 @@ start-backend-postgres:
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
 
 start-backend-postgres-api:
-	@echo "Starting PostgREST container 'inventory-postgrest-dev' in the foreground on port 4000..."
-	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
-	@echo ">>> JWT Authentication Required <<<"
+	@echo "Generating temporary JWT secret and token for development session..."
+	# Generate a 64-character alphanumeric secret
+	@JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
+	echo "Generated temporary JWT Secret (for container): $$JWT_SECRET"; \
+	\
+	# Define the payload - IMPORTANT: uses the POSTGRES_USER variable from Makefile
+	@PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
+	\
+	# Generate the JWT Token using jwt-cli
+	@echo ""; \
+	@echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
+	@JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt sign --secret $$JWT_SECRET --alg HS256 -); \
+	echo "$$JWT_TOKEN"; \
+	@echo ">>> END OF JWT TOKEN <<<"; \
+	@echo ""; \
+	\
+	# Start PostgREST container using the generated secret
+	@echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."; \
+	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"; \
+	@echo ">>> JWT Authentication Required (using generated token above) <<<"; \
 	@sudo docker run --name inventory-postgrest-dev \
 		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
 		-e PGRST_DB_SCHEMA="public" \
 		-e PGRST_DB_ANON_ROLE="anon_role" \
-		-e PGRST_JWT_SECRET="KJhgfdsAPoiuytrewqLKJHGFDSAmnbvcxzPOIUYTREWQ1234567890" \
+		-e PGRST_JWT_SECRET="$$JWT_SECRET" \
 		-e PGRST_SERVER_PORT="4000" \
 		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
 		--rm \
 		--network host \
-		postgrest/postgrest
-	@echo "PostgREST container stopped."
+		postgrest/postgrest; \
+	echo "PostgREST container stopped."
 
 watch-frontend:
 	@echo "Starting frontend development server..."
