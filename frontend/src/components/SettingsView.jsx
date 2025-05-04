@@ -500,7 +500,7 @@ const SettingsView = () => {
                 defaultMessage: "Display Language:",
               })}
             </label>
-            <div className="setting-with-button"> {/* Wrapper for select and button */}
+            {/* Removed setting-with-button wrapper */}
               <select
                 id="locale"
                 name="locale" // Informational name
@@ -515,18 +515,20 @@ const SettingsView = () => {
                   </option>
                 ))}
               </select>
-              {/* Save Button for Language */}
+            {/* Removed button and closing div from here */}
+          </div>
+          {/* Added form-actions wrapper for the button */}
+          <div className="form-actions">
               <button
                 type="button"
                 onClick={handleSaveLanguage}
-                className="button-primary button-save-inline" // Add specific class if needed
+                className="button-primary" // Removed button-save-inline
                 disabled={languageSaveStatus === 'saving' || languageSaveStatus === 'success' || localLocale === currentLocale || languageLoading}
               >
                 {languageSaveStatus === 'saving'
                   ? intl.formatMessage({ id: "common.saving", defaultMessage: "Saving..." })
                   : intl.formatMessage({ id: "settings.language.saveButton", defaultMessage: "Save Language" })}
               </button>
-            </div>
           </div>
           {/* Save Status Feedback for Language Settings */}
           <div className="save-feedback" style={{ minHeight: '20px' }}>
@@ -680,11 +682,14 @@ const SettingsView = () => {
                   })}
                 </label>
               </div>
-              {/* Save Button for Image Settings */}
+              {/* Button removed from here */}
+            </div>
+            {/* Added form-actions wrapper for the button */}
+            <div className="form-actions">
               <button
                 type="button"
                 onClick={handleSaveImageSettings}
-                className="button-primary button-save-inline" // Add specific class if needed
+                className="button-primary" // Removed button-save-inline
                 disabled={imageSaveStatus === 'saving' || imageSaveStatus === 'success' || localImageCompressionEnabled === appSettings.imageCompressionEnabled}
               >
                 {imageSaveStatus === 'saving'
