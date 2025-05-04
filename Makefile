@@ -44,6 +44,7 @@ init-db-postgres:
 	@echo "NOTE: Requires the PostgreSQL container to be running (make start-backend-postgres)."
 	@cat $(SCHEMA_POSTGRES_FILE) | sudo docker exec -i $(POSTGRES_CONTAINER_NAME) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
 	@echo "PostgreSQL database schema applied."
+	@echo "Connection URL: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)"
 
 start-backend-postgres:
 	@echo "Starting PostgreSQL container '$(POSTGRES_CONTAINER_NAME)' in the foreground on port $(POSTGRES_PORT)... (Press Ctrl+C to stop)"
