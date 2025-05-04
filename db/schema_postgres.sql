@@ -42,7 +42,7 @@ EXECUTE FUNCTION update_updated_at_column();
 -- Table for storing image data
 CREATE TABLE IF NOT EXISTS images (
     image_id SERIAL PRIMARY KEY,
-    image_data BYTEA NOT NULL,
+    image_data TEXT NOT NULL, -- Changed from BYTEA to TEXT
     image_mimetype TEXT NOT NULL,
     image_filename TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP

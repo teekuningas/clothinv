@@ -363,6 +363,7 @@ export const deleteOwner = async (settings, ownerId) => {
 
 /**
  * Internal: Inserts image data and filename, returns the new ID.
+ * Sends base64 data as a string in the JSON payload.
  */
 const _insertImage = async (settings, base64Data, mimeType, filename) => {
     const baseUrl = settings?.postgrestApiUrl;
@@ -370,7 +371,7 @@ const _insertImage = async (settings, base64Data, mimeType, filename) => {
 
     const imageData = {
         // PG trigger handles created_at
-        image_data: base64Data, // Store base64 string directly
+        image_data: base64Data, // Store base64 string directly (will go into TEXT column)
         image_mimetype: mimeType,
         image_filename: filename || 'image', // Store filename, provide default
     };
@@ -389,7 +390,8 @@ const _insertImage = async (settings, base64Data, mimeType, filename) => {
 };
 
 /**
- * Internal: Updates image data and filename for an existing image ID.
+ * Internal: Updates image data and filename for an existing image ID using PATCH.
+ * Sends base64 data as a string in the JSON payload.
  */
 const _updateImage = async (settings, imageId, base64Data, mimeType, filename) => {
     const baseUrl = settings?.postgrestApiUrl;
@@ -397,7 +399,7 @@ const _updateImage = async (settings, imageId, base64Data, mimeType, filename) =
 
     const updateUrl = `${baseUrl}/images?image_id=eq.${imageId}`;
     const payload = {
-        image_data: base64Data,
+        image_data: base64Data, // Send base64 string directly (will update TEXT column)
         image_mimetype: mimeType,
         image_filename: filename || 'image', // Update filename too
     };
