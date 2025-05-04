@@ -26,7 +26,6 @@
     /* Keep specific layout/spacing */
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
-    padding-right: 60px; /* Make space for the edit button if present */
     position: relative;
 
     /* Use variables for border/background */
