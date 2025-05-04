@@ -51,15 +51,14 @@ start-backend-postgres:
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
 
 start-backend-postgres-api:
-	echo "Generating temporary JWT secret and token for development session..."
-	JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
+	@JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
 	echo "Generated temporary JWT Secret (for container): $$JWT_SECRET"; \
 	PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
 	echo ""; \
 	echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
+	echo ""; \
 	JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
 	echo "$$JWT_TOKEN"; \
-	echo ">>> END OF JWT TOKEN <<<"; \
 	echo ""; \
 	echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."; \
 	echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"; \
