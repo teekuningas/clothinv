@@ -203,7 +203,7 @@
 
 /* --- Filters --- */
 .filter-toggle-button {
-    margin-bottom: 15px;
+    /* margin handled by container now */
 }
 
 .filters-container {

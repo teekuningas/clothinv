@@ -69,6 +69,9 @@ const ItemsView = () => {
   const [filterCategoryIds, setFilterCategoryIds] = useState([]); // Array of selected category_id
   const [filterOwnerIds, setFilterOwnerIds] = useState([]); // Array of selected owner_id
 
+  // Sort state
+  const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
+
   // --- Hooks ---
   const api = useApi();
   const intl = useIntl();
@@ -183,12 +186,29 @@ const ItemsView = () => {
       }
       return true; // Item passes all active filters
     });
-  }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]);
+  }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]); // Keep existing filters
+
+  // Apply sorting after filtering
+  const sortedItems = useMemo(() => {
+    const itemsToSort = [...filteredItems]; // Create a mutable copy
+    itemsToSort.sort((a, b) => {
+      switch (sortCriteria) {
+        case "created_at_asc":
+          // Handle potential null/undefined created_at defensively
+          return (new Date(a.created_at || 0)) - (new Date(b.created_at || 0));
+        case "created_at_desc":
+        default:
+          return (new Date(b.created_at || 0)) - (new Date(a.created_at || 0));
+        // Add cases for other criteria like 'name_asc', 'name_desc' here if needed later
+      }
+    });
+    return itemsToSort;
+  }, [filteredItems, sortCriteria]); // Depend on filteredItems and sortCriteria
 
   // Effect to create/revoke Blob URLs for item list display
   useEffect(() => {
     const newItemImageUrls = {};
-    filteredItems.forEach((item) => {
+    sortedItems.forEach((item) => { // Use sortedItems for URL generation
       if (item.imageFile instanceof File) {
         newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
       }
@@ -202,7 +222,7 @@ const ItemsView = () => {
       );
       setItemImageUrls({}); // Clear the state on cleanup
     };
-  }, [filteredItems]); // Re-run when filteredItems changes
+  }, [sortedItems]); // Re-run when sortedItems changes
 
   // --- Helper Functions ---
   const getLocationNameById = (id) =>
@@ -1052,7 +1072,7 @@ const ItemsView = () => {
       )}
       {typeof api.listItems === "function" &&
         !loading &&
-        filteredItems.length === 0 &&
+        sortedItems.length === 0 && // Check sortedItems
         items.length > 0 &&
         !error &&
         api.config.isConfigured && (
@@ -1075,9 +1095,9 @@ const ItemsView = () => {
             })}
           </p>
         )}
-      {typeof api.listItems === "function" && filteredItems.length > 0 && (
+      {typeof api.listItems === "function" && sortedItems.length > 0 && ( // Check sortedItems
         <div className="items-list">
-          {filteredItems.map((item) => (
+          {sortedItems.map((item) => ( // Iterate over sortedItems
             <div key={item.item_id} className="item-card">
               {/* Display image using Blob URL from state */}
               <div
