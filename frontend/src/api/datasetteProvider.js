@@ -1,15 +1,11 @@
-// Helper function to get MIME type from filename
-const getMimeTypeFromFilename = (filename) => {
-    if (!filename) return 'application/octet-stream'; // Default if no filename
-    const lowerCaseFilename = filename.toLowerCase();
-    if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) return 'image/jpeg';
-    if (lowerCaseFilename.endsWith('.png')) return 'image/png';
-    if (lowerCaseFilename.endsWith('.gif')) return 'image/gif';
-    if (lowerCaseFilename.endsWith('.webp')) return 'image/webp';
-    if (lowerCaseFilename.endsWith('.svg')) return 'image/svg+xml';
-    // Add other common image types as needed
-    return 'application/octet-stream'; // Fallback for unknown types
-};
+import JSZip from 'jszip';
+import {
+    getMimeTypeFromFilename,
+    readFileAsBase64,
+    createCSV,
+    parseCSV,
+    base64ToBlob // Needed for listItems
+} from './providerUtils'; // Import shared utilities
 
 // Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings) => {
@@ -23,64 +19,7 @@ const defaultHeaders = (settings) => {
     return headers;
 };
 
-// Helper to read file as Base64 (used within provider functions)
-const readFileAsBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]); // Get only the base64 part
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-    });
-};
-
-// Assume createCSV is available (copy/import from localStorageProvider or use a library)
-const createCSV = (headers, data) => {
-    const headerRow = headers.join(',');
-    const dataRows = data.map(row =>
-        headers.map(header => {
-            let value = row[header];
-            if (value === null || typeof value === 'undefined') return '';
-            value = String(value);
-            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                value = value.replace(/"/g, '""');
-                return `"${value}"`;
-            }
-            return value;
-        }).join(',')
-    );
-    return [headerRow, ...dataRows].join('\n');
-};
-
-// Assume parseCSV is available (copy/import from localStorageProvider or use PapaParse)
-// Basic CSV parser (consider using a library like PapaParse for robustness)
-const parseCSV = (csvString) => {
-    const lines = csvString.trim().split('\n');
-    if (lines.length < 1) return [];
-    const headers = lines[0].split(',').map(h => h.trim());
-    const data = [];
-    for (let i = 1; i < lines.length; i++) {
-        // Very basic split, doesn't handle quoted commas correctly
-        const values = lines[i].split(',');
-        const row = {};
-        headers.forEach((header, index) => {
-            let value = values[index] ? values[index].trim() : '';
-            // Basic unquoting
-            if (value.startsWith('"') && value.endsWith('"')) {
-                value = value.slice(1, -1).replace(/""/g, '"');
-            }
-            // Attempt to convert numbers (adjust as needed)
-            if (header.endsWith('_id') && value !== '') {
-                row[header] = parseInt(value, 10);
-            } else if (header.endsWith('_at') && value === '') {
-                row[header] = null; // Handle empty timestamps as null
-            } else {
-                row[header] = value;
-            }
-        });
-        data.push(row);
-    }
-    return data;
-};
+// Removed readFileAsBase64, createCSV, parseCSV - now imported
 
 // handleResponse updated to be more generic and return JSON if possible
 const handleResponse = async (res, operation, entityDescription) => {
@@ -250,8 +189,31 @@ export const deleteLocation = async (settings, locationId) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!locationId) throw new Error("Location ID is required for deletion.");
 
-    const deleteUrl = `${baseUrl}/locations/${locationId}/-/delete`;
+    // Dependency Check: Check if any items use this location
+    const checkUrl = `${baseUrl}/items.json?location_id=eq.${locationId}&_shape=count`;
+    try {
+        const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (!checkRes.ok) {
+            // Handle error during check, but don't necessarily block deletion unless it's a server error
+            console.error(`Failed to check item dependencies for location ${locationId}: ${checkRes.status}`);
+            // Optionally throw an error here if the check must succeed
+        } else {
+            const checkData = await checkRes.json();
+            if (checkData && checkData.count > 0) {
+                console.warn(`Attempted to delete location ${locationId} which is used by ${checkData.count} items.`);
+                // Use the specific error message expected by LocationsView
+                return { success: false, message: 'Cannot delete location: It is currently assigned to one or more items.' };
+            }
+        }
+    } catch (error) {
+        console.error(`Error checking dependencies for location ${locationId}:`, error);
+        // Decide if you want to proceed or throw
+        // throw new Error(`Failed to check dependencies: ${error.message}`);
+    }
 
+
+    // Proceed with deletion
+    const deleteUrl = `${baseUrl}/locations/${locationId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
         headers: defaultHeaders(settings),
@@ -311,8 +273,27 @@ export const deleteCategory = async (settings, categoryId) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!categoryId) throw new Error("Category ID is required for deletion.");
 
-    const deleteUrl = `${baseUrl}/categories/${categoryId}/-/delete`;
+    // Dependency Check: Check if any items use this category
+    const checkUrl = `${baseUrl}/items.json?category_id=eq.${categoryId}&_shape=count`;
+    try {
+        const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (!checkRes.ok) {
+            console.error(`Failed to check item dependencies for category ${categoryId}: ${checkRes.status}`);
+        } else {
+            const checkData = await checkRes.json();
+            if (checkData && checkData.count > 0) {
+                console.warn(`Attempted to delete category ${categoryId} which is used by ${checkData.count} items.`);
+                // Use the specific error message expected by CategoriesView
+                return { success: false, message: 'Cannot delete category: It is currently assigned to one or more items.' };
+            }
+        }
+    } catch (error) {
+        console.error(`Error checking dependencies for category ${categoryId}:`, error);
+        // throw new Error(`Failed to check dependencies: ${error.message}`);
+    }
 
+    // Proceed with deletion
+    const deleteUrl = `${baseUrl}/categories/${categoryId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
         headers: defaultHeaders(settings),
@@ -420,8 +401,27 @@ export const deleteOwner = async (settings, ownerId) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!ownerId) throw new Error("Owner ID is required for deletion.");
 
-    const deleteUrl = `${baseUrl}/owners/${ownerId}/-/delete`;
+    // Dependency Check: Check if any items use this owner
+    const checkUrl = `${baseUrl}/items.json?owner_id=eq.${ownerId}&_shape=count`;
+    try {
+        const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (!checkRes.ok) {
+            console.error(`Failed to check item dependencies for owner ${ownerId}: ${checkRes.status}`);
+        } else {
+            const checkData = await checkRes.json();
+            if (checkData && checkData.count > 0) {
+                console.warn(`Attempted to delete owner ${ownerId} which is used by ${checkData.count} items.`);
+                // Use the specific error message expected by OwnersView
+                return { success: false, message: 'Cannot delete owner: They are currently assigned to one or more items.' };
+            }
+        }
+    } catch (error) {
+        console.error(`Error checking dependencies for owner ${ownerId}:`, error);
+        // throw new Error(`Failed to check dependencies: ${error.message}`);
+    }
 
+    // Proceed with deletion
+    const deleteUrl = `${baseUrl}/owners/${ownerId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
         headers: defaultHeaders(settings),
@@ -658,21 +658,7 @@ export const listItems = async (settings) => {
             return [];
         }
 
-        // Helper function to convert base64 to Blob
-        const base64ToBlob = (base64, mimeType) => {
-            try {
-                const byteCharacters = atob(base64);
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                return new Blob([byteArray], { type: mimeType });
-            } catch (e) {
-                console.error("Error converting base64 to Blob:", e);
-                return null;
-            }
-        };
+        // Removed base64ToBlob - now imported
 
         // 2. Fetch all images (including filename)
         const imagesUrl = `${baseUrl}/images.json?_shape=array`;
@@ -947,4 +933,4 @@ export const destroyData = async (settings) => {
         return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
     }
 };
-import JSZip from 'jszip';
+// Removed JSZip import - already imported above

@@ -1,4 +1,9 @@
 import JSZip from 'jszip';
+import {
+    createCSV,
+    parseCSV,
+    // No image helpers needed directly here as we store File objects
+} from './providerUtils'; // Import shared utilities
 // --- IndexedDB Setup ---
 const DB_NAME = 'ClothingInventoryDB';
 const DB_VERSION = 1; // Increment this if schema changes
@@ -107,27 +112,7 @@ export const destroyData = async (settings) => { // eslint-disable-line no-unuse
 
 // --- Export/Import ---
 
-const createCSV = (headers, data) => {
-    const headerRow = headers.join(',');
-    const dataRows = data.map(row =>
-        headers.map(header => {
-            let value = row[header];
-            // Handle null/undefined
-            if (value === null || typeof value === 'undefined') {
-                return '';
-            }
-            // Quote strings containing commas, quotes, or newlines
-            value = String(value);
-            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                // Escape double quotes by doubling them
-                value = value.replace(/"/g, '""');
-                return `"${value}"`;
-            }
-            return value;
-        }).join(',')
-    );
-    return [headerRow, ...dataRows].join('\n');
-};
+// Removed createCSV - now imported
 
 export const exportData = async (settings) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: exportData called');
@@ -191,36 +176,7 @@ export const exportData = async (settings) => { // eslint-disable-line no-unused
     }
 };
 
-
-// Basic CSV parser (consider using a library like PapaParse for robustness)
-const parseCSV = (csvString) => {
-    const lines = csvString.trim().split('\n');
-    if (lines.length < 1) return [];
-    const headers = lines[0].split(',').map(h => h.trim());
-    const data = [];
-    for (let i = 1; i < lines.length; i++) {
-        // Very basic split, doesn't handle quoted commas correctly
-        const values = lines[i].split(',');
-        const row = {};
-        headers.forEach((header, index) => {
-            let value = values[index] ? values[index].trim() : '';
-            // Basic unquoting
-            if (value.startsWith('"') && value.endsWith('"')) {
-                value = value.slice(1, -1).replace(/""/g, '"');
-            }
-            // Attempt to convert numbers (adjust as needed)
-            if (header.endsWith('_id') && value !== '') {
-                row[header] = parseInt(value, 10);
-            } else if (header.endsWith('_at') && value === '') {
-                row[header] = null; // Handle empty timestamps as null
-            } else {
-                row[header] = value;
-            }
-        });
-        data.push(row);
-    }
-    return data;
-};
+// Removed parseCSV - now imported
 
 export const importData = async (settings, zipFile) => { // eslint-disable-line no-unused-vars
     console.log('IndexedDBProvider: importData called');

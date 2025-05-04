@@ -1,19 +1,15 @@
 // --- PostgREST API Provider ---
 // Interacts with a PostgREST endpoint which exposes a PostgreSQL database.
 import JSZip from 'jszip';
+import {
+    getMimeTypeFromFilename,
+    readFileAsBase64,
+    base64ToBlob,
+    createCSV,
+    parseCSV
+} from './providerUtils'; // Import shared utilities
 
-// Helper function to get MIME type from filename
-const getMimeTypeFromFilename = (filename) => {
-    if (!filename) return 'application/octet-stream'; // Default if no filename
-    const lowerCaseFilename = filename.toLowerCase();
-    if (lowerCaseFilename.endsWith('.jpg') || lowerCaseFilename.endsWith('.jpeg')) return 'image/jpeg';
-    if (lowerCaseFilename.endsWith('.png')) return 'image/png';
-    if (lowerCaseFilename.endsWith('.gif')) return 'image/gif';
-    if (lowerCaseFilename.endsWith('.webp')) return 'image/webp';
-    if (lowerCaseFilename.endsWith('.svg')) return 'image/svg+xml';
-    // Add other common image types as needed
-    return 'application/octet-stream'; // Fallback for unknown types
-};
+// Removed getMimeTypeFromFilename - now imported
 
 // Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings, preferRepresentation = true) => {
@@ -32,83 +28,7 @@ const defaultHeaders = (settings, preferRepresentation = true) => {
     return headers;
 };
 
-// Helper to read file as Base64 (used within provider functions)
-const readFileAsBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]); // Get only the base64 part
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-    });
-};
-
-// Helper function to convert base64 to Blob
-const base64ToBlob = (base64, mimeType) => {
-    try {
-        const byteCharacters = atob(base64);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        return new Blob([byteArray], { type: mimeType });
-    } catch (e) {
-        console.error("Error converting base64 to Blob:", e);
-        return null;
-    }
-};
-
-
-// Assume createCSV is available (copy/import from localStorageProvider or use a library)
-const createCSV = (headers, data) => {
-    const headerRow = headers.join(',');
-    const dataRows = data.map(row =>
-        headers.map(header => {
-            let value = row[header];
-            if (value === null || typeof value === 'undefined') return '';
-            value = String(value);
-            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                value = value.replace(/"/g, '""');
-                return `"${value}"`;
-            }
-            return value;
-        }).join(',')
-    );
-    return [headerRow, ...dataRows].join('\n');
-};
-
-// Assume parseCSV is available (copy/import from localStorageProvider or use PapaParse)
-// Basic CSV parser (consider using a library like PapaParse for robustness)
-const parseCSV = (csvString) => {
-    const lines = csvString.trim().split('\n');
-    if (lines.length < 1) return [];
-    const headers = lines[0].split(',').map(h => h.trim());
-    const data = [];
-    for (let i = 1; i < lines.length; i++) {
-        // Very basic split, doesn't handle quoted commas correctly
-        // TODO: Improve CSV parsing to handle quoted commas/newlines correctly
-        const values = lines[i].split(',');
-        const row = {};
-        headers.forEach((header, index) => {
-            let value = values[index] ? values[index].trim() : '';
-            // Basic unquoting
-            if (value.startsWith('"') && value.endsWith('"')) {
-                value = value.slice(1, -1).replace(/""/g, '"');
-            }
-            // Attempt to convert numbers (adjust as needed)
-            // PostgREST returns numbers, so less conversion needed here than Datasette
-            if (header.endsWith('_id') && value !== '') {
-                row[header] = parseInt(value, 10); // Keep parsing for CSV import
-            } else if (header.endsWith('_at') && value === '') {
-                row[header] = null; // Handle empty timestamps as null
-            } else {
-                row[header] = value;
-            }
-        });
-        data.push(row);
-    }
-    return data;
-};
+// Removed readFileAsBase64, base64ToBlob, createCSV, parseCSV - now imported
 
 // handleResponse updated for PostgREST error format
 const handleResponse = async (res, operation, entityDescription) => {
