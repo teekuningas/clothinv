@@ -1,4 +1,3 @@
-/* frontend/src/main.css */
 :root {
   /* Core Interaction Colors */
   --color-primary: #0d6efd;          /* Bootstrap Blue */
@@ -46,7 +45,6 @@
   --color-overlay-button-icon: #333; /* Webcam capture button icon */
 }
 
-/* Reset should be below :root */
 * {
   margin: 0;
   padding: 0;
@@ -69,8 +67,6 @@ body {
   flex-direction: column;
   min-height: 100vh;
 }
-
-/* === Additions to frontend/src/index.css === */
 
 /* Common Status Message Styles */
 .status-loading, /* Use info style */
@@ -120,13 +116,6 @@ body {
   color: var(--color-text-label); /* CHANGE */
 }
 
-/* ========================================== */
-
-
-/* === Additions to frontend/src/main.css === */
-
-/* --- Base Button Style --- */
-
 /* Applied globally to button elements */
 button {
     padding: 10px 15px; /* Default padding */
@@ -151,7 +140,6 @@ button:disabled {
     opacity: 0.65;
 }
 
-/* --- Button Variant Definitions --- */
 .button-primary {
     background-color: var(--color-primary);
     color: var(--color-primary-text);
@@ -162,8 +150,6 @@ button:disabled {
      background-color: var(--color-primary);
      color: var(--color-primary-text);
      border-color: var(--color-primary);
-
-     /* Inherits opacity: 0.65 */
 }
 
 .button-primary:hover:not(:disabled) {
@@ -191,8 +177,6 @@ button:disabled {
 }
 
 /* Applied via view container class names */
-
-/* Applied via view container class names */
 .locations-view,
 .categories-view,
 .owners-view,
@@ -200,8 +184,6 @@ button:disabled {
 .settings-view {
     padding: 20px;
 }
-
-/* --- Common Form Element Styles --- */
 
 /* Base Input Styles (Applied via .form-group > input/select) */
 .form-group input[type="text"],
@@ -222,7 +204,7 @@ button:disabled {
      appearance: none;
 
      /* Use text-muted color for the arrow */
-     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); /* CHANGE fill to #6c757d */
+     background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
      background-repeat: no-repeat;
      background-position: right 10px center;
      background-size: 0.65em auto;
@@ -231,14 +213,10 @@ button:disabled {
 
 .form-group input:disabled,
 .form-group select:disabled {
-    background-color: var(--color-bg-subtle); /* CHANGE */
+    background-color: var(--color-bg-subtle);
     cursor: not-allowed;
-
-    /* Optional: slightly muted text color for disabled inputs */
     color: var(--color-text-muted);
 }
-
-/* --- Common Modal Action Styles --- */
 
 /* Applied via .modal-actions class */
 .modal-actions {
@@ -263,8 +241,6 @@ button:disabled {
     }
 }
 
-/* --- Common Delete Confirmation Styles --- */
-
 /* Applied via .delete-confirm-content class */
 .delete-confirm-content p {
     margin-bottom: 10px;
@@ -274,8 +250,6 @@ button:disabled {
 .delete-confirm-content p:first-of-type {
     font-weight: bold;
 }
-
-/* --- Common File Input Styles --- */
 
 /* Applied via .hidden-file-input class */
 .hidden-file-input {
@@ -287,8 +261,6 @@ button:disabled {
     z-index: -1;
 }
 
-/* Base style for the label acting as a button */
-
 /* Apply .button-light class in JSX for visual styling */
 .button-file-input {
     display: inline-block;
@@ -296,18 +268,10 @@ button:disabled {
     cursor: pointer;
     text-align: center;
     vertical-align: middle;
-
-    /* Styling comes from .button-light class applied in JSX */
-
-    /* Remove specific background, color, border, hover, disabled styles here */
-
-    /* Ensure base button properties are inherited or applied by .button-light */
+    margin-bottom: 5px;
     border-radius: 4px;
     font-weight: bold;
     line-height: 1.5;
     font-size: 1em;
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
-
-
-/* ========================================== */
