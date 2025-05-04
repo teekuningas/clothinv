@@ -17,9 +17,19 @@ const SettingsView = () => {
     locale: currentLocale,
     changeLocale,
     availableLocales,
+    loadingMessages: languageLoading, // Get loading state for language
+    loadError: languageLoadError,     // Get load error for language
   } = useTranslationContext(); // Get Translation context
   const { settings: appSettings, updateSettings: updateAppSettings } = useSettings(); // Get general app settings
   const api = useApi(); // Get full API context to access export/import methods
+
+  // Local state for Language setting being edited
+  const [localLocale, setLocalLocale] = useState(currentLocale);
+  // State for Language config saving
+  const [languageSaveStatus, setLanguageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
+  const [languageSaveError, setLanguageSaveError] = useState(null);
+
+  // Local state ONLY holds the API configuration being edited
 
   // Local state ONLY holds the API configuration being edited
   const [localApiSettings, setLocalApiSettings] = useState({
@@ -32,6 +42,14 @@ const SettingsView = () => {
   const [providerDisplayNames, setProviderDisplayNames] = useState({});
   const intl = useIntl(); // Get intl object
   // Removed duplicate state declarations for saveStatus and saveError
+
+  // Local state for Image settings being edited
+  const [localImageCompressionEnabled, setLocalImageCompressionEnabled] = useState(appSettings.imageCompressionEnabled);
+  // State for Image config saving
+  const [imageSaveStatus, setImageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
+  const [imageSaveError, setImageSaveError] = useState(null);
+
+  // Initialize provider display names once
 
   // Initialize provider display names once
   // State for Export
@@ -78,6 +96,20 @@ const SettingsView = () => {
     setSaveError(null);
   }, [apiConfig]); // Rerun only if the API config from context changes
 
+  // Initialize local state for Language when currentLocale changes
+  useEffect(() => {
+    setLocalLocale(currentLocale);
+    setLanguageSaveStatus("idle"); // Reset save status
+    setLanguageSaveError(null);
+  }, [currentLocale]);
+
+  // Initialize local state for Image Compression when appSettings change
+  useEffect(() => {
+    setLocalImageCompressionEnabled(appSettings.imageCompressionEnabled);
+    setImageSaveStatus("idle"); // Reset save status
+    setImageSaveError(null);
+  }, [appSettings.imageCompressionEnabled]);
+
   // Handle changes ONLY for API provider select and API settings inputs
   const handleApiChange = useCallback((e) => {
     const { name, value } = e.target;
@@ -115,17 +147,35 @@ const SettingsView = () => {
     });
   }, []); // No dependencies needed
 
-  // Handle language change directly using context function
-  const handleLocaleChange = useCallback(
-    (e) => {
-      changeLocale(e.target.value);
-      // Note: Language change is saved immediately via context, no local state needed here.
-      // Reset API save status if user changes language while API settings are modified but not saved.
-      setSaveStatus("idle");
-      setSaveError(null);
-    },
-    [changeLocale],
-  );
+  // Handle changes ONLY for the Language select dropdown
+  const handleLocaleChange = useCallback((e) => {
+    setLocalLocale(e.target.value);
+    setLanguageSaveStatus("idle"); // Reset status when changing selection
+    setLanguageSaveError(null);
+  }, []); // No dependencies needed
+
+  // Handle saving ONLY the Language configuration
+  const handleSaveLanguage = useCallback(async () => {
+    // Prevent saving if the locale hasn't actually changed
+    if (localLocale === currentLocale) {
+      return;
+    }
+    setLanguageSaveStatus("saving");
+    setLanguageSaveError(null);
+    try {
+      // Call the context function to actually change and save the locale
+      await changeLocale(localLocale); // Assuming changeLocale might become async if needed
+      setLanguageSaveStatus("success");
+      // Optionally reset status after a delay
+      // setTimeout(() => setLanguageSaveStatus('idle'), 3000);
+    } catch (error) {
+      // This catch might not be strictly necessary if changeLocale doesn't throw
+      // but good practice in case it's modified later.
+      console.error("Error saving language setting:", error);
+      setLanguageSaveError(error.message || "An unexpected error occurred.");
+      setLanguageSaveStatus("error");
+    }
+  }, [localLocale, currentLocale, changeLocale]); // Dependencies: local state, current context state, context function
 
   // Handle saving ONLY the API configuration
   const handleSaveApiConfig = useCallback(async () => {
@@ -144,6 +194,38 @@ const SettingsView = () => {
     }
     // Removed duplicate catch block
   }, [localApiSettings, saveApiConfig]); // Dependencies: local state being saved, context function
+
+  // Handle changes ONLY for Image settings inputs (e.g., checkbox)
+  const handleImageSettingsChange = useCallback((e) => {
+    const { name, checked, type } = e.target;
+    if (type === 'checkbox') {
+      setLocalImageCompressionEnabled(checked);
+      setImageSaveStatus("idle"); // Reset status when changing selection
+      setImageSaveError(null);
+    }
+    // Add handling for other input types if needed later
+  }, []);
+
+  // Handle saving ONLY the Image settings
+  const handleSaveImageSettings = useCallback(async () => {
+    // Prevent saving if the setting hasn't actually changed
+    if (localImageCompressionEnabled === appSettings.imageCompressionEnabled) {
+      return;
+    }
+    setImageSaveStatus("saving");
+    setImageSaveError(null);
+    try {
+      // Call the context function to update and save the setting
+      await updateAppSettings({ imageCompressionEnabled: localImageCompressionEnabled }); // updateAppSettings is sync, but use await for future-proofing
+      setImageSaveStatus("success");
+      // Optionally reset status after a delay
+      // setTimeout(() => setImageSaveStatus('idle'), 3000);
+    } catch (error) {
+      console.error("Error saving image settings:", error);
+      setImageSaveError(error.message || "An unexpected error occurred.");
+      setImageSaveStatus("error");
+    }
+  }, [localImageCompressionEnabled, appSettings.imageCompressionEnabled, updateAppSettings]); // Dependencies: local state, current context state, context function
 
   // --- Export Handler ---
   const handleExport = useCallback(async () => {
@@ -408,25 +490,52 @@ const SettingsView = () => {
             })}
           </legend>
           <div className="form-group">
+            {/* Display loading/error specific to language data */}
+            {languageLoading && <p className="status-loading">{intl.formatMessage({ id: "common.loading", defaultMessage: "Loading..."})}</p>}
+            {languageLoadError && <p className="status-error">{languageLoadError}</p>}
+
             <label htmlFor="locale">
               {intl.formatMessage({
                 id: "settings.language.label",
                 defaultMessage: "Display Language:",
               })}
             </label>
-            <select
-              id="locale"
-              name="locale" // Informational name
-              value={currentLocale} // Value from translation context
-              onChange={handleLocaleChange} // Use dedicated handler
-            >
-              {/* Use availableLocales from translation context */}
-              {availableLocales.map((lang) => (
+            <div className="setting-with-button"> {/* Wrapper for select and button */}
+              <select
+                id="locale"
+                name="locale" // Informational name
+                value={localLocale} // Value from local state
+                onChange={handleLocaleChange} // Use dedicated handler
+                disabled={languageLoading || languageSaveStatus === 'saving'} // Disable while loading/saving
+              >
+                {/* Use availableLocales from translation context */}
+                {availableLocales.map((lang) => (
                 <option key={lang.code} value={lang.code}>
                   {lang.name}
-                </option>
-              ))}
-            </select>
+                  </option>
+                ))}
+              </select>
+              {/* Save Button for Language */}
+              <button
+                type="button"
+                onClick={handleSaveLanguage}
+                className="button-primary button-save-inline" // Add specific class if needed
+                disabled={languageSaveStatus === 'saving' || languageSaveStatus === 'success' || localLocale === currentLocale || languageLoading}
+              >
+                {languageSaveStatus === 'saving'
+                  ? intl.formatMessage({ id: "common.saving", defaultMessage: "Saving..." })
+                  : intl.formatMessage({ id: "settings.language.saveButton", defaultMessage: "Save Language" })}
+              </button>
+            </div>
+          </div>
+          {/* Save Status Feedback for Language Settings */}
+          <div className="save-feedback" style={{ minHeight: '20px' }}>
+            {languageSaveStatus === 'success' && (
+              <p className="status-success">{intl.formatMessage({ id: "settings.language.saveSuccess", defaultMessage: "Language saved successfully!" })}</p>
+            )}
+            {languageSaveStatus === 'error' && (
+              <p className="status-error">{intl.formatMessage({ id: "settings.language.saveError", defaultMessage: "Language Save Error: {error}" }, { error: languageSaveError })}</p>
+            )}
           </div>
         </fieldset>
 
@@ -554,23 +663,45 @@ const SettingsView = () => {
             })}
           </legend>
           <div className="form-group checkbox-group"> {/* Use checkbox-group for alignment */}
-             <div className="checkbox-item"> {/* Wrap label and input */}
+            <div className="setting-with-button"> {/* Wrapper for checkbox item and button */}
+              <div className="checkbox-item"> {/* Wrap label and input */}
                 <input
                   type="checkbox"
                   id="imageCompressionEnabled"
                   name="imageCompressionEnabled"
-                  checked={appSettings.imageCompressionEnabled}
-                  onChange={(e) =>
-                    updateAppSettings({ imageCompressionEnabled: e.target.checked })
-                  }
+                  checked={localImageCompressionEnabled} // Use local state
+                  onChange={handleImageSettingsChange} // Use new handler
+                  disabled={imageSaveStatus === 'saving'} // Disable while saving
                 />
                 <label htmlFor="imageCompressionEnabled">
                   {intl.formatMessage({
                     id: "settings.image.compressionEnabled.label",
                     defaultMessage: "Enable image compression (reduces size before saving):",
+                    defaultMessage: "Enable image compression (reduces size before saving):",
                   })}
                 </label>
-             </div>
+              </div>
+              {/* Save Button for Image Settings */}
+              <button
+                type="button"
+                onClick={handleSaveImageSettings}
+                className="button-primary button-save-inline" // Add specific class if needed
+                disabled={imageSaveStatus === 'saving' || imageSaveStatus === 'success' || localImageCompressionEnabled === appSettings.imageCompressionEnabled}
+              >
+                {imageSaveStatus === 'saving'
+                  ? intl.formatMessage({ id: "common.saving", defaultMessage: "Saving..." })
+                  : intl.formatMessage({ id: "settings.image.saveButton", defaultMessage: "Save Image Settings" })}
+              </button>
+            </div>
+          </div>
+          {/* Save Status Feedback for Image Settings */}
+          <div className="save-feedback" style={{ minHeight: '20px' }}>
+            {imageSaveStatus === 'success' && (
+              <p className="status-success">{intl.formatMessage({ id: "settings.image.saveSuccess", defaultMessage: "Image settings saved successfully!" })}</p>
+            )}
+            {imageSaveStatus === 'error' && (
+              <p className="status-error">{intl.formatMessage({ id: "settings.image.saveError", defaultMessage: "Image Settings Save Error: {error}" }, { error: imageSaveError })}</p>
+            )}
           </div>
         </fieldset>
 
