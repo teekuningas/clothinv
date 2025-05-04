@@ -4,8 +4,8 @@ result*
 .direnv/
 
 # Database file
-db/*.db
-db/*.db-journal
+db/datasette
+db/postgres
 
 # Frontend dependencies and build artifacts
 frontend/node_modules/

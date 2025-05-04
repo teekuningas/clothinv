@@ -1,4 +1,4 @@
-.PHONY: help shell init-db-datasette start-backend-datasette init-db-postgres start-backend-postgres watch-frontend
+.PHONY: help shell init-db-datasette start-backend-datasette init-db-postgres start-backend-postgres watch-frontend start-backend-postgres-api
 
 # --- Configuration ---
 SCHEMA_SQLITE_FILE := db/schema_sqlite.sql
@@ -14,18 +14,6 @@ POSTGRES_USER := inventory_user
 POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_CONTAINER_NAME := inventory-postgres-dev
 POSTGRES_PORT := 5432
-# Use a bind mount for persistent data during development in ./db/postgres
-# POSTGRES_VOLUME_NAME := inventory-postgres-data # No longer used
-
-help:
-	@echo "Available targets:"
-	@echo "  shell                 - Enter the development environment"
-	@echo "  init-db-datasette     - Initialize the SQLite database ($(DATASATTE_DB_FILE)) from $(SCHEMA_SQLITE_FILE)"
-	@echo "  start-backend-datasette - Start the Datasette server for SQLite"
-	@echo "  init-db-postgres      - Initialize the PostgreSQL database from $(SCHEMA_POSTGRES_FILE) (requires running 'start-backend-postgres' first)"
-	@echo "  start-backend-postgres - Start the PostgreSQL server in a Docker container (Ctrl+C to stop)"
-	@echo "  start-backend-postgres-api - Start the PostgREST API server in a Docker container (requires running 'start-backend-postgres' first, Ctrl+C to stop)"
-	@echo "  watch-frontend        - Start the frontend development server (Vite)"
 
 shell:
 	nix develop
@@ -59,19 +47,20 @@ start-backend-postgres:
 		-p $(POSTGRES_PORT):5432 \
 		-v $(shell pwd)/db/postgres:/var/lib/postgresql/data \
 		--rm \
-		postgres:15 # Use a specific version, e.g., postgres:15
+		postgres:15
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
 
 start-backend-postgres-api:
 	@echo "Starting PostgREST container 'inventory-postgrest-dev' in the foreground on port 4000..."
-	@echo "Connecting to PostgreSQL at host.docker.internal:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
+	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
 	@sudo docker run --name inventory-postgrest-dev \
-		-p 4000:3000 \
-		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@host.docker.internal:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
+		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
 		-e PGRST_DB_SCHEMA="public" \
 		-e PGRST_DB_ANON_ROLE="$(POSTGRES_USER)" \
+		-e PGRST_SERVER_PORT="4000" \
 		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
 		--rm \
+		--network host \
 		postgrest/postgrest
 	@echo "PostgREST container stopped."
 
@@ -79,5 +68,3 @@ watch-frontend:
 	@echo "Starting frontend development server..."
 	@cd frontend && npm install && npm run dev
 
-# Default target
-default: help
