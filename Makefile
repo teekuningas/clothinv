@@ -57,7 +57,7 @@ start-backend-postgres-api:
 	PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
 	echo ""; \
 	echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
-	JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt sign --secret $$JWT_SECRET --alg HS256 -); \
+	JWT_TOKEN=$$(echo -n $$PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
 	echo "$$JWT_TOKEN"; \
 	echo ">>> END OF JWT TOKEN <<<"; \
 	echo ""; \
