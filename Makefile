@@ -15,12 +15,8 @@ POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_CONTAINER_NAME := inventory-postgres-dev
 POSTGRES_PORT := 5432
 
-# --- Dynamic JWT Configuration (Generated on each 'make' invocation) ---
-# Generate a 64-character alphanumeric secret ONCE during Make parsing
 JWT_SECRET := $(shell head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64)
-# Define the payload using the configured user
 JWT_PAYLOAD := '{"role":"$(POSTGRES_USER)"}'
-# Generate the JWT Token ONCE during Make parsing using the generated secret
 JWT_TOKEN := $(shell echo -n $(JWT_PAYLOAD) | jwt encode --secret $(JWT_SECRET) --alg HS256 -)
 
 shell:
@@ -59,20 +55,17 @@ start-backend-postgres:
 	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
 
 start-backend-postgres-api:
-	# --- Output Token for UI ---
-	@echo ""; \
-	@echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"; \
-	@echo ""; \
-	@echo "$(JWT_TOKEN)"; \
-	@echo ""; \
-	@echo ">>> END OF JWT TOKEN <<<"; \
-	@echo ""; \
-	\
-	# --- Start PostgREST Container ---
-	@echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."; \
-	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"; \
-	@echo ">>> JWT Authentication Required (using generated token above) <<<"; \
-	@echo "Using JWT Secret (internal to container): $(JWT_SECRET)"; \
+	@echo ""
+	@echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"
+	@echo ""
+	@echo "$(JWT_TOKEN)"
+	@echo ""
+	@echo ">>> END OF JWT TOKEN <<<"
+	@echo ""
+	@echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."
+	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
+	@echo ">>> JWT Authentication Required (using generated token above) <<<"
+	@echo "Using JWT Secret (internal to container): $(JWT_SECRET)"
 	@sudo docker run --name inventory-postgrest-dev \
 		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
 		-e PGRST_DB_SCHEMA="public" \
@@ -82,8 +75,8 @@ start-backend-postgres-api:
 		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
 		--rm \
 		--network host \
-		postgrest/postgrest; \
-	echo "PostgREST container stopped."
+		postgrest/postgrest
+	@echo "PostgREST container stopped."
 
 watch-frontend:
 	@echo "Starting frontend development server..."

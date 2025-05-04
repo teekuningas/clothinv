@@ -453,8 +453,6 @@ export const addItem = async (settings, data) => {
     if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
-            console.log("addItem");
-            console.log(base64Data);
             imageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
         } catch (error) {
             console.error("Failed to process or insert image:", error);
@@ -632,8 +630,6 @@ export const listItems = async (settings) => {
                 headers: defaultHeaders(settings, false)
             });
             if (imagesRes.ok) {
-                console.log("After");
-                console.log(imagesRes);
                 const imagesResult = await handleResponse(imagesRes, 'list', 'images');
                 const imagesData = imagesResult.data || [];
                 // 3. Create a map of image_id -> { blob, filename }

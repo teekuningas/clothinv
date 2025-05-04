@@ -16,6 +16,7 @@
           buildInputs = with pkgs; [
             sqlite
             nodejs
+            jwt-cli
           ];
         };
       });
