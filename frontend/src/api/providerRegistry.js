@@ -19,7 +19,6 @@ export const providers = {
                 label: 'settings.api.fields.datasetteBaseUrl.label',    // Label for the settings form
                 type: 'text',                   // Input type for the form
                 placeholder: 'settings.api.fields.datasetteBaseUrl.placeholder', // Placeholder text
-                envVar: 'VITE_DATASETTE_URL',   // Corresponding environment variable
                 localStorageKey: 'datasetteBaseUrl', // Key for storing in localStorage
                 required: true,                 // Is this field mandatory for the provider to be configured?
             },
@@ -28,7 +27,6 @@ export const providers = {
                 label: 'settings.api.fields.datasetteApiToken.label',
                 type: 'password',
                 placeholder: 'settings.api.fields.datasetteApiToken.placeholder',
-                envVar: 'VITE_DATASETTE_TOKEN',
                 localStorageKey: 'datasetteApiToken',
                 required: false,
             }
@@ -101,7 +99,6 @@ export const providers = {
                 label: 'settings.api.fields.postgrestApiUrl.label', // Need to add this translation key
                 type: 'text',
                 placeholder: 'settings.api.fields.postgrestApiUrl.placeholder', // Need to add this translation key
-                envVar: 'VITE_POSTGREST_URL', // Optional ENV var support
                 localStorageKey: 'postgrestApiUrl', // Matches key
                 required: true,
             },
@@ -110,7 +107,6 @@ export const providers = {
                 label: 'settings.api.fields.postgrestApiToken.label', // Need to add this translation key
                 type: 'password',
                 placeholder: 'settings.api.fields.postgrestApiToken.placeholder', // Need to add this translation key
-                envVar: 'VITE_POSTGREST_TOKEN', // Optional ENV var support
                 localStorageKey: 'postgrestApiToken', // Matches key
                 required: true, // Token is now mandatory for authenticated access
             }

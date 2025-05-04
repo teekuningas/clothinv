@@ -11,7 +11,6 @@ import {
   defaultLocale,
   getLocaleCodes,
   LS_LOCALE_KEY,
-  ENV_DEFAULT_LOCALE_KEY,
 } from "./i18n"; // Updated path
 
 async function loadMessages(locale) {
@@ -52,12 +51,7 @@ function getInitialLocale() {
   if (savedLocale && getLocaleCodes().includes(savedLocale)) {
     return savedLocale;
   }
-  // 2. Check Environment Variable
-  const envLocale = import.meta.env[ENV_DEFAULT_LOCALE_KEY];
-  if (envLocale && getLocaleCodes().includes(envLocale)) {
-    return envLocale;
-  }
-  // 3. Fallback to Hardcoded Default
+  // 2. Fallback to Hardcoded Default
   return defaultLocale;
 }
 

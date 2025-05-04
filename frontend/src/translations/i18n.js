@@ -12,6 +12,3 @@ export const getLocaleCodes = () => availableLocales.map(l => l.code);
 
 // Define the specific localStorage key for language preference.
 export const LS_LOCALE_KEY = 'userLocale';
-
-// Define the environment variable key for the default locale override.
-export const ENV_DEFAULT_LOCALE_KEY = 'VITE_DEFAULT_LOCALE';

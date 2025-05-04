@@ -63,41 +63,15 @@ export const ApiProvider = ({ children }) => {
       }
     }
 
-    // If no saved config or parsing failed, determine defaults based on ENV -> Hardcoded
+    // If no saved config or parsing failed, use hardcoded default
     if (!initialConfig) {
-      // Determine default provider type: ENV ('VITE_API_PROVIDER') or fallback to 'datasette'
-      const envProviderType = import.meta.env.VITE_API_PROVIDER; // Check ENV first
-      const hardcodedDefaultProviderType = "indexedDB"; // <-- Change this default
-      let defaultProviderType = hardcodedDefaultProviderType; // Start with the hardcoded default
-
-      // Check if ENV var specifies a valid provider
-      if (envProviderType && getProviderById(envProviderType)) {
-        defaultProviderType = envProviderType; // Use ENV var if valid
-      } else if (envProviderType) {
-        console.warn(
-          `Environment variable VITE_API_PROVIDER specifies an invalid provider type "${envProviderType}". Falling back to default "${hardcodedDefaultProviderType}".`,
-        );
-      }
+      const hardcodedDefaultProviderType = "indexedDB";
 
       // Initialize config structure
       initialConfig = {
-        providerType: defaultProviderType,
+        providerType: hardcodedDefaultProviderType,
         settings: {},
       };
-
-      // Load initial settings from ENV vars if defined in registry for the chosen default provider
-      const provider = getProviderById(initialConfig.providerType);
-      if (provider && provider.configFields) {
-        provider.configFields.forEach((field) => {
-          // Check if the field has an associated ENV var and if that ENV var is set
-          if (field.envVar && import.meta.env[field.envVar]) {
-            initialConfig.settings[field.key] = import.meta.env[field.envVar];
-          } else {
-            // Initialize with empty string if not set by ENV var
-            initialConfig.settings[field.key] = ""; // Ensure key exists
-          }
-        });
-      }
     }
 
     // Always calculate isConfigured based on loaded/default provider and settings
