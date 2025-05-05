@@ -5,6 +5,7 @@ import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
+import { compressImage } from "../../helpers/images"; // Adjust path if needed
 import "./ItemsView.css";
 import "./ImageViewModal.css";
 
@@ -245,57 +246,6 @@ const ItemsView = () => {
     setAddImageUrl(null);
   };
 
-  // --- Image Compression Helper ---
-  const processImageFile = useCallback(
-    async (file) => {
-      if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
-        console.log("Image compression skipped (disabled or not a file).");
-        return file;
-      }
-
-      console.log(
-        `Original image size: ${(file.size / 1024 / 1024).toFixed(3)} MB`,
-      );
-
-      const options = {
-        maxSizeMB: 0.2, // Max size in MB
-        maxWidthOrHeight: 1024, // Max width or height
-        useWebWorker: true, // Use web worker for performance
-        fileType: "image/jpeg", // Force output type
-      };
-
-      try {
-        const compressedBlob = await imageCompression(file, options);
-
-        console.log(
-          `Compressed image size: ${(compressedBlob.size / 1024 / 1024).toFixed(3)} MB`,
-        );
-
-        // Convert the compressed Blob back into a File object
-        // Use the original filename and the Blob's type (or fallback to original type)
-        const compressedFile = new File([compressedBlob], file.name, {
-          type: compressedBlob.type || file.type, // Use blob's type, fallback to original
-          lastModified: Date.now(), // Set last modified timestamp
-        });
-        return compressedFile;
-      } catch (error) {
-        console.error("Image compression failed:", error);
-        // Instead of setting error here and returning original file,
-        // throw the error so the calling function handles it.
-        // Note: We need a translation string for this new error context.
-        // Let's add one (assuming you'll add it to your translation files):
-        // "items.error.compressionFailed": "Image compression failed"
-        throw new Error(
-          intl.formatMessage({
-            id: "items.error.compressionFailed",
-            defaultMessage: "Image compression failed",
-          }) + `: ${error.message}`,
-        );
-      }
-    },
-    [appSettings.imageCompressionEnabled, intl],
-  ); // Depend on the setting
-
   // --- Add Item Handler ---
   const handleAddItem = async (e) => {
     e.preventDefault();
@@ -353,11 +303,34 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
-      let fileToSend = newItemImageFile;
-      // Process image before sending if a file exists
-      if (newItemImageFile instanceof File) {
-        fileToSend = await processImageFile(newItemImageFile);
+      let fileToSend = null; // Initialize fileToSend
+      // Process image before sending if a file exists AND compression is enabled
+      if (newItemImageFile instanceof File && appSettings.imageCompressionEnabled) {
+          console.log("Attempting image compression for new item...");
+          const compressionOptions = {
+              maxSizeMB: 0.2,
+              maxWidthOrHeight: 1024,
+              useWebWorker: true,
+              fileType: "image/jpeg",
+          };
+          const baseErrorMessage = intl.formatMessage({
+              id: "items.error.compressionFailed",
+              defaultMessage: "Image compression failed",
+          });
+          try {
+              fileToSend = await compressImage(newItemImageFile, compressionOptions, baseErrorMessage);
+          } catch (compressionError) {
+              // Handle compression error specifically, maybe show it to the user
+              console.error("Compression failed during add:", compressionError);
+              // Throw it again to be caught by the outer catch block which sets the general error state
+              throw compressionError;
+          }
+      } else if (newItemImageFile instanceof File) {
+          // If compression is disabled but there's a file, use the original
+          fileToSend = newItemImageFile;
+          console.log("Image compression disabled or not applicable, using original file.");
       }
+      // else fileToSend remains null if no file was selected
 
       const result = await api.addItem({
         name: newItemName.trim(),
@@ -525,20 +498,44 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
-      let fileToSend = editItemImageFile;
-      // Process image before sending if a new file was selected
-      if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-        fileToSend = await processImageFile(editItemImageFile);
+      let fileToSend = null; // Initialize fileToSend
+      // Process image before sending if a new file was selected AND compression is enabled
+      if (editItemImageFile instanceof File && !imageMarkedForRemoval && appSettings.imageCompressionEnabled) {
+          console.log("Attempting image compression for updated item...");
+          const compressionOptions = {
+              maxSizeMB: 0.2,
+              maxWidthOrHeight: 1024,
+              useWebWorker: true,
+              fileType: "image/jpeg",
+          };
+          const baseErrorMessage = intl.formatMessage({
+              id: "items.error.compressionFailed",
+              defaultMessage: "Image compression failed",
+          });
+           try {
+              fileToSend = await compressImage(editItemImageFile, compressionOptions, baseErrorMessage);
+          } catch (compressionError) {
+              // Handle compression error specifically
+              console.error("Compression failed during update:", compressionError);
+              // Throw it again to be caught by the outer catch block which sets the updateError state
+              throw compressionError;
+          }
+      } else if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
+           // If compression is disabled but there's a file, use the original
+           fileToSend = editItemImageFile;
+           console.log("Image compression disabled or not applicable, using original file for update.");
       }
+      // else fileToSend remains null if no new file selected or image marked for removal
 
+      // The rest of the update logic uses fileToSend and imageMarkedForRemoval
       const result = await api.updateItem(editingItemId, {
-        name: editName.trim(),
-        description: editDescription.trim() || null,
-        location_id: parseInt(editLocationId, 10), // Include location_id
-        category_id: parseInt(editCategoryId, 10), // Include category_id
-        owner_id: parseInt(editOwnerId, 10), // Include owner_id
-        imageFile: fileToSend, // Pass the potentially compressed file
-        removeImage: imageMarkedForRemoval, // Pass the explicit removal flag
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+          location_id: parseInt(editLocationId, 10),
+          category_id: parseInt(editCategoryId, 10),
+          owner_id: parseInt(editOwnerId, 10),
+          imageFile: fileToSend, // Pass the potentially compressed or original file (or null)
+          removeImage: imageMarkedForRemoval, // Pass the explicit removal flag
       });
 
       if (result.success) {
