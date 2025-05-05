@@ -289,26 +289,26 @@ const ItemsView = () => {
       };
 
       try {
-        console.log("Compressing image...");
-        const compressedFile = await imageCompression(file, options);
-        console.log(
-          `Compressed image size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
-        );
-        return compressedFile;
-      } catch (error) {
-        console.error("Image compression failed:", error);
-        // Fallback to original file if compression fails
-        setError(
-          intl.formatMessage({
-            id: "webcam.error.captureFailed",
-            defaultMessage:
-              "Failed to process captured image. Please try again.",
-          }) + ` (Compression Error: ${error.message})`,
-        ); // Show error to user
-        return file;
-      }
-    },
-    [appSettings.imageCompressionEnabled, intl],
+       // console.log("Compressing image..."); // Optional: Keep for debugging if needed
+       const compressedFile = await imageCompression(file, options);
+       // console.log(
+       //   `Compressed image size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
+       // ); // Optional: Keep for debugging if needed
+       return compressedFile;
+     } catch (error) {
+       console.error("Image compression failed:", error);
+       // Instead of setting error here and returning original file,
+       // throw the error so the calling function handles it.
+       // Note: We need a translation string for this new error context.
+       // Let's add one (assuming you'll add it to your translation files):
+       // "items.error.compressionFailed": "Image compression failed"
+       throw new Error(
+           intl.formatMessage({ id: "items.error.compressionFailed" , defaultMessage: "Image compression failed" }) +
+           `: ${error.message}`
+       );
+     }
+   },
+   [appSettings.imageCompressionEnabled, intl], // Depend on the setting
   ); // Depend on the setting
 
   // --- Add Item Handler ---
