@@ -252,7 +252,7 @@ const ItemsView = () => {
 
   // --- Rotate Image Handler ---
   const handleRotateImage = async (formType) => {
-    const isAdd = formType === 'add';
+    const isAdd = formType === "add";
     const currentFile = isAdd ? newItemImageFile : editItemImageFile;
     const setRotating = isAdd ? setIsRotatingAdd : setIsRotatingEdit;
     const setFile = isAdd ? setNewItemImageFile : setEditItemImageFile;
@@ -268,7 +268,10 @@ const ItemsView = () => {
     try {
       console.log(`Rotating image for ${formType}...`);
       const rotatedFile = await rotateImageFile(currentFile);
-      console.log(`Rotation successful for ${formType}. New file:`, rotatedFile);
+      console.log(
+        `Rotation successful for ${formType}. New file:`,
+        rotatedFile,
+      );
 
       // Update the file state
       setFile(rotatedFile);
@@ -276,17 +279,21 @@ const ItemsView = () => {
       // Update the preview URL
       if (currentPreviewUrl) {
         URL.revokeObjectURL(currentPreviewUrl); // Revoke the old URL
-        console.log(`Revoked old preview URL for ${formType}: ${currentPreviewUrl}`);
+        console.log(
+          `Revoked old preview URL for ${formType}: ${currentPreviewUrl}`,
+        );
       }
       const newPreviewUrl = URL.createObjectURL(rotatedFile);
       setPreviewUrl(newPreviewUrl); // Create and set the new URL
       console.log(`Created new preview URL for ${formType}: ${newPreviewUrl}`);
-
     } catch (rotationError) {
       console.error(`Image rotation failed for ${formType}:`, rotationError);
       const rotationErrorMessage = intl.formatMessage(
-        { id: "items.error.rotate", defaultMessage: "Image rotation failed: {error}" },
-        { error: rotationError.message }
+        {
+          id: "items.error.rotate",
+          defaultMessage: "Image rotation failed: {error}",
+        },
+        { error: rotationError.message },
       );
       if (isAdd) {
         setError(rotationErrorMessage);
@@ -298,7 +305,6 @@ const ItemsView = () => {
       setRotating(false);
     }
   };
-
 
   // --- Add Item Handler ---
   const handleAddItem = async (e) => {
@@ -359,30 +365,39 @@ const ItemsView = () => {
     try {
       let fileToSend = null; // Initialize fileToSend
       // Process image before sending if a file exists AND compression is enabled
-      if (newItemImageFile instanceof File && appSettings.imageCompressionEnabled) {
-          console.log("Attempting image compression for new item...");
-          const compressionOptions = {
-              maxSizeMB: 0.2,
-              maxWidthOrHeight: 1024,
-              useWebWorker: true,
-              fileType: "image/jpeg",
-          };
-          const baseErrorMessage = intl.formatMessage({
-              id: "items.error.compressionFailed",
-              defaultMessage: "Image compression failed",
-          });
-          try {
-              fileToSend = await compressImage(newItemImageFile, compressionOptions, baseErrorMessage);
-          } catch (compressionError) {
-              // Handle compression error specifically, maybe show it to the user
-              console.error("Compression failed during add:", compressionError);
-              // Throw it again to be caught by the outer catch block which sets the general error state
-              throw compressionError;
-          }
+      if (
+        newItemImageFile instanceof File &&
+        appSettings.imageCompressionEnabled
+      ) {
+        console.log("Attempting image compression for new item...");
+        const compressionOptions = {
+          maxSizeMB: 0.2,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+          fileType: "image/jpeg",
+        };
+        const baseErrorMessage = intl.formatMessage({
+          id: "items.error.compressionFailed",
+          defaultMessage: "Image compression failed",
+        });
+        try {
+          fileToSend = await compressImage(
+            newItemImageFile,
+            compressionOptions,
+            baseErrorMessage,
+          );
+        } catch (compressionError) {
+          // Handle compression error specifically, maybe show it to the user
+          console.error("Compression failed during add:", compressionError);
+          // Throw it again to be caught by the outer catch block which sets the general error state
+          throw compressionError;
+        }
       } else if (newItemImageFile instanceof File) {
-          // If compression is disabled but there's a file, use the original
-          fileToSend = newItemImageFile;
-          console.log("Image compression disabled or not applicable, using original file.");
+        // If compression is disabled but there's a file, use the original
+        fileToSend = newItemImageFile;
+        console.log(
+          "Image compression disabled or not applicable, using original file.",
+        );
       }
       // else fileToSend remains null if no file was selected
 
@@ -554,42 +569,52 @@ const ItemsView = () => {
     try {
       let fileToSend = null; // Initialize fileToSend
       // Process image before sending if a new file was selected AND compression is enabled
-      if (editItemImageFile instanceof File && !imageMarkedForRemoval && appSettings.imageCompressionEnabled) {
-          console.log("Attempting image compression for updated item...");
-          const compressionOptions = {
-              maxSizeMB: 0.2,
-              maxWidthOrHeight: 1024,
-              useWebWorker: true,
-              fileType: "image/jpeg",
-          };
-          const baseErrorMessage = intl.formatMessage({
-              id: "items.error.compressionFailed",
-              defaultMessage: "Image compression failed",
-          });
-           try {
-              fileToSend = await compressImage(editItemImageFile, compressionOptions, baseErrorMessage);
-          } catch (compressionError) {
-              // Handle compression error specifically
-              console.error("Compression failed during update:", compressionError);
-              // Throw it again to be caught by the outer catch block which sets the updateError state
-              throw compressionError;
-          }
+      if (
+        editItemImageFile instanceof File &&
+        !imageMarkedForRemoval &&
+        appSettings.imageCompressionEnabled
+      ) {
+        console.log("Attempting image compression for updated item...");
+        const compressionOptions = {
+          maxSizeMB: 0.2,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+          fileType: "image/jpeg",
+        };
+        const baseErrorMessage = intl.formatMessage({
+          id: "items.error.compressionFailed",
+          defaultMessage: "Image compression failed",
+        });
+        try {
+          fileToSend = await compressImage(
+            editItemImageFile,
+            compressionOptions,
+            baseErrorMessage,
+          );
+        } catch (compressionError) {
+          // Handle compression error specifically
+          console.error("Compression failed during update:", compressionError);
+          // Throw it again to be caught by the outer catch block which sets the updateError state
+          throw compressionError;
+        }
       } else if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-           // If compression is disabled but there's a file, use the original
-           fileToSend = editItemImageFile;
-           console.log("Image compression disabled or not applicable, using original file for update.");
+        // If compression is disabled but there's a file, use the original
+        fileToSend = editItemImageFile;
+        console.log(
+          "Image compression disabled or not applicable, using original file for update.",
+        );
       }
       // else fileToSend remains null if no new file selected or image marked for removal
 
       // The rest of the update logic uses fileToSend and imageMarkedForRemoval
       const result = await api.updateItem(editingItemId, {
-          name: editName.trim(),
-          description: editDescription.trim() || null,
-          location_id: parseInt(editLocationId, 10),
-          category_id: parseInt(editCategoryId, 10),
-          owner_id: parseInt(editOwnerId, 10),
-          imageFile: fileToSend, // Pass the potentially compressed or original file (or null)
-          removeImage: imageMarkedForRemoval, // Pass the explicit removal flag
+        name: editName.trim(),
+        description: editDescription.trim() || null,
+        location_id: parseInt(editLocationId, 10),
+        category_id: parseInt(editCategoryId, 10),
+        owner_id: parseInt(editOwnerId, 10),
+        imageFile: fileToSend, // Pass the potentially compressed or original file (or null)
+        removeImage: imageMarkedForRemoval, // Pass the explicit removal flag
       });
 
       if (result.success) {
@@ -855,13 +880,19 @@ const ItemsView = () => {
               {addImageUrl && (
                 <button
                   type="button"
-                  onClick={() => handleRotateImage('add')}
+                  onClick={() => handleRotateImage("add")}
                   className="button-light rotate-image-button"
                   disabled={loading || isRotatingAdd}
                 >
                   {isRotatingAdd
-                    ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." })
-                    : intl.formatMessage({ id: "items.image.rotate", defaultMessage: "Rotate 90°" })}
+                    ? intl.formatMessage({
+                        id: "items.image.rotating",
+                        defaultMessage: "Rotating...",
+                      })
+                    : intl.formatMessage({
+                        id: "items.image.rotate",
+                        defaultMessage: "Rotate 90°",
+                      })}
                 </button>
               )}
               {/* Remove Button */}
@@ -1409,24 +1440,31 @@ const ItemsView = () => {
                     {displayImageUrl && (
                       <button
                         type="button"
-                        onClick={() => handleRotateImage('edit')}
+                        onClick={() => handleRotateImage("edit")}
                         className="button-light rotate-image-button"
                         disabled={isUpdating || isDeleting || isRotatingEdit}
                       >
                         {isRotatingEdit
-                          ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." })
-                          : intl.formatMessage({ id: "items.image.rotate", defaultMessage: "Rotate 90°" })}
+                          ? intl.formatMessage({
+                              id: "items.image.rotating",
+                              defaultMessage: "Rotating...",
+                            })
+                          : intl.formatMessage({
+                              id: "items.image.rotate",
+                              defaultMessage: "Rotate 90°",
+                            })}
                       </button>
                     )}
                     {/* Remove Button */}
-                    {displayImageUrl && typeof api.deleteItem === "function" && (
-                      <button
-                        type="button"
-                        onClick={handleRemoveEditImage}
-                        className="button-danger-light remove-image-button"
-                        disabled={isUpdating || isDeleting || isRotatingEdit} // Also disable during rotation
-                      >
-                        {intl.formatMessage({
+                    {displayImageUrl &&
+                      typeof api.deleteItem === "function" && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveEditImage}
+                          className="button-danger-light remove-image-button"
+                          disabled={isUpdating || isDeleting || isRotatingEdit} // Also disable during rotation
+                        >
+                          {intl.formatMessage({
                             id: "items.editForm.removeImage", // Re-use existing translation
                             defaultMessage: "Remove Image",
                           })}
