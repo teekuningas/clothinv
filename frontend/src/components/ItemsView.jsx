@@ -372,9 +372,9 @@ const ItemsView = () => {
       let fileToSend = newItemImageFile;
       // Process image before sending if a file exists
       if (newItemImageFile instanceof File) {
-        setLoading(true); // Show loading specifically for compression potentially
+        // setLoading(true); // Remove: Outer loading state is sufficient
         fileToSend = await processImageFile(newItemImageFile);
-        setLoading(false); // Hide loading after compression attempt
+        // setLoading(false); // Remove: Outer finally block handles this
       }
 
       const result = await api.addItem({
@@ -546,9 +546,9 @@ const ItemsView = () => {
       let fileToSend = editItemImageFile;
       // Process image before sending if a new file was selected
       if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-        setIsUpdating(true); // Show updating specifically for compression potentially
+        // setIsUpdating(true); // Remove: Outer updating state is sufficient
         fileToSend = await processImageFile(editItemImageFile);
-        setIsUpdating(false); // Hide updating after compression attempt
+        // setIsUpdating(false); // Remove: Outer finally block handles this
       }
 
       const result = await api.updateItem(editingItemId, {
