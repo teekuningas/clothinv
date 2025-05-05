@@ -518,7 +518,7 @@ export const deleteItem = async (settings, itemId) => {
 
     // Check item deletion result (ignore 404)
     if (!deleteItemRes.ok && deleteItemRes.status !== 404) {
-        return handleResponse(deleteItemRes, 'delete', `item ID ${itemId}`); // Throw error
+        return handleResponse(deleteItemRes, 'delete', `item ID ${itemId}`);
     }
 
     // 3. If item deletion was successful (or item was already gone) AND we found an image ID, delete the image
@@ -605,7 +605,6 @@ export const listItems = async (settings) => {
         return itemsWithFiles; // Returns array of item objects including imageFile property
 
     } catch (error) {
-        // Log the error and re-throw or return empty array based on desired handling
         console.error("Error in listItems:", error);
         throw error; // Re-throw the error to be caught by the component
     }
