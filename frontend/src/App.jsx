@@ -1,36 +1,29 @@
 import React, { useState } from "react";
-import { useIntl } from "react-intl"; // Import useIntl hook
-import { useApi } from "./api/ApiContext"; // Import the custom hook
-import { useSettings } from "./settings/SettingsContext"; // Import useSettings
+import { useIntl } from "react-intl";
+import { useApi } from "./api/ApiContext";
+import { useSettings } from "./settings/SettingsContext";
 import {
   BrowserRouter,
   Routes,
   Route,
   NavLink,
   Navigate,
-} from "react-router-dom"; // Import react-router-dom components
-// Import the view components
+} from "react-router-dom";
 import ItemsView from "./components/ItemsView";
 import LocationsView from "./components/LocationsView";
 import CategoriesView from "./components/CategoriesView";
 import OwnersView from "./components/OwnersView";
-import SettingsView from "./components/SettingsView"; // Settings is now a view
-import ConfigureFromUrl from "./components/ConfigureFromUrl"; // Import new component
-import ExportConfigurationLink from "./components/ExportConfigurationLink"; // Import new component
+import SettingsView from "./components/SettingsView";
+import ConfigureFromUrl from "./components/ConfigureFromUrl";
+import ExportConfigurationLink from "./components/ExportConfigurationLink";
 import "./App.css";
-// Consider adding a new CSS file for navigation styles if needed
 
 function App() {
-  // Remove loading, error, success state - moved to ItemsView
-  const intl = useIntl(); // Get intl object
-  // Remove isSettingsOpen state
+  const intl = useIntl();
 
-  // Remove activeView state - routing handles this now
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
-  const api = useApi(); // Use the API context hook
-  const { settings } = useSettings(); // Use the Settings context hook
-
-  // Remove handleAddDefaults function - moved to ItemsView
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const api = useApi();
+  const { settings } = useSettings();
   /*
       // NOTE: The responsibility for adding location/category/image and handling IDs
       // The responsibility for adding related entities is handled within the provider's addItem method.
@@ -72,20 +65,15 @@ function App() {
       } finally {
           setLoading(false);
       }
-*/
-
-  // Toggle mobile menu visibility
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Handle navigation from mobile menu (sets view and closes menu)
   const handleMobileNavClick = (view) => {
     setActiveView(view);
     setIsMobileMenuOpen(false);
   };
 
-  // Helper function to render the active view
   const renderActiveView = () => {
     switch (activeView) {
       case "items":
@@ -110,7 +98,6 @@ function App() {
   };
 
   return (
-    // Wrap the entire app structure in BrowserRouter
     <BrowserRouter>
       <div className="app">
         <header className="app-header">
@@ -127,13 +114,11 @@ function App() {
             aria-label={intl.formatMessage({
               id: "nav.toggleMobileMenu",
               defaultMessage: "Toggle navigation menu",
-            })} // Add aria-label
+            })}
           >
-            ☰ {/* Simple hamburger icon */}
+            ☰
           </button>
-          {/* Simple Navigation - hidden on small screens via CSS */}
           <nav className="app-nav">
-            {/* Use NavLink for declarative navigation and active styling */}
             <NavLink
               to="/items"
               className={({ isActive }) => (isActive ? "active" : "")}
@@ -187,16 +172,15 @@ function App() {
               aria-label={intl.formatMessage({
                 id: "nav.closeMobileMenu",
                 defaultMessage: "Close navigation menu",
-              })} // Add aria-label
+              })}
             >
-              &times; {/* Simple close icon */}
+              &times;
             </button>
             <nav className="mobile-nav">
-              {/* Use NavLink here as well. Add onClick just to close the menu */}
               <NavLink
                 to="/items"
                 className={({ isActive }) => (isActive ? "active" : "")}
-                onClick={() => setIsMobileMenuOpen(false)} // Close menu on click
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 {intl.formatMessage({
                   id: "nav.items",
@@ -247,9 +231,7 @@ function App() {
           </div>
         )}
         <main className="app-main-content" style={{ padding: "20px" }}>
-          {/* Define the routes */}
           <Routes>
-            {/* Redirect root path to /items */}
             <Route path="/" element={<Navigate to="/items" replace />} />
             <Route path="/items" element={<ItemsView />} />
             <Route path="/locations" element={<LocationsView />} />
@@ -261,11 +243,7 @@ function App() {
               path="/export-configuration"
               element={<ExportConfigurationLink />}
             />
-            {/* Optional: Add a catch-all 404 route */}
-            {/* <Route path="*" element={<div>Page Not Found</div>} /> */}
           </Routes>
-
-          {/* Keep Global Warnings Here */}
           <div
             className="global-warnings"
             style={{
@@ -275,10 +253,9 @@ function App() {
             }}
           >
             {/* Update Datasette token warning */}
-            {settings.apiProviderType === "datasette" && // Use settings.apiProviderType
-              api.isConfigured && // Use api.isConfigured
-              !settings.apiSettings?.datasetteApiToken && ( // Use settings.apiSettings
-                /* Use status-warning class instead of inline style */
+            {settings.apiProviderType === "datasette" &&
+              api.isConfigured &&
+              !settings.apiSettings?.datasetteApiToken && (
                 <p className="status-warning">
                   {intl.formatMessage({
                     id: "warning.datasetteTokenMissing",
@@ -288,26 +265,23 @@ function App() {
                 </p>
               )}
             {/* General configuration warning */}
-            {settings.apiProviderType !== "none" &&
-              !api.isConfigured && ( // Use settings.apiProviderType and api.isConfigured
-                <p className="status-error">
-                  {" "}
-                  {/* Keep error style */}
-                  {intl.formatMessage(
-                    {
-                      id: "warning.providerNotConfigured",
-                      defaultMessage:
-                        "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
-                    },
-                    { providerType: settings.apiProviderType }, // Use settings.apiProviderType
-                  )}
-                </p>
-              )}
+            {settings.apiProviderType !== "none" && !api.isConfigured && (
+              <p className="status-error">
+                {" "}
+                {intl.formatMessage(
+                  {
+                    id: "warning.providerNotConfigured",
+                    defaultMessage:
+                      "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
+                  },
+                  { providerType: settings.apiProviderType },
+                )}
+              </p>
+            )}
             {/* Informational message if no provider is selected - Use status-loading (info style) */}
-            {settings.apiProviderType === "none" && ( // Use settings.apiProviderType
+            {settings.apiProviderType === "none" && (
               <p className="status-loading">
                 {" "}
-                {/* Keep info style */}
                 {intl.formatMessage({
                   id: "info.noProviderSelected",
                   defaultMessage:
@@ -317,8 +291,6 @@ function App() {
             )}
           </div>
         </main>
-
-        {/* Remove SettingsView modal rendering */}
       </div>
     </BrowserRouter>
   );
