@@ -265,20 +265,6 @@
     font-size: 1em;
  }
 
-.checkbox-item {
-    display: flex; /* Align checkbox and label */
-    align-items: center;
-    margin-bottom: 5px; /* Space between checkbox lines */
-}
-
-.checkbox-item input[type="checkbox"] {
-    margin-right: 8px;
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    accent-color: var(--color-primary); /* Style checkbox color */
-}
-
 
 /* Specific width override for text inputs in add/edit forms */
 .add-item-form .form-group input[type="text"],
