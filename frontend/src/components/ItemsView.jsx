@@ -81,14 +81,13 @@ const ItemsView = () => {
   const fetchData = useCallback(async () => {
     // Check if API is configured and required methods exist
     const canFetchItems =
-      api.isConfigured && typeof api.listItems === "function"; // Use api.isConfigured
-    const canFetchLocations = // Use api.isConfigured and check method existence
+      api.isConfigured && typeof api.listItems === "function";
+    const canFetchLocations =
       api.isConfigured && typeof api.listLocations === "function";
     const canFetchCategories =
       api.isConfigured && typeof api.listCategories === "function";
     const canFetchOwners =
       api.isConfigured && typeof api.listOwners === "function";
-    // Use api.isConfigured from context
     if (
       !canFetchItems ||
       !canFetchLocations ||
@@ -100,7 +99,7 @@ const ItemsView = () => {
       setCategories([]);
       setOwners([]);
       setError(
-        api.isConfigured // Use direct isConfigured from api context
+        api.isConfigured
           ? intl.formatMessage({
               id: "items.error.fetchPrereqs",
               defaultMessage:
@@ -357,7 +356,6 @@ const ItemsView = () => {
       return;
     }
     if (!api.isConfigured || !api.addItem) {
-      // Use api.isConfigured and check method existence
       setError(
         api.isConfigured
           ? intl.formatMessage({
@@ -550,9 +548,9 @@ const ItemsView = () => {
       let fileToSend = editItemImageFile;
       // Process image before sending if a new file was selected
       if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-        // setIsUpdating(true); // Remove: Outer updating state is sufficient
+        // setIsUpdating(true);
         fileToSend = await processImageFile(editItemImageFile);
-        // setIsUpdating(false); // Remove: Outer finally block handles this
+        // setIsUpdating(false);
       }
 
       const result = await api.updateItem(editingItemId, {
@@ -757,7 +755,7 @@ const ItemsView = () => {
       {success && <p className="status-success">{success}</p>}
 
       {/* Add Item Form */}
-      {!api.isConfigured ? ( // Use api.isConfigured
+      {!api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
@@ -859,7 +857,7 @@ const ItemsView = () => {
                 type="button"
                 onClick={() => handleOpenWebcam("add")}
                 disabled={loading}
-                className="button-light" // CHANGED from button-secondary
+                className="button-light"
               >
                 {intl.formatMessage({
                   id: "items.addForm.takePicture",
@@ -871,7 +869,7 @@ const ItemsView = () => {
                 <button
                   type="button"
                   onClick={handleRemoveNewImage}
-                  className="button-danger-light remove-image-button" // CHANGED from button-danger
+                  className="button-danger-light remove-image-button"
                 >
                   {intl.formatMessage({
                     id: "items.editForm.removeImage",
@@ -887,7 +885,7 @@ const ItemsView = () => {
               accept="image/*"
               onChange={(e) => handleFileChange(e, "add")}
               disabled={loading}
-              className="hidden-file-input" // Class to hide it
+              className="hidden-file-input"
             />
           </div>
           <div className="form-group">
@@ -1004,7 +1002,7 @@ const ItemsView = () => {
       </h3>
 
       {/* Sort and Filter Controls Container */}
-      {api.isConfigured && // Use api.isConfigured
+      {api.isConfigured &&
         typeof api.listItems === "function" &&
         items.length > 0 && (
           <div className="list-controls-container">
@@ -1171,7 +1169,7 @@ const ItemsView = () => {
       )}
 
       {typeof api.listItems !== "function" &&
-        api.isConfigured && ( // Use api.isConfigured
+        api.isConfigured && (
           <p className="status-warning">
             {intl.formatMessage({
               id: "items.list.notSupported",
@@ -1185,7 +1183,7 @@ const ItemsView = () => {
         sortedItems.length === 0 && // Check sortedItems
         items.length > 0 &&
         !error &&
-        api.isConfigured && ( // Use api.isConfigured
+        api.isConfigured && (
           <p>
             {intl.formatMessage({
               id: "items.list.emptyFiltered",
@@ -1197,7 +1195,7 @@ const ItemsView = () => {
         !loading &&
         items.length === 0 &&
         !error &&
-        api.isConfigured && ( // Use api.isConfigured
+        api.isConfigured && (
           <p>
             {intl.formatMessage({
               id: "items.list.empty",
