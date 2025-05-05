@@ -10,7 +10,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     {/* TranslationProvider should wrap ApiProvider if API responses might need translation */}
     {/* Or if components using useApi need access to useTranslationContext */}
-    <SettingsProvider> {/* Wrap everything with SettingsProvider */}
+    <SettingsProvider>
+      {" "}
+      {/* Wrap everything with SettingsProvider */}
       <TranslationProvider>
         <ApiProvider>
           <App />

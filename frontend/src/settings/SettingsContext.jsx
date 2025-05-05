@@ -1,7 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 
 // Define the localStorage key for general app settings
-export const LS_APP_SETTINGS_KEY = 'appSettings';
+export const LS_APP_SETTINGS_KEY = "appSettings";
 
 // Define default settings
 const defaultSettings = {
@@ -16,7 +22,7 @@ const SettingsContext = createContext(null);
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
 };
@@ -34,7 +40,7 @@ export const SettingsProvider = ({ children }) => {
         // Merge saved settings with defaults, ensuring defaults are present if missing in saved data
         initialSettings = { ...initialSettings, ...parsedSettings };
       } catch (e) {
-        console.error('Failed to parse saved app settings, using defaults.', e);
+        console.error("Failed to parse saved app settings, using defaults.", e);
         // Keep default settings if parsing fails
       }
     }
@@ -47,9 +53,12 @@ export const SettingsProvider = ({ children }) => {
       const updatedSettings = { ...prevSettings, ...newSettings };
       // Persist updated settings to localStorage
       try {
-        localStorage.setItem(LS_APP_SETTINGS_KEY, JSON.stringify(updatedSettings));
+        localStorage.setItem(
+          LS_APP_SETTINGS_KEY,
+          JSON.stringify(updatedSettings),
+        );
       } catch (error) {
-        console.error('Failed to save app settings to localStorage:', error);
+        console.error("Failed to save app settings to localStorage:", error);
         // Optionally notify the user
       }
       return updatedSettings;

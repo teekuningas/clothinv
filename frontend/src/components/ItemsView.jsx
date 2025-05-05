@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApi } from "../api/ApiContext";
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings
 import { useIntl } from "react-intl";
-import imageCompression from 'browser-image-compression'; // Import the library
+import imageCompression from "browser-image-compression"; // Import the library
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
 import WebcamCapture from "./WebcamCapture"; // Import the webcam component
@@ -268,35 +268,47 @@ const ItemsView = () => {
   };
 
   // --- Image Compression Helper ---
-  const processImageFile = useCallback(async (file) => {
-    if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
-      console.log("Image compression skipped (disabled or not a file).");
-      return file; // Return original if disabled or not a file
-    }
+  const processImageFile = useCallback(
+    async (file) => {
+      if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
+        console.log("Image compression skipped (disabled or not a file).");
+        return file; // Return original if disabled or not a file
+      }
 
-    console.log(`Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+      console.log(
+        `Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`,
+      );
 
-    const options = {
-      maxSizeMB: 1,          // Max size in MB
-      maxWidthOrHeight: 1024, // Max width or height
-      useWebWorker: true,    // Use web worker for performance
-      // fileType: 'image/jpeg', // Optional: force output type
-      // initialQuality: 0.8, // Optional: set initial quality
-    };
+      const options = {
+        maxSizeMB: 1, // Max size in MB
+        maxWidthOrHeight: 1024, // Max width or height
+        useWebWorker: true, // Use web worker for performance
+        // fileType: 'image/jpeg', // Optional: force output type
+        // initialQuality: 0.8, // Optional: set initial quality
+      };
 
-    try {
-      console.log("Compressing image...");
-      const compressedFile = await imageCompression(file, options);
-      console.log(`Compressed image size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
-      return compressedFile;
-    } catch (error) {
-      console.error("Image compression failed:", error);
-      // Fallback to original file if compression fails
-      setError(intl.formatMessage({ id: "webcam.error.captureFailed", defaultMessage: "Failed to process captured image. Please try again."}) + ` (Compression Error: ${error.message})`); // Show error to user
-      return file;
-    }
-  }, [appSettings.imageCompressionEnabled, intl]); // Depend on the setting
-
+      try {
+        console.log("Compressing image...");
+        const compressedFile = await imageCompression(file, options);
+        console.log(
+          `Compressed image size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
+        );
+        return compressedFile;
+      } catch (error) {
+        console.error("Image compression failed:", error);
+        // Fallback to original file if compression fails
+        setError(
+          intl.formatMessage({
+            id: "webcam.error.captureFailed",
+            defaultMessage:
+              "Failed to process captured image. Please try again.",
+          }) + ` (Compression Error: ${error.message})`,
+        ); // Show error to user
+        return file;
+      }
+    },
+    [appSettings.imageCompressionEnabled, intl],
+  ); // Depend on the setting
 
   // --- Add Item Handler ---
   const handleAddItem = async (e) => {
@@ -532,9 +544,9 @@ const ItemsView = () => {
       let fileToSend = editItemImageFile;
       // Process image before sending if a new file was selected
       if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-         setIsUpdating(true); // Show updating specifically for compression potentially
-         fileToSend = await processImageFile(editItemImageFile);
-         setIsUpdating(false); // Hide updating after compression attempt
+        setIsUpdating(true); // Show updating specifically for compression potentially
+        fileToSend = await processImageFile(editItemImageFile);
+        setIsUpdating(false); // Hide updating after compression attempt
       }
 
       const result = await api.updateItem(editingItemId, {
