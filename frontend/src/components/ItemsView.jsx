@@ -2,16 +2,15 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApi } from "../api/ApiContext";
 import { useSettings } from "../settings/SettingsContext";
 import { useIntl } from "react-intl";
-import imageCompression from "browser-image-compression"; // Import the library
+import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
-import WebcamCapture from "./WebcamCapture"; // Import the webcam component
-import "./ItemsView.css"; // Import the CSS file
-import "./ImageViewModal.css"; // Import the CSS for the image modal
-import "./WebcamCapture.css"; // Import the CSS for the webcam modal
+import WebcamCapture from "./WebcamCapture";
+import "./ItemsView.css";
+import "./ImageViewModal.css";
+import "./WebcamCapture.css";
 
 const ItemsView = () => {
-  // --- State ---
   const [items, setItems] = useState([]);
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -64,12 +63,10 @@ const ItemsView = () => {
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
-  // --- Hooks ---
   const api = useApi();
   const { settings: appSettings } = useSettings();
   const intl = useIntl();
 
-  // --- Data Fetching ---
   const fetchData = useCallback(async () => {
     // Check if API is configured and required methods exist
     const canFetchItems =
@@ -182,7 +179,7 @@ const ItemsView = () => {
 
   // Apply sorting after filtering
   const sortedItems = useMemo(() => {
-    const itemsToSort = [...filteredItems]; // Create a mutable copy
+    const itemsToSort = [...filteredItems];
     itemsToSort.sort((a, b) => {
       switch (sortCriteria) {
         case "created_at_asc":
@@ -217,7 +214,6 @@ const ItemsView = () => {
     };
   }, [sortedItems]);
 
-  // --- Helper Functions ---
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
     intl.formatMessage({ id: "items.card.noLocation", defaultMessage: "N/A" });
@@ -228,7 +224,6 @@ const ItemsView = () => {
     owners.find((owner) => owner.owner_id === id)?.name ||
     intl.formatMessage({ id: "items.card.noOwner", defaultMessage: "N/A" });
 
-  // --- Image File Handling & Blob URL Management ---
   const handleFileChange = (event, type) => {
     const file = event.target.files[0];
     if (file instanceof File) {
@@ -287,7 +282,7 @@ const ItemsView = () => {
           type: compressedBlob.type || file.type, // Use blob's type, fallback to original
           lastModified: Date.now(), // Set last modified timestamp
         });
-        return compressedFile; // Return the File object
+        return compressedFile;
       } catch (error) {
         console.error("Image compression failed:", error);
         // Instead of setting error here and returning original file,
@@ -372,9 +367,9 @@ const ItemsView = () => {
       const result = await api.addItem({
         name: newItemName.trim(),
         description: newItemDescription.trim() || null,
-        location_id: parseInt(newItemLocationId, 10), // Ensure ID is integer
-        category_id: parseInt(newItemCategoryId, 10), // Ensure ID is integer
-        owner_id: parseInt(newItemOwnerId, 10), // Ensure ID is integer
+        location_id: parseInt(newItemLocationId, 10),
+        category_id: parseInt(newItemCategoryId, 10),
+        owner_id: parseInt(newItemOwnerId, 10),
         imageFile: fileToSend, // Pass the potentially compressed File object
       });
 
