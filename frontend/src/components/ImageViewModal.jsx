@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import "./ImageViewModal.css"; // We'll create this next
+import "./ImageViewModal.css";
 
 const ImageViewModal = ({ show, onClose, imageUrl, imageAlt }) => {
   // Effect to handle Escape key press
@@ -31,7 +31,6 @@ const ImageViewModal = ({ show, onClose, imageUrl, imageAlt }) => {
     e.stopPropagation();
   };
 
-  // Add the 'show' class dynamically based on the show prop
   const backdropClass = `image-view-modal-backdrop ${show ? "show" : ""}`;
 
   return (
