@@ -9,8 +9,7 @@ import "./main.css";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     {/* TranslationProvider should wrap ApiProvider if API responses might need translation */}
-    {/* Or if components using useApi need access to useTranslationContext */}
-    <SettingsProvider>
+    <SettingsProvider> {/* SettingsProvider is outermost */}
       {" "}
       {/* Wrap everything with SettingsProvider */}
       <TranslationProvider>

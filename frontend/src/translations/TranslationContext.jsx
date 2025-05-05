@@ -4,13 +4,13 @@ import React, {
   useState,
   useEffect,
   useCallback,
-} from "react";
+} from "react"; // Removed useCallback as changeLocale is removed
 import { IntlProvider } from "react-intl";
+import { useSettings } from "../settings/SettingsContext"; // Import useSettings
 import {
   availableLocales,
   defaultLocale,
   getLocaleCodes,
-  LS_LOCALE_KEY,
 } from "./i18n"; // Updated path
 
 async function loadMessages(locale) {
@@ -45,15 +45,7 @@ async function loadMessages(locale) {
   }
 }
 
-function getInitialLocale() {
-  // 1. Check Local Storage
-  const savedLocale = localStorage.getItem(LS_LOCALE_KEY);
-  if (savedLocale && getLocaleCodes().includes(savedLocale)) {
-    return savedLocale;
-  }
-  // 2. Fallback to Hardcoded Default
-  return defaultLocale;
-}
+// REMOVED getInitialLocale function
 
 // Create the context
 const TranslationContext = createContext(null);
@@ -71,7 +63,8 @@ export const useTranslationContext = () => {
 
 // Create the provider component
 export const TranslationProvider = ({ children }) => {
-  const [locale, setLocale] = useState(getInitialLocale);
+  const { settings } = useSettings(); // Get settings from context
+  const locale = settings.locale || defaultLocale; // Get locale from settings, fallback
   const [messages, setMessages] = useState({});
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [loadError, setLoadError] = useState(null); // Track loading errors
@@ -97,25 +90,14 @@ export const TranslationProvider = ({ children }) => {
         // Only set loading to false after attempt, regardless of initial or subsequent load
         setLoadingMessages(false);
       });
-  }, [locale, isInitialLoad]); // Add isInitialLoad to dependencies
+  }, [locale, isInitialLoad]); // Depend on locale from settings
 
-  // Function to change the language
-  const changeLocale = useCallback(
-    (newLocale) => {
-      if (getLocaleCodes().includes(newLocale) && newLocale !== locale) {
-        setLocale(newLocale);
-        localStorage.setItem(LS_LOCALE_KEY, newLocale);
-      } else if (!getLocaleCodes().includes(newLocale)) {
-        console.warn(`Attempted to change to invalid locale: ${newLocale}`);
-      }
-    },
-    [locale],
-  );
+  // REMOVED changeLocale function
 
   // The context value
   const value = {
     locale,
-    changeLocale,
+    // changeLocale removed
     availableLocales,
     loadingMessages,
     loadError,

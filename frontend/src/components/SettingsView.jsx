@@ -5,28 +5,21 @@ import {
   getProviderById,
   getProviderDisplayNames,
 } from "../api/providerRegistry";
-import { useApi } from "../api/ApiContext"; // Import useApi hook
-import { useTranslationContext } from "../translations/TranslationContext"; // Import translation hook
+import { useApi } from "../api/ApiContext"; // Keep useApi for export/import/destroy
+// REMOVED: import { useTranslationContext } from "../translations/TranslationContext";
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings hook
 import "./SettingsView.css";
 const SettingsView = () => {
-  const { config: apiConfig, updateConfiguration: saveApiConfig } = useApi(); // Get API context
-  const {
-    locale: currentLocale,
-    changeLocale,
-    availableLocales,
-    loadingMessages: languageLoading, // Get loading state for language
-    loadError: languageLoadError, // Get load error for language
-  } = useTranslationContext(); // Get Translation context
+  // Get settings and update function from the centralized context
   const { settings: appSettings, updateSettings: updateAppSettings } =
     useSettings(); // Get general app settings
   const api = useApi(); // Get full API context to access export/import methods
 
-  // Local state for Language setting being edited
-  const [localLocale, setLocalLocale] = useState(currentLocale);
+  // Local state for Language setting being edited - Initialize from settings context
+  const [localLocale, setLocalLocale] = useState(appSettings.locale);
   // State for Language config saving
   const [languageSaveStatus, setLanguageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
-  const [languageSaveError, setLanguageSaveError] = useState(null);
+  const [languageSaveError, setLanguageSaveError] = useState(null); // Keep for local save feedback
 
   // Local state ONLY holds the API configuration being edited
   const [localApiSettings, setLocalApiSettings] = useState({
@@ -34,13 +27,13 @@ const SettingsView = () => {
     settings: {},
   });
   // State for API config saving
-  const [saveStatus, setSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
-  const [saveError, setSaveError] = useState(null);
+  const [apiSaveStatus, setApiSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
+  const [apiSaveError, setApiSaveError] = useState(null); // Keep for local save feedback
   const [providerDisplayNames, setProviderDisplayNames] = useState({});
   const intl = useIntl(); // Get intl object
 
   // Local state for Image settings being edited
-  const [localImageCompressionEnabled, setLocalImageCompressionEnabled] =
+  const [localImageCompressionEnabled, setLocalImageCompressionEnabled] = // Initialize from settings context
     useState(appSettings.imageCompressionEnabled);
   // State for Image config saving
   const [imageSaveStatus, setImageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
@@ -66,36 +59,37 @@ const SettingsView = () => {
   }, []);
 
   // Initialize local state for API settings when apiConfig changes
+  // Now depends on appSettings.apiProviderType and appSettings.apiSettings
   useEffect(() => {
     // Use a deep copy method (structuredClone preferred)
     const initialLocalState = {
-      providerType: apiConfig.providerType || "none",
-      settings: apiConfig.settings
+      providerType: appSettings.apiProviderType || "none",
+      settings: appSettings.apiSettings // Use apiSettings from context
         ? typeof structuredClone === "function"
-          ? structuredClone(apiConfig.settings)
-          : JSON.parse(JSON.stringify(apiConfig.settings))
+          ? structuredClone(appSettings.apiSettings)
+          : JSON.parse(JSON.stringify(appSettings.apiSettings))
         : {},
     };
     // Ensure all fields defined in the registry for the current provider exist in local state
     const provider = getProviderById(initialLocalState.providerType);
     if (provider && provider.configFields) {
       provider.configFields.forEach((field) => {
-        if (!(field.key in initialLocalState.settings)) {
+        if (initialLocalState.settings && !(field.key in initialLocalState.settings)) {
           initialLocalState.settings[field.key] = ""; // Initialize missing fields
         }
       });
     }
     setLocalApiSettings(initialLocalState);
-    setSaveStatus("idle"); // Reset save status when config changes externally
-    setSaveError(null);
-  }, [apiConfig]); // Rerun only if the API config from context changes
+    setApiSaveStatus("idle"); // Reset save status when config changes externally
+    setApiSaveError(null);
+  }, [appSettings.apiProviderType, appSettings.apiSettings]); // Depend on settings from context
 
   // Initialize local state for Language when currentLocale changes
   useEffect(() => {
-    setLocalLocale(currentLocale);
+    setLocalLocale(appSettings.locale); // Initialize from settings context
     setLanguageSaveStatus("idle"); // Reset save status
     setLanguageSaveError(null);
-  }, [currentLocale]);
+  }, [appSettings.locale]); // Depend on settings from context
 
   // Initialize local state for Image Compression when appSettings change
   useEffect(() => {
@@ -107,8 +101,8 @@ const SettingsView = () => {
   // Handle changes ONLY for API provider select and API settings inputs
   const handleApiChange = useCallback((e) => {
     const { name, value } = e.target;
-    setSaveStatus("idle");
-    setSaveError(null);
+    setApiSaveStatus("idle"); // Reset API save status
+    setApiSaveError(null);
 
     setLocalApiSettings((prevApiSettings) => {
       let newApiSettings = { ...prevApiSettings };
@@ -154,34 +148,37 @@ const SettingsView = () => {
     setLanguageSaveError(null);
     try {
       // Call the context function to actually change and save the locale
-      await changeLocale(localLocale); // Assuming changeLocale might become async if needed
+      // Use updateAppSettings from SettingsContext
+      await updateAppSettings({ locale: localLocale });
       setLanguageSaveStatus("success");
       // Optionally reset status after a delay
     } catch (error) {
-      // This catch might not be strictly necessary if changeLocale doesn't throw
-      // but good practice in case it's modified later.
       console.error("Error saving language setting:", error);
       setLanguageSaveError(error.message || "An unexpected error occurred.");
       setLanguageSaveStatus("error");
     }
-  }, [localLocale, currentLocale, changeLocale]); // Dependencies: local state, current context state, context function
+    // Depend on local state and the update function from SettingsContext
+  }, [localLocale, updateAppSettings]);
 
   // Handle saving ONLY the API configuration
   const handleSaveApiConfig = useCallback(async () => {
-    setSaveStatus("saving");
-    setSaveError(null);
+    setApiSaveStatus("saving");
+    setApiSaveError(null);
     try {
-      // Pass the local API settings state to the context update function
-      await saveApiConfig(localApiSettings);
-      setSaveStatus("success");
+      // Call updateAppSettings with the API provider type and settings
+      await updateAppSettings({
+        apiProviderType: localApiSettings.providerType,
+        apiSettings: localApiSettings.settings,
+      });
+      setApiSaveStatus("success");
       // Optionally reset status after a delay
-      // setTimeout(() => setSaveStatus('idle'), 3000);
+      // setTimeout(() => setApiSaveStatus('idle'), 3000);
     } catch (error) {
-      console.error("Error saving settings:", error);
-      setSaveError(error.message || "An unexpected error occurred.");
-      setSaveStatus("error");
+      console.error("Error saving API settings:", error);
+      setApiSaveError(error.message || "An unexpected error occurred.");
+      setApiSaveStatus("error");
     }
-  }, [localApiSettings, saveApiConfig]); // Dependencies: local state being saved, context function
+  }, [localApiSettings, updateAppSettings]); // Depend on local state and update function
 
   // Handle changes ONLY for Image settings inputs (e.g., checkbox)
   const handleImageSettingsChange = useCallback((e) => {
@@ -210,11 +207,7 @@ const SettingsView = () => {
       setImageSaveError(error.message || "An unexpected error occurred.");
       setImageSaveStatus("error");
     }
-  }, [
-    localImageCompressionEnabled,
-    appSettings.imageCompressionEnabled,
-    updateAppSettings,
-  ]); // Dependencies: local state, current context state, context function
+  }, [localImageCompressionEnabled, updateAppSettings]); // Depend on local state and update function
 
   // --- Export Handler ---
   const handleExport = useCallback(async () => {
@@ -240,7 +233,7 @@ const SettingsView = () => {
         const link = document.createElement("a");
         link.href = url;
         const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        link.download = `clothing_inventory_export_${apiConfig.providerType}_${timestamp}.zip`; // Suggest filename
+        link.download = `clothing_inventory_export_${appSettings.apiProviderType}_${timestamp}.zip`; // Use provider from settings
         document.body.appendChild(link); // Append to body
         link.click(); // Programmatically click the link to trigger download
         document.body.removeChild(link); // Remove the link
@@ -266,7 +259,7 @@ const SettingsView = () => {
       );
       setExportStatus("error");
     }
-  }, [api, apiConfig.providerType, intl]);
+  }, [api, appSettings.apiProviderType, intl]); // Depend on provider from settings
 
   // --- Import Handlers ---
   const handleFileChange = (event) => {
@@ -394,9 +387,9 @@ const SettingsView = () => {
             "EXTREME WARNING: This will permanently delete ALL data (items, locations, categories, owners, images) from the current provider ({providerName}). This action CANNOT BE UNDONE. Are you absolutely sure you want to proceed?",
         },
         {
-          providerName:
-            providerDisplayNames[apiConfig.providerType] ||
-            apiConfig.providerType,
+          providerName: // Use provider from settings
+            providerDisplayNames[appSettings.apiProviderType] ||
+            appSettings.apiProviderType,
         },
       ),
     );
@@ -450,10 +443,10 @@ const SettingsView = () => {
       );
       setDestroyStatus("error");
     }
-  }, [api, apiConfig.providerType, providerDisplayNames, intl]);
+  }, [api, appSettings.apiProviderType, providerDisplayNames, intl]); // Depend on provider from settings
 
   // Get the definition for the currently selected provider in the local state
-  const selectedProviderId = localApiSettings?.providerType || "none";
+  const selectedProviderId = localApiSettings?.providerType || appSettings.apiProviderType || "none"; // Use local state first, then context
   const selectedProvider = getProviderById(selectedProviderId);
   const availableProviderIds = getProviderIds(); // Get all available provider IDs
 
@@ -615,9 +608,9 @@ const SettingsView = () => {
               type="button"
               onClick={handleSaveApiConfig}
               className="button-primary"
-              disabled={saveStatus === "saving" || saveStatus === "success"}
+              disabled={apiSaveStatus === "saving" || apiSaveStatus === "success"}
             >
-              {saveStatus === "saving"
+              {apiSaveStatus === "saving"
                 ? intl.formatMessage({
                     id: "settings.api.saveButton.saving",
                     defaultMessage: "Saving API Config...",
@@ -631,7 +624,7 @@ const SettingsView = () => {
 
           {/* Save Status Feedback for API Settings */}
           <div className="save-feedback" style={{ minHeight: "20px" }}>
-            {saveStatus === "success" && (
+            {apiSaveStatus === "success" && (
               <p className="status-success">
                 {intl.formatMessage({
                   id: "settings.api.saveSuccess",
@@ -639,14 +632,14 @@ const SettingsView = () => {
                 })}
               </p>
             )}
-            {saveStatus === "error" && (
+            {apiSaveStatus === "error" && (
               <p className="status-error">
                 {intl.formatMessage(
                   {
                     id: "settings.api.saveError",
                     defaultMessage: "API Save Error: {error}",
                   },
-                  { error: saveError },
+                  { error: apiSaveError },
                 )}
               </p>
             )}
@@ -752,9 +745,9 @@ const SettingsView = () => {
                     "Export all items, locations, categories, and owners from the currently active provider ({providerName}) into a downloadable .zip file.",
                 },
                 {
-                  providerName:
-                    providerDisplayNames[apiConfig.providerType] ||
-                    apiConfig.providerType,
+                  providerName: // Use provider from settings
+                    providerDisplayNames[appSettings.apiProviderType] ||
+                    appSettings.apiProviderType,
                 },
               )}
             </p>
@@ -765,8 +758,8 @@ const SettingsView = () => {
                 className="button-primary"
                 disabled={
                   exportStatus === "exporting" ||
-                  !api.exportData ||
-                  !apiConfig.isConfigured
+                  !api.exportData || // Check if method exists on api object
+                  !api.isConfigured // Use api.isConfigured
                 }
               >
                 {exportStatus === "exporting"
@@ -820,9 +813,9 @@ const SettingsView = () => {
                     "Warning: Importing data will REPLACE ALL existing data in the currently active provider ({providerName}). This action cannot be undone.",
                 },
                 {
-                  providerName:
-                    providerDisplayNames[apiConfig.providerType] ||
-                    apiConfig.providerType,
+                  providerName: // Use provider from settings
+                    providerDisplayNames[appSettings.apiProviderType] ||
+                    appSettings.apiProviderType,
                 },
               )}
             </p>
@@ -835,7 +828,7 @@ const SettingsView = () => {
               </label>
               <label
                 htmlFor="import-file-input"
-                className={`button-light button-file-input ${importStatus === "importing" || !api.importData || !apiConfig.isConfigured ? "disabled" : ""}`}
+                className={`button-light button-file-input ${importStatus === "importing" || !api.importData || !api.isConfigured ? "disabled" : ""}`} // Use api.isConfigured
               >
                 {intl.formatMessage({
                   id: "settings.data.importChooseFile",
@@ -848,9 +841,9 @@ const SettingsView = () => {
                 accept=".zip,application/zip,application/x-zip-compressed"
                 onChange={handleFileChange}
                 disabled={
-                  importStatus === "importing" ||
+                  importStatus === "importing" || // Check if method exists on api object
                   !api.importData ||
-                  !apiConfig.isConfigured
+                  !api.isConfigured // Use api.isConfigured
                 }
                 className="hidden-file-input"
               />
@@ -872,8 +865,8 @@ const SettingsView = () => {
                 disabled={
                   !importFile ||
                   importStatus === "importing" ||
-                  !api.importData ||
-                  !apiConfig.isConfigured
+                  !api.importData || // Check if method exists on api object
+                  !api.isConfigured // Use api.isConfigured
                 }
               >
                 {importStatus === "importing"
@@ -921,9 +914,9 @@ const SettingsView = () => {
                     "Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.",
                 },
                 {
-                  providerName:
-                    providerDisplayNames[apiConfig.providerType] ||
-                    apiConfig.providerType,
+                  providerName: // Use provider from settings
+                    providerDisplayNames[appSettings.apiProviderType] ||
+                    appSettings.apiProviderType,
                 },
               )}
             </p>
@@ -934,8 +927,8 @@ const SettingsView = () => {
                 className="button-danger"
                 disabled={
                   destroyStatus === "destroying" ||
-                  !api.destroyData ||
-                  !apiConfig.isConfigured
+                  !api.destroyData || // Check if method exists on api object
+                  !api.isConfigured // Use api.isConfigured
                 }
               >
                 {destroyStatus === "destroying"

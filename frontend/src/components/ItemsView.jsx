@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApi } from "../api/ApiContext";
-import { useSettings } from "../settings/SettingsContext"; // Import useSettings
+import { useSettings } from "../settings/SettingsContext"; // Already imported
 import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression"; // Import the library
 import Modal from "./Modal";
@@ -76,21 +76,21 @@ const ItemsView = () => {
 
   // --- Hooks ---
   const api = useApi();
-  const { settings: appSettings } = useSettings(); // Get app settings
+  const { settings: appSettings } = useSettings(); // Get app settings from context
   const intl = useIntl();
 
   // --- Data Fetching ---
   const fetchData = useCallback(async () => {
     // Check if API is configured and required methods exist
     const canFetchItems =
-      api.config.isConfigured && typeof api.listItems === "function";
-    const canFetchLocations =
-      api.config.isConfigured && typeof api.listLocations === "function";
+      api.isConfigured && typeof api.listItems === "function"; // Use api.isConfigured
+    const canFetchLocations = // Use api.isConfigured and check method existence
+      api.isConfigured && typeof api.listLocations === "function";
     const canFetchCategories =
-      api.config.isConfigured && typeof api.listCategories === "function";
+      api.isConfigured && typeof api.listCategories === "function";
     const canFetchOwners =
-      api.config.isConfigured && typeof api.listOwners === "function";
-
+      api.isConfigured && typeof api.listOwners === "function";
+    // Use api.isConfigured from context
     if (
       !canFetchItems ||
       !canFetchLocations ||
@@ -102,7 +102,7 @@ const ItemsView = () => {
       setCategories([]);
       setOwners([]);
       setError(
-        api.config.isConfigured
+        api.isConfigured // Use direct isConfigured from api context
           ? intl.formatMessage({
               id: "items.error.fetchPrereqs",
               defaultMessage:
@@ -270,7 +270,7 @@ const ItemsView = () => {
   // --- Image Compression Helper ---
   const processImageFile = useCallback(
     async (file) => {
-      if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
+      if (!appSettings.imageCompressionEnabled || !(file instanceof File)) { // Read from appSettings
         console.log("Image compression skipped (disabled or not a file).");
         return file; // Return original if disabled or not a file
       }
@@ -307,7 +307,7 @@ const ItemsView = () => {
         return file;
       }
     },
-    [appSettings.imageCompressionEnabled, intl],
+    [appSettings.imageCompressionEnabled, intl], // Depend on the setting from context
   ); // Depend on the setting
 
   // --- Add Item Handler ---
@@ -349,9 +349,9 @@ const ItemsView = () => {
       );
       return;
     }
-    if (!api.config.isConfigured || typeof api.addItem !== "function") {
+    if (!api.isConfigured || !api.addItem) { // Use api.isConfigured and check method existence
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "items.addForm.notSupported",
               defaultMessage:
@@ -524,7 +524,7 @@ const ItemsView = () => {
       !editLocationId ||
       !editCategoryId ||
       !editOwnerId ||
-      typeof api.updateItem !== "function"
+      !api.updateItem // Check method existence
     ) {
       setUpdateError(
         intl.formatMessage({
@@ -616,7 +616,7 @@ const ItemsView = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteCandidateId || typeof api.deleteItem !== "function") {
+    if (!deleteCandidateId || !api.deleteItem) { // Check method existence
       setDeleteError(
         intl.formatMessage({
           id: "items.error.deleteInvalid",
@@ -750,13 +750,14 @@ const ItemsView = () => {
       {success && <p className="status-success">{success}</p>}
 
       {/* Add Item Form */}
-      {!api.config.isConfigured ? (
+      {!api.isConfigured ? ( // Use api.isConfigured
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : typeof api.addItem !== "function" ||
-        typeof api.listLocations !== "function" ||
-        typeof api.listCategories !== "function" ? (
+      ) : !api.addItem || // Check method existence
+        !api.listLocations ||
+        !api.listCategories ||
+        !api.listOwners ? ( // Added owner check
         <p className="status-warning">
           {intl.formatMessage({
             id: "items.addForm.notSupported",
@@ -996,7 +997,7 @@ const ItemsView = () => {
       </h3>
 
       {/* Sort and Filter Controls Container */}
-      {api.config.isConfigured &&
+      {api.isConfigured && // Use api.isConfigured
         typeof api.listItems === "function" &&
         items.length > 0 && (
           <div className="list-controls-container">
@@ -1162,7 +1163,7 @@ const ItemsView = () => {
         </div>
       )}
 
-      {typeof api.listItems !== "function" && api.config.isConfigured && (
+      {typeof api.listItems !== "function" && api.isConfigured && ( // Use api.isConfigured
         <p className="status-warning">
           {intl.formatMessage({
             id: "items.list.notSupported",
@@ -1176,7 +1177,7 @@ const ItemsView = () => {
         sortedItems.length === 0 && // Check sortedItems
         items.length > 0 &&
         !error &&
-        api.config.isConfigured && (
+        api.isConfigured && ( // Use api.isConfigured
           <p>
             {intl.formatMessage({
               id: "items.list.emptyFiltered",
@@ -1188,7 +1189,7 @@ const ItemsView = () => {
         !loading &&
         items.length === 0 &&
         !error &&
-        api.config.isConfigured && (
+        api.isConfigured && ( // Use api.isConfigured
           <p>
             {intl.formatMessage({
               id: "items.list.empty",
@@ -1277,7 +1278,7 @@ const ItemsView = () => {
                     </p>
                   </div>
                   {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-                  {api.config.isConfigured &&
+                  {api.isConfigured && // Use api.isConfigured
                     typeof api.updateItem === "function" && (
                       <button
                         onClick={() => handleEditClick(item)}
@@ -1549,7 +1550,7 @@ const ItemsView = () => {
                         })}
                   </button>
                   {/* Use button-danger for delete */}
-                  {api.config.isConfigured &&
+                  {api.isConfigured && // Use api.isConfigured
                     typeof api.deleteItem === "function" && (
                       <button
                         type="button"

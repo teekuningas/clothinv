@@ -5,12 +5,16 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { defaultLocale } from "../translations/i18n"; // Import default locale
 
 // Define the localStorage key for general app settings
 export const LS_APP_SETTINGS_KEY = "appSettings";
 
 // Define default settings
 const defaultSettings = {
+  locale: defaultLocale, // Default language
+  apiProviderType: "indexedDB", // Default API provider
+  apiSettings: {}, // Default empty API settings
   imageCompressionEnabled: true, // Default to enabled
   // theme: 'light',
 };
@@ -35,10 +39,10 @@ export const SettingsProvider = ({ children }) => {
     let initialSettings = { ...defaultSettings }; // Start with defaults
 
     if (savedSettings) {
-      try {
+      try { // Load the single settings object
         const parsedSettings = JSON.parse(savedSettings);
         // Merge saved settings with defaults, ensuring defaults are present if missing in saved data
-        initialSettings = { ...initialSettings, ...parsedSettings };
+        initialSettings = { ...defaultSettings, ...parsedSettings }; // Ensure all keys exist
       } catch (e) {
         console.error("Failed to parse saved app settings, using defaults.", e);
         // Keep default settings if parsing fails
@@ -67,7 +71,7 @@ export const SettingsProvider = ({ children }) => {
 
   // The context value includes the current settings and the update function
   const value = {
-    settings,
+    settings, // Provide the whole settings object
     updateSettings,
   };
 

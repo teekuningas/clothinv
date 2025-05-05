@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useIntl } from "react-intl"; // Import useIntl hook
 import { useApi } from "./api/ApiContext"; // Import the custom hook
+import { useSettings } from "./settings/SettingsContext"; // Import useSettings
 import {
   BrowserRouter,
   Routes,
@@ -27,6 +28,7 @@ function App() {
   // Remove activeView state - routing handles this now
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
   const api = useApi(); // Use the API context hook
+  const { settings } = useSettings(); // Use the Settings context hook
 
   // Remove handleAddDefaults function - moved to ItemsView
   /*
@@ -255,12 +257,8 @@ function App() {
             <Route path="/owners" element={<OwnersView />} />
             <Route
               path="/settings"
-              element={
-                <SettingsView
-                  currentConfig={api.config}
-                  onSave={api.updateConfiguration}
-                />
-              }
+              // SettingsView now gets its data from useSettings and useApi internally
+              element={<SettingsView />}
             />
             <Route path="/configure" element={<ConfigureFromUrl />} />
             <Route
@@ -281,9 +279,9 @@ function App() {
             }}
           >
             {/* Update Datasette token warning */}
-            {api.config.providerType === "datasette" &&
-              api.config.isConfigured &&
-              !api.config.settings?.datasetteApiToken && (
+            {settings.apiProviderType === "datasette" && // Use settings.apiProviderType
+              api.isConfigured && // Use api.isConfigured
+              !settings.apiSettings?.datasetteApiToken && ( // Use settings.apiSettings
                 /* Use status-warning class instead of inline style */
                 <p className="status-warning">
                   {intl.formatMessage({
@@ -294,21 +292,21 @@ function App() {
                 </p>
               )}
             {/* General configuration warning */}
-            {api.config.providerType !== "none" && !api.config.isConfigured && (
-              <p className="status-error">
+            {settings.apiProviderType !== "none" && !api.isConfigured && ( // Use settings.apiProviderType and api.isConfigured
+              <p className="status-error"> {/* Keep error style */}
                 {intl.formatMessage(
                   {
                     id: "warning.providerNotConfigured",
                     defaultMessage:
                       "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
                   },
-                  { providerType: api.config.providerType },
+                  { providerType: settings.apiProviderType }, // Use settings.apiProviderType
                 )}
               </p>
             )}
             {/* Informational message if no provider is selected - Use status-loading (info style) */}
-            {api.config.providerType === "none" && (
-              <p className="status-loading">
+            {settings.apiProviderType === "none" && ( // Use settings.apiProviderType
+              <p className="status-loading"> {/* Keep info style */}
                 {intl.formatMessage({
                   id: "info.noProviderSelected",
                   defaultMessage:

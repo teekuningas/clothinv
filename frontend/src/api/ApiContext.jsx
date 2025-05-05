@@ -5,14 +5,14 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { useSettings } from "../settings/SettingsContext"; // Import useSettings
 import { providers, getProviderById } from "./providerRegistry"; // Import registry
 
 const ApiContext = createContext();
 
 export const useApi = () => useContext(ApiContext);
 
-// Define localStorage key for API provider configuration
-export const LS_API_PROVIDER_CONFIG_KEY = "apiProviderConfig";
+// REMOVED LS_API_PROVIDER_CONFIG_KEY
 
 // --- Helper: Calculate Configuration Status --- (Moved before ApiProvider for clarity)
 // Determines if the provider is configured based on its registry definition
@@ -34,66 +34,22 @@ const checkConfiguration = (providerType, settings) => {
 };
 
 export const ApiProvider = ({ children }) => {
-  // State now holds providerType, a generic settings object, and isConfigured flag
-  // Initialize state from localStorage or defaults using a function for useState
-  const [config, setConfig] = useState(() => {
-    const savedConfig = localStorage.getItem(LS_API_PROVIDER_CONFIG_KEY);
-    let initialConfig;
+  // Get settings from the centralized SettingsContext
+  const { settings } = useSettings();
+  const { apiProviderType, apiSettings } = settings; // Destructure relevant settings
 
-    if (savedConfig) {
-      try {
-        initialConfig = JSON.parse(savedConfig);
-        // Basic validation and defaults for older formats
-        initialConfig.providerType = initialConfig.providerType || "none";
-        // Ensure settings is an object, even if null/undefined was saved
-        initialConfig.settings = initialConfig.settings || {};
-        // REMOVE imageCompressionEnabled initialization
-        // Ensure provider exists
-        if (!getProviderById(initialConfig.providerType)) {
-          console.warn(
-            `Saved provider type "${initialConfig.providerType}" is invalid. Resetting to 'none'.`,
-          );
-          initialConfig.providerType = "none";
-          initialConfig.settings = {};
-        }
-        // Remove isConfigured if it exists from older format
-        delete initialConfig.isConfigured;
-      } catch (e) {
-        console.error("Failed to parse saved API config, using defaults.", e);
-        initialConfig = null; // Reset if parsing failed
-      }
-    }
+  // Calculate isConfigured based on settings from context
+  const isConfigured = checkConfiguration(apiProviderType, apiSettings);
 
-    // If no saved config or parsing failed, use hardcoded default
-    if (!initialConfig) {
-      const hardcodedDefaultProviderType = "indexedDB";
-
-      // Initialize config structure
-      initialConfig = {
-        providerType: hardcodedDefaultProviderType,
-        settings: {},
-        // REMOVE imageCompressionEnabled default
-      };
-    }
-
-    // Always calculate isConfigured based on loaded/default provider and settings
-    // Note: isConfigured doesn't depend on imageCompressionEnabled
-    initialConfig.isConfigured = checkConfiguration(
-      initialConfig.providerType,
-      initialConfig.settings,
-    );
-
-    return initialConfig;
-  });
   const [apiMethods, setApiMethods] = useState({}); // Holds bound API methods like { addItem: func }
 
   // --- Helper: Bind API Methods ---
   // Binds methods from the selected provider's module using the current settings
-  const bindApiMethods = useCallback((currentConfig) => {
+  const bindApiMethods = useCallback((providerType, currentApiSettings, configured) => {
     const newApiMethods = {};
-    const provider = getProviderById(currentConfig.providerType);
+    const provider = getProviderById(providerType);
 
-    if (provider && provider.module && currentConfig.isConfigured) {
+    if (provider && provider.module && configured) {
       // Iterate through the methods listed in the registry for this provider
       provider.methods.forEach((methodName) => {
         const methodImpl = provider.module[methodName];
@@ -101,10 +57,10 @@ export const ApiProvider = ({ children }) => {
           // Bind the method, passing the current settings object as the first argument
           // Subsequent arguments (like 'data' for addItem) will be passed automatically
           newApiMethods[methodName] = (...args) =>
-            methodImpl(currentConfig.settings, ...args);
+            methodImpl(currentApiSettings, ...args); // Pass only apiSettings
         } else {
           console.warn(
-            `Method '${methodName}' not found or not a function in provider module for '${currentConfig.providerType}'.`,
+            `Method '${methodName}' not found or not a function in provider module for '${providerType}'.`,
           );
         }
       });
@@ -114,75 +70,23 @@ export const ApiProvider = ({ children }) => {
 
   // --- Effect: Bind API Methods on Config Change ---
   // Re-bind methods whenever the config object changes.
+  // Use apiProviderType, apiSettings, and isConfigured from context/calculation
   useEffect(() => {
-    bindApiMethods(config);
-  }, [config, bindApiMethods]); // Re-run if config or bindApiMethods changes
+    bindApiMethods(apiProviderType, apiSettings, isConfigured);
+  }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]); // Depend on relevant settings and calculated status
 
   // --- Function: Update Configuration ---
-  // Updates the config state, saves to localStorage (single key), and triggers re-binding via useEffect.
-  const updateConfiguration = useCallback((newConfigData) => {
-    // newConfigData is expected to be an object like:
-    // { providerType: 'datasette', settings: { datasetteBaseUrl: '...', datasetteApiToken: '...' } }
-    // coming from the SettingsView save handler.
-
-    const { providerType, settings } = newConfigData; // DO NOT get compression setting here
-    const provider = getProviderById(providerType);
-
-    if (!provider) {
-      console.error(
-        `Cannot update configuration: Invalid provider type '${providerType}'`,
-      );
-      return; // Or handle error appropriately
-    }
-
-    // 1. Extract only the relevant settings for the selected provider based on registry
-    const relevantSettings = {};
-    const currentSettings = settings || {}; // Use provided settings or empty object
-    if (provider.configFields) {
-      provider.configFields.forEach((field) => {
-        // Store the value from newConfigData.settings or default to empty string
-        relevantSettings[field.key] = currentSettings[field.key] ?? "";
-      });
-    }
-
-    // 2. Recalculate configuration status
-    const isConfigured = checkConfiguration(providerType, relevantSettings);
-
-    // 3. Construct the final config object for state and storage
-    const updatedFullConfig = {
-      providerType: providerType,
-      settings: relevantSettings, // Store only relevant settings
-      // REMOVE imageCompressionEnabled from state object
-      isConfigured: isConfigured,
-    };
-
-    // 4. Update state - this will trigger the useEffect to re-bind methods
-    setConfig(updatedFullConfig);
-
-    // 5. Prepare the object to save (without isConfigured)
-    const configToSave = {
-      providerType: updatedFullConfig.providerType,
-      settings: updatedFullConfig.settings,
-      // REMOVE imageCompressionEnabled from saved object
-    };
-    // 6. Persist only providerType and settings to localStorage
-    try {
-      localStorage.setItem(
-        LS_API_PROVIDER_CONFIG_KEY,
-        JSON.stringify(configToSave),
-      );
-    } catch (error) {
-      console.error("Failed to save API config to localStorage:", error);
-      // Optionally notify the user
-    }
-  }, []); // No dependencies needed here, relies on closure values
+  // REMOVED updateConfiguration function - This is now handled by SettingsContext.updateSettings
 
   // --- Context Value ---
   // Expose the config object, bound API methods, and the update function
   const value = {
-    config: config, // Contains { providerType, settings, isConfigured } ONLY
+    // Provide relevant parts of the config and the calculated status
+    apiProviderType: apiProviderType,
+    apiSettings: apiSettings,
+    isConfigured: isConfigured,
     ...apiMethods, // Spread bound methods (e.g., addItem)
-    updateConfiguration, // Function to update settings
+    // updateConfiguration removed
   };
 
   return <ApiContext.Provider value={value}>{children}</ApiContext.Provider>;
