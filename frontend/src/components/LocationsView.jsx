@@ -469,7 +469,7 @@ const LocationsView = () => {
           defaultMessage: "Existing Locations",
         })}
       </h3>
-      {typeof api.listLocations !== "function" && api.config.isConfigured && (
+      {typeof api.listLocations !== "function" && api.isConfigured && (
         <p className="status-warning">
           {intl.formatMessage({
             id: "locations.list.notSupported",
