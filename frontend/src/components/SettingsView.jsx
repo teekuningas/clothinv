@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useIntl } from "react-intl"; // Import useIntl
+import { useIntl } from "react-intl";
 import {
   getProviderIds,
   getProviderById,
