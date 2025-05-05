@@ -187,7 +187,7 @@ const ItemsView = () => {
       }
       return true; // Item passes all active filters
     });
-  }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]); // Keep existing filters
+  }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]);
 
   // Apply sorting after filtering
   const sortedItems = useMemo(() => {
