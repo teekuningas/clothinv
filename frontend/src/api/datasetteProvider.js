@@ -1,4 +1,5 @@
 import JSZip from 'jszip';
+import { v4 as uuidv4 } from 'uuid';
 import {
     getMimeTypeFromFilename,
     readFileAsBase64,
@@ -34,8 +35,9 @@ const handleResponse = async (res, operation, entityDescription) => {
 // These now accept the 'settings' object instead of individual config parameters.
 
 export const addCategory = async (settings, data) => {
+    const newUuid = data.uuid || uuidv4(); // Use provided UUID or generate
     const categoryData = {
-        row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
+        row: { ...data, uuid: newUuid, updated_at: null } // Add UUID, Explicitly set updated_at to null
         // created_at should be handled by DB default
     };
     const baseUrl = settings?.datasetteBaseUrl;
@@ -77,17 +79,19 @@ export const addCategory = async (settings, data) => {
     const newCategoryId = queryData[0].category_id; // Adjust access for array shape
     console.log("Retrieved new category ID:", newCategoryId);
 
-    // Return success status and the new ID
-    return { success: true, status: insertRes.status, newId: newCategoryId };
+    // Return success status, the new ID, and the UUID
+    return { success: true, status: insertRes.status, newId: newCategoryId, uuid: newUuid };
 };
 
 // --- Exported API Methods (Bound by ApiContext) ---
 // These are the functions listed in the providerRegistry 'methods' array.
 // They receive the 'settings' object as the first argument from ApiContext.
 
+
 export const addLocation = async (settings, data) => {
+    const newUuid = data.uuid || uuidv4(); // Use provided UUID or generate
     const locationData = {
-        row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
+        row: { ...data, uuid: newUuid, updated_at: null } // Add UUID, Explicitly set updated_at to null
         // created_at should be handled by DB default
     };
     const baseUrl = settings?.datasetteBaseUrl;
@@ -130,8 +134,9 @@ export const addLocation = async (settings, data) => {
     const newLocationId = queryData[0].location_id;
     console.log("Retrieved new location ID:", newLocationId);
 
-    // Return success status and the new ID
-    return { success: true, status: insertRes.status, newId: newLocationId };
+    // Return success status, the new ID, and the UUID
+    // Assuming addLocation was called with data containing the UUID or it was generated before calling
+    return { success: true, status: insertRes.status, newId: newLocationId, uuid: locationData.row.uuid };
 };
 
 export const listLocations = async (settings) => {
@@ -139,7 +144,7 @@ export const listLocations = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/locations.json?_shape=array`;
+    const queryUrl = `${baseUrl}/locations.json?_shape=array&_sort=location_id`; // Fetch all fields including uuid
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -153,7 +158,7 @@ export const listLocations = async (settings) => {
 
     const data = await res.json();
     console.log("Fetched locations:", data);
-    return data; // Returns array like [{location_id: 1, name: 'Closet', ...}, ...]
+    return data; // Returns array like [{location_id: 1, uuid: '...', name: 'Closet', ...}, ...]
 };
 
 export const updateLocation = async (settings, locationId, data) => {
@@ -163,8 +168,9 @@ export const updateLocation = async (settings, locationId, data) => {
     if (!locationId) throw new Error("Location ID is required for update.");
 
     const updateUrl = `${baseUrl}/locations/${locationId}/-/update`;
+    const { uuid, ...updateData } = data; // Exclude uuid from update payload
     const payload = {
-        update: { ...data, updated_at: new Date().toISOString() } // Set updated_at on update
+        update: { ...updateData, updated_at: new Date().toISOString() } // Set updated_at on update
     };
 
     const res = await fetch(updateUrl, {
@@ -222,7 +228,7 @@ export const listCategories = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/categories.json?_shape=array`;
+    const queryUrl = `${baseUrl}/categories.json?_shape=array&_sort=category_id`; // Fetch all fields including uuid
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -236,7 +242,7 @@ export const listCategories = async (settings) => {
 
     const data = await res.json();
     console.log("Fetched categories:", data);
-    return data; // Returns array like [{category_id: 1, name: 'Tops', ...}, ...]
+    return data; // Returns array like [{category_id: 1, uuid: '...', name: 'Tops', ...}, ...]
 };
 
 export const updateCategory = async (settings, categoryId, data) => {
@@ -246,8 +252,9 @@ export const updateCategory = async (settings, categoryId, data) => {
     if (!categoryId) throw new Error("Category ID is required for update.");
 
     const updateUrl = `${baseUrl}/categories/${categoryId}/-/update`;
+    const { uuid, ...updateData } = data; // Exclude uuid from update payload
     const payload = {
-        update: { ...data, updated_at: new Date().toISOString() } // Set updated_at on update
+        update: { ...updateData, updated_at: new Date().toISOString() } // Set updated_at on update
     };
 
     const res = await fetch(updateUrl, {
@@ -301,7 +308,7 @@ export const listOwners = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/owners.json?_shape=array`;
+    const queryUrl = `${baseUrl}/owners.json?_shape=array&_sort=owner_id`; // Fetch all fields including uuid
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -315,12 +322,13 @@ export const listOwners = async (settings) => {
 
     const data = await res.json();
     console.log("Fetched owners:", data);
-    return data; // Returns array like [{owner_id: 1, name: 'Alice', ...}, ...]
+    return data; // Returns array like [{owner_id: 1, uuid: '...', name: 'Alice', ...}, ...]
 };
 
 export const addOwner = async (settings, data) => { // Rename to addOwner and export
+    const newUuid = data.uuid || uuidv4(); // Use provided UUID or generate
     const ownerData = {
-        row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
+        row: { ...data, uuid: newUuid, updated_at: null } // Add UUID, Explicitly set updated_at to null
         // created_at should be handled by DB default
     };
     const baseUrl = settings?.datasetteBaseUrl;
@@ -361,8 +369,8 @@ export const addOwner = async (settings, data) => { // Rename to addOwner and ex
     const newOwnerId = queryData[0].owner_id; // Adjust access for array shape
     console.log("Retrieved new owner ID:", newOwnerId);
 
-    // Return success status and the new ID
-    return { success: true, status: insertRes.status, newId: newOwnerId };
+    // Return success status, the new ID, and the UUID
+    return { success: true, status: insertRes.status, newId: newOwnerId, uuid: newUuid };
 };
 
 export const updateOwner = async (settings, ownerId, data) => {
@@ -372,8 +380,9 @@ export const updateOwner = async (settings, ownerId, data) => {
     if (!ownerId) throw new Error("Owner ID is required for update.");
 
     const updateUrl = `${baseUrl}/owners/${ownerId}/-/update`;
+    const { uuid, ...updateData } = data; // Exclude uuid from update payload
     const payload = {
-        update: { ...data, updated_at: new Date().toISOString() } // Set updated_at on update
+        update: { ...updateData, updated_at: new Date().toISOString() } // Set updated_at on update
     };
 
     const res = await fetch(updateUrl, {
@@ -425,15 +434,17 @@ export const deleteOwner = async (settings, ownerId) => {
 // --- Image Handling ---
 
 /**
- * Internal: Inserts image data and filename, returns the new ID.
+ * Internal: Inserts image data and filename, returns the new ID and UUID.
  */
-const _insertImage = async (settings, base64Data, mimeType, filename) => {
+const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid = undefined) => {
+    const newUuid = imageUuid || uuidv4(); // Use provided UUID or generate
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     const imageData = {
         row: {
             image_data: base64Data, // Store base64 string directly
+            uuid: newUuid, // Store UUID
             image_mimetype: mimeType,
             image_filename: filename || 'image', // Store filename, provide default
         }
@@ -453,7 +464,7 @@ const _insertImage = async (settings, base64Data, mimeType, filename) => {
     const queryData = await queryRes.json();
     if (!queryData || queryData.length === 0 || !queryData[0].image_id) throw new Error("Failed to retrieve image_id after insert.");
 
-    return queryData[0].image_id;
+    return { imageId: queryData[0].image_id, imageUuid: newUuid }; // Return both ID and UUID
 };
 
 /**
@@ -464,8 +475,9 @@ const _updateImage = async (settings, imageId, base64Data, mimeType, filename) =
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     const updateUrl = `${baseUrl}/images/${imageId}/-/update`;
+    // Exclude uuid from update payload - it should be immutable
     const payload = {
-        update: {
+        update: { // uuid is NOT updated
             image_data: base64Data,
             image_mimetype: mimeType,
             image_filename: filename || 'image', // Update filename too
@@ -493,7 +505,7 @@ const _deleteImage = async (settings, imageId) => {
  * Adds a single item record with basic details.
  * Expects data like { name, description, location_id, category_id, owner_id }
  * and optionally `imageFile` (a File object).
- */
+ * Can also accept `uuid` and `image_uuid` if importing. */
 export const addItem = async (settings, data) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
@@ -502,17 +514,21 @@ export const addItem = async (settings, data) => {
     }
 
     let imageId = null;
+    let imageUuid = null; // Store image UUID separately
     if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
-            // Pass filename to _insertImage
-            imageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+            // Pass filename and potentially image_uuid (if importing) to _insertImage
+            const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name, data.image_uuid);
+            imageId = imageResult.imageId;
+            imageUuid = imageResult.imageUuid; // Get the generated or provided image UUID
         } catch (error) {
             console.error("Failed to process or insert image:", error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
         }
     }
 
+    const newItemUuid = data.uuid || uuidv4(); // Use provided UUID or generate
     // Prepare the row data, ensuring description is null if empty
     const itemRowData = {
         name: data.name,
@@ -520,7 +536,9 @@ export const addItem = async (settings, data) => {
         location_id: data.location_id,
         category_id: data.category_id,
         owner_id: data.owner_id, // Add owner_id
+        uuid: newItemUuid, // Add item UUID
         image_id: imageId, // Use the inserted image ID or null
+        image_uuid: imageUuid, // Use the inserted image UUID or null
         updated_at: null // Explicitly set updated_at to null on creation
     };
     const itemPayload = { row: itemRowData };
@@ -540,7 +558,7 @@ export const addItem = async (settings, data) => {
  * Updates an item's details, including potentially the image.
  * Expects itemId and data like { name, description, location_id, category_id, owner_id, imageFile?, removeImage? }
  */
-export const updateItem = async (settings, itemId, data) => {
+export const updateItem = async (settings, itemId, data) => { // data should NOT contain uuid
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!itemId) throw new Error("Item ID is required for update.");
@@ -549,17 +567,21 @@ export const updateItem = async (settings, itemId, data) => {
         throw new Error("Item name, location ID, category ID, and owner ID are required for update.");
     }
 
-    // Fetch current item data to get existing image_id
-    const currentItemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object`, { headers: { 'Accept': 'application/json' } });
+    // Fetch current item data to get existing image_id and image_uuid
+    // Select uuid as well to ensure it's not overwritten
+    const currentItemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object&_select=image_id,image_uuid,uuid`, { headers: { 'Accept': 'application/json' } });
     if (!currentItemRes.ok) throw new Error(`Failed to fetch current item data for update: ${currentItemRes.status}`);
     const currentItemData = await currentItemRes.json();
     const existingImageId = currentItemData[itemId]?.image_id; // Datasette object shape
+    let existingImageUuid = currentItemData[itemId]?.image_uuid; // Get existing image UUID
 
     let newImageId = existingImageId; // Assume image doesn't change initially
+    let newImageUuid = existingImageUuid; // Assume image UUID doesn't change
 
     if (data.removeImage && existingImageId) {
         await _deleteImage(settings, existingImageId);
         newImageId = null;
+        newImageUuid = null; // Clear image UUID
     } else if (data.imageFile) {
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
@@ -567,9 +589,12 @@ export const updateItem = async (settings, itemId, data) => {
                 // Update existing image record, pass filename
                 await _updateImage(settings, existingImageId, base64Data, data.imageFile.type, data.imageFile.name);
                 newImageId = existingImageId; // ID remains the same
+                newImageUuid = existingImageUuid; // UUID remains the same
             } else {
                 // Insert new image record, pass filename
-                newImageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+                const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+                newImageId = imageResult.imageId;
+                newImageUuid = imageResult.imageUuid; // Get the new image UUID
             }
         } catch (error) {
             console.error("Failed to process or update/insert image:", error);
@@ -578,12 +603,14 @@ export const updateItem = async (settings, itemId, data) => {
     }
 
     const updateUrl = `${baseUrl}/items/${itemId}/-/update`;
+    const { uuid, ...updateData } = data; // Ensure item's own UUID isn't in the update payload
     const payload = {
         update: {
-            name: data.name,
-            description: data.description || null,
-            location_id: data.location_id, category_id: data.category_id, owner_id: data.owner_id,
+            name: updateData.name,
+            description: updateData.description || null,
+            location_id: updateData.location_id, category_id: updateData.category_id, owner_id: updateData.owner_id,
             image_id: newImageId, // Set the potentially updated image ID
+            image_uuid: newImageUuid, // Set the potentially updated image UUID
             updated_at: new Date().toISOString() // Add the current timestamp
         } // created_at is not updated
     };
@@ -606,11 +633,11 @@ export const deleteItem = async (settings, itemId) => {
     if (!itemId) throw new Error("Item ID is required for deletion.");
 
     // 1. Get the image_id associated with the item *before* deleting the item
-    const itemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object`);
+    const itemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object&_select=image_id`); // Only need image_id
     if (itemRes.ok) {
         const itemData = await itemRes.json();
         const imageId = itemData[itemId]?.image_id;
-        if (imageId) await _deleteImage(settings, imageId); // Delete image if it exists
+        if (imageId) await _deleteImage(settings, imageId); // Delete image if it exists (handles its own errors)
     } // Ignore error if item not found
 
     const deleteUrl = `${baseUrl}/items/${itemId}/-/delete`;
@@ -630,7 +657,7 @@ export const listItems = async (settings) => {
 
     try {
         // 1. Fetch all items (basic data + image_id)
-        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`;
+        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`; // Fetches all columns including uuid, image_uuid
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -648,8 +675,9 @@ export const listItems = async (settings) => {
             return [];
         }
 
-        // 2. Fetch all images (including filename)
-        const imagesUrl = `${baseUrl}/images.json?_shape=array`;
+        // 2. Fetch all images (including filename and UUID)
+        // Optimization: Could fetch only images referenced by itemsData if needed
+        const imagesUrl = `${baseUrl}/images.json?_shape=array&_select=image_id,uuid,image_data,image_mimetype,image_filename`;
         const imagesRes = await fetch(imagesUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -658,13 +686,14 @@ export const listItems = async (settings) => {
         if (imagesRes.ok) {
             const imagesData = await imagesRes.json();
             // 3. Create a map of image_id -> { blob, filename }
+            // No need to store image UUID in the map, it's already in the item data
             imageMap = imagesData.reduce((map, img) => {
                 if (img.image_id && img.image_data && img.image_mimetype) {
                     const blob = base64ToBlob(img.image_data, img.image_mimetype);
                     if (blob) {
                         map[img.image_id] = {
                             blob: blob,
-                            filename: img.image_filename || `image_${img.image_id}` // Use stored filename or generate one
+                            filename: img.image_filename || `image_${img.image_id}` // Use stored filename or generate
                         };
                     }
                 }
@@ -684,9 +713,9 @@ export const listItems = async (settings) => {
                 imageFile = new File([blob], filename, { type: blob.type });
             }
             // Remove old image properties and add imageFile
-            const { image_data, image_mimetype, ...restOfItem } = item; // eslint-disable-line no-unused-vars
+            // Keep uuid and image_uuid from the item fetch
             return {
-                ...restOfItem,
+                ...item, // Keep all original item fields including uuids
                 imageFile: imageFile // Add the File object (or null)
             };
         });
@@ -710,21 +739,31 @@ export const exportData = async (settings) => {
     try {
         // 1. Fetch all data using existing list functions
         const locations = await listLocations(settings);
+        console.log(`Export: Fetched ${locations.length} locations.`);
         const categories = await listCategories(settings);
+        console.log(`Export: Fetched ${categories.length} categories.`);
         const owners = await listOwners(settings);
-        const items = await listItems(settings); // This includes imageFile objects
+        console.log(`Export: Fetched ${owners.length} owners.`);
+        const items = await listItems(settings); // This includes imageFile objects and uuids
+        console.log(`Export: Fetched ${items.length} items.`);
+        // Fetch all image metadata separately for images.csv
+        const allImagesMeta = await listImagesMetadata(settings); // Need a new helper function
+        console.log(`Export: Fetched ${allImagesMeta.length} image metadata records.`);
 
         // 2. Create CSVs
-        const locationHeaders = ['location_id', 'name', 'description', 'created_at', 'updated_at'];
+        const locationHeaders = ['location_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('locations.csv', createCSV(locationHeaders, locations));
 
-        const categoryHeaders = ['category_id', 'name', 'description', 'created_at', 'updated_at'];
+        const categoryHeaders = ['category_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('categories.csv', createCSV(categoryHeaders, categories));
 
-        const ownerHeaders = ['owner_id', 'name', 'description', 'created_at', 'updated_at'];
+        const ownerHeaders = ['owner_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('owners.csv', createCSV(ownerHeaders, owners));
 
-        const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const imageHeaders = ['image_id', 'uuid', 'image_mimetype', 'image_filename', 'created_at'];
+        zip.file('images.csv', createCSV(imageHeaders, allImagesMeta));
+
+        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
@@ -732,12 +771,14 @@ export const exportData = async (settings) => {
             const itemCsvRow = { ...item };
             itemCsvRow.image_zip_filename = '';
             itemCsvRow.image_original_filename = '';
+            // image_uuid is already in item object from listItems
 
             if (item.imageFile instanceof File) {
                 const fileExtension = item.imageFile.name.split('.').pop() || 'bin';
                 const zipFilename = `${item.item_id}.${fileExtension}`;
                 itemCsvRow.image_zip_filename = zipFilename;
                 itemCsvRow.image_original_filename = item.imageFile.name;
+                // image_id and image_uuid are already part of itemCsvRow
                 imagesFolder.file(zipFilename, item.imageFile);
             }
             // Remove the File object before adding to CSV data
@@ -765,13 +806,34 @@ export const exportData = async (settings) => {
     }
 };
 
+// Helper function to list only image metadata (id, uuid, filename, mimetype, created_at)
+const listImagesMetadata = async (settings) => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
+
+    const queryUrl = `${baseUrl}/images.json?_shape=array&_select=image_id,uuid,image_mimetype,image_filename,created_at&_sort=image_id`;
+    const res = await fetch(queryUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(`Failed to fetch image metadata: ${res.status} ${errorText}`, res);
+        throw new Error(`Failed to fetch image metadata: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data || [];
+};
+
 export const importData = async (settings, zipFile) => {
     const zip = new JSZip();
     try {
         const loadedZip = await zip.loadAsync(zipFile);
 
         // Validate essential files
-        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv')) {
+        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv') || !loadedZip.file('images.csv')) {
             throw new Error("Import file is missing required CSV or manifest files.");
         }
 
@@ -794,12 +856,15 @@ export const importData = async (settings, zipFile) => {
         const locationMap = {}; // exported_id -> new_datasette_id
         const categoryMap = {};
         const ownerMap = {};
+        const imageMap = {}; // exported_image_id -> { newId: new_datasette_id, uuid: image_uuid }
 
         const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
         for (const loc of locations) {
             const { location_id: exportedId, ...locData } = loc;
             // Pass timestamps from CSV to preserve them
+            // Pass UUID from CSV
             const result = await addLocation(settings, {
+                uuid: locData.uuid, // Pass UUID
                 name: locData.name, description: locData.description, created_at: locData.created_at, updated_at: locData.updated_at
             });
             if (result.success) locationMap[exportedId] = result.newId;
@@ -809,7 +874,9 @@ export const importData = async (settings, zipFile) => {
         const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
         for (const cat of categories) {
             const { category_id: exportedId, ...catData } = cat;
+            // Pass UUID from CSV
             const result = await addCategory(settings, {
+                uuid: catData.uuid, // Pass UUID
                 name: catData.name, description: catData.description, created_at: catData.created_at, updated_at: catData.updated_at
             });
             if (result.success) categoryMap[exportedId] = result.newId;
@@ -819,18 +886,23 @@ export const importData = async (settings, zipFile) => {
         const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
         for (const owner of owners) {
             const { owner_id: exportedId, ...ownerData } = owner;
+            // Pass UUID from CSV
             const result = await addOwner(settings, {
+                uuid: ownerData.uuid, // Pass UUID
                 name: ownerData.name, description: ownerData.description, created_at: ownerData.created_at, updated_at: ownerData.updated_at
             });
             if (result.success) ownerMap[exportedId] = result.newId;
             else throw new Error(`Failed to import owner: ${owner.name}`);
         }
 
+        // Import Images first (without data, just to get IDs and UUIDs - assuming addItem handles image data)
+        // Correction: addItem handles image insertion. We need to process images *as we process items*.
+
         const items = parseCSV(await loadedZip.file('items.csv').async('string'));
         for (const item of items) {
-            const { item_id, image_zip_filename, image_original_filename, location_id, category_id, owner_id, ...itemMetadata } = item;
-
+            const { item_id, uuid: itemUuid, image_id: exportedImageId, image_uuid: imageUuidFromItemCsv, image_zip_filename, image_original_filename, location_id, category_id, owner_id, ...itemMetadata } = item;
             let imageFile = null;
+
             if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
                 try { // Add try...catch for robustness
                     const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');

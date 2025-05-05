@@ -12,6 +12,7 @@ $$ language 'plpgsql';
 -- Table for storage locations
 CREATE TABLE IF NOT EXISTS locations (
     location_id SERIAL PRIMARY KEY,
+    uuid UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -27,6 +28,7 @@ EXECUTE FUNCTION update_updated_at_column();
 -- Table for item categories
 CREATE TABLE IF NOT EXISTS categories (
     category_id SERIAL PRIMARY KEY,
+    uuid UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -42,6 +44,7 @@ EXECUTE FUNCTION update_updated_at_column();
 -- Table for storing image data
 CREATE TABLE IF NOT EXISTS images (
     image_id SERIAL PRIMARY KEY,
+    uuid UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     image_data TEXT NOT NULL, -- Changed from BYTEA to TEXT
     image_mimetype TEXT NOT NULL,
     image_filename TEXT,
@@ -52,6 +55,7 @@ CREATE TABLE IF NOT EXISTS images (
 -- Table for item owners
 CREATE TABLE IF NOT EXISTS owners (
     owner_id SERIAL PRIMARY KEY,
+    uuid UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -67,6 +71,7 @@ EXECUTE FUNCTION update_updated_at_column();
 -- Table for inventory items
 CREATE TABLE IF NOT EXISTS items (
     item_id SERIAL PRIMARY KEY,
+    uuid UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     description TEXT,
     location_id INTEGER,

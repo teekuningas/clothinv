@@ -5,6 +5,7 @@ PRAGMA foreign_keys = ON;
 -- Table for storage locations
 CREATE TABLE IF NOT EXISTS locations (
     location_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS locations (
 -- Table for item categories
 CREATE TABLE IF NOT EXISTS categories (
     category_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -23,6 +25,7 @@ CREATE TABLE IF NOT EXISTS categories (
 -- Table for storing image data
 CREATE TABLE IF NOT EXISTS images (
     image_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT UNIQUE NOT NULL,
     image_data BLOB NOT NULL,
     image_mimetype TEXT NOT NULL,
     image_filename TEXT,
@@ -32,6 +35,7 @@ CREATE TABLE IF NOT EXISTS images (
 -- Table for item owners
 CREATE TABLE IF NOT EXISTS owners (
     owner_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -41,6 +45,7 @@ CREATE TABLE IF NOT EXISTS owners (
 -- Table for inventory items
 CREATE TABLE IF NOT EXISTS items (
     item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     location_id INTEGER,

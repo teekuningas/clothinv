@@ -71,7 +71,7 @@ export const listLocations = async (settings) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
-    const queryUrl = `${baseUrl}/locations?order=created_at.desc`; // Order by creation date
+    const queryUrl = `${baseUrl}/locations?order=created_at.desc`; // Selects * by default, including uuid
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: defaultHeaders(settings, false) // No representation needed for GET list
@@ -86,7 +86,8 @@ export const addLocation = async (settings, data) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
-    const locationData = { ...data, updated_at: null }; // PG trigger handles created_at
+    // PG handles uuid generation by default, but include if provided (e.g., during import)
+    const locationData = { ...data, uuid: data.uuid || undefined, updated_at: null }; // PG trigger handles created_at
 
     const res = await fetch(`${baseUrl}/locations`, {
         method: 'POST',
@@ -96,13 +97,14 @@ export const addLocation = async (settings, data) => {
 
     const result = await handleResponse(res, 'add', 'location');
     // Response is an array with the new object: [{ "location_id": 123, ... }]
-    if (!result.data || result.data.length === 0 || !result.data[0].location_id) {
+    if (!result.data || result.data.length === 0 || !result.data[0].location_id || !result.data[0].uuid) {
         console.error("Could not find location_id in PostgREST response:", result.data);
         throw new Error("Failed to retrieve location_id after insert.");
     }
     const newLocationId = result.data[0].location_id;
-    console.log("Retrieved new location ID:", newLocationId);
-    return { success: true, status: result.status, newId: newLocationId };
+    const newUuid = result.data[0].uuid; // Get UUID from response
+    console.log("Retrieved new location ID:", newLocationId, "UUID:", newUuid);
+    return { success: true, status: result.status, newId: newLocationId, uuid: newUuid }; // Return UUID
 };
 
 export const updateLocation = async (settings, locationId, data) => {
@@ -112,7 +114,7 @@ export const updateLocation = async (settings, locationId, data) => {
 
     const updateUrl = `${baseUrl}/locations?location_id=eq.${locationId}`;
     // PG trigger handles updated_at
-    const payload = { ...data };
+    const { uuid, ...payload } = data; // Exclude uuid from update payload
 
     const res = await fetch(updateUrl, {
         method: 'PATCH',
@@ -151,7 +153,7 @@ export const deleteLocation = async (settings, locationId) => {
 export const listCategories = async (settings) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
-    const queryUrl = `${baseUrl}/categories?order=created_at.desc`;
+    const queryUrl = `${baseUrl}/categories?order=created_at.desc`; // Selects * including uuid
     const res = await fetch(queryUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
     const result = await handleResponse(res, 'list', 'categories');
     console.log("Fetched categories:", result.data);
@@ -161,20 +163,21 @@ export const listCategories = async (settings) => {
 export const addCategory = async (settings, data) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
-    const categoryData = { ...data, updated_at: null };
+    const categoryData = { ...data, uuid: data.uuid || undefined, updated_at: null };
     const res = await fetch(`${baseUrl}/categories`, {
         method: 'POST',
         headers: defaultHeaders(settings),
         body: JSON.stringify(categoryData),
     });
     const result = await handleResponse(res, 'add', 'category');
-    if (!result.data || result.data.length === 0 || !result.data[0].category_id) {
+    if (!result.data || result.data.length === 0 || !result.data[0].category_id || !result.data[0].uuid) {
         console.error("Could not find category_id in PostgREST response:", result.data);
         throw new Error("Failed to retrieve category_id after insert.");
     }
     const newCategoryId = result.data[0].category_id;
-    console.log("Retrieved new category ID:", newCategoryId);
-    return { success: true, status: result.status, newId: newCategoryId };
+    const newUuid = result.data[0].uuid;
+    console.log("Retrieved new category ID:", newCategoryId, "UUID:", newUuid);
+    return { success: true, status: result.status, newId: newCategoryId, uuid: newUuid };
 };
 
 export const updateCategory = async (settings, categoryId, data) => {
@@ -182,7 +185,7 @@ export const updateCategory = async (settings, categoryId, data) => {
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!categoryId) throw new Error("Category ID is required for update.");
     const updateUrl = `${baseUrl}/categories?category_id=eq.${categoryId}`;
-    const payload = { ...data };
+    const { uuid, ...payload } = data; // Exclude uuid
     const res = await fetch(updateUrl, {
         method: 'PATCH',
         headers: defaultHeaders(settings, false),
@@ -214,7 +217,7 @@ export const deleteCategory = async (settings, categoryId) => {
 export const listOwners = async (settings) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
-    const queryUrl = `${baseUrl}/owners?order=created_at.desc`;
+    const queryUrl = `${baseUrl}/owners?order=created_at.desc`; // Selects * including uuid
     const res = await fetch(queryUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
     const result = await handleResponse(res, 'list', 'owners');
     console.log("Fetched owners:", result.data);
@@ -224,20 +227,21 @@ export const listOwners = async (settings) => {
 export const addOwner = async (settings, data) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
-    const ownerData = { ...data, updated_at: null };
+    const ownerData = { ...data, uuid: data.uuid || undefined, updated_at: null };
     const res = await fetch(`${baseUrl}/owners`, {
         method: 'POST',
         headers: defaultHeaders(settings),
         body: JSON.stringify(ownerData),
     });
     const result = await handleResponse(res, 'add', 'owner');
-    if (!result.data || result.data.length === 0 || !result.data[0].owner_id) {
+    if (!result.data || result.data.length === 0 || !result.data[0].owner_id || !result.data[0].uuid) {
         console.error("Could not find owner_id in PostgREST response:", result.data);
         throw new Error("Failed to retrieve owner_id after insert.");
     }
     const newOwnerId = result.data[0].owner_id;
-    console.log("Retrieved new owner ID:", newOwnerId);
-    return { success: true, status: result.status, newId: newOwnerId };
+    const newUuid = result.data[0].uuid;
+    console.log("Retrieved new owner ID:", newOwnerId, "UUID:", newUuid);
+    return { success: true, status: result.status, newId: newOwnerId, uuid: newUuid };
 };
 
 export const updateOwner = async (settings, ownerId, data) => {
@@ -245,7 +249,7 @@ export const updateOwner = async (settings, ownerId, data) => {
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!ownerId) throw new Error("Owner ID is required for update.");
     const updateUrl = `${baseUrl}/owners?owner_id=eq.${ownerId}`;
-    const payload = { ...data };
+    const { uuid, ...payload } = data; // Exclude uuid
     const res = await fetch(updateUrl, {
         method: 'PATCH',
         headers: defaultHeaders(settings, false),
@@ -276,14 +280,16 @@ export const deleteOwner = async (settings, ownerId) => {
 // --- Image Handling ---
 
 /**
- * Internal: Inserts image data and filename, returns the new ID.
+ * Internal: Inserts image data and filename, returns the new ID and UUID.
  * Sends base64 data as a string in the JSON payload.
+ * Accepts an optional UUID for import scenarios.
  */
-const _insertImage = async (settings, base64Data, mimeType, filename) => {
+const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid = undefined) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
     const imageData = {
+        uuid: imageUuid || undefined, // Use provided UUID or let PG generate
         // PG trigger handles created_at
         image_data: base64Data, // Store base64 string directly (will go into TEXT column)
         image_mimetype: mimeType,
@@ -296,11 +302,11 @@ const _insertImage = async (settings, base64Data, mimeType, filename) => {
         body: JSON.stringify(imageData),
     });
     const result = await handleResponse(res, 'insert', 'image');
-    if (!result.data || result.data.length === 0 || !result.data[0].image_id) {
+    if (!result.data || result.data.length === 0 || !result.data[0].image_id || !result.data[0].uuid) {
         console.error("Could not find image_id in PostgREST response:", result.data);
         throw new Error("Failed to retrieve image_id after insert.");
     }
-    return result.data[0].image_id;
+    return { imageId: result.data[0].image_id, imageUuid: result.data[0].uuid }; // Return both ID and UUID
 };
 
 /**
@@ -312,7 +318,7 @@ const _updateImage = async (settings, imageId, base64Data, mimeType, filename) =
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
     const updateUrl = `${baseUrl}/images?image_id=eq.${imageId}`;
-    const payload = {
+    const payload = { // uuid is NOT updated
         image_data: base64Data, // Send base64 string directly (will update TEXT column)
         image_mimetype: mimeType,
         image_filename: filename || 'image', // Update filename too
@@ -355,7 +361,7 @@ const _deleteImage = async (settings, imageId) => {
  * Adds a single item record with basic details.
  * Expects data like { name, description, location_id, category_id, owner_id }
  * and optionally `imageFile` (a File object).
- */
+ * Can also accept `uuid` and `image_uuid` if importing. */
 export const addItem = async (settings, data) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
@@ -364,16 +370,20 @@ export const addItem = async (settings, data) => {
     }
 
     let imageId = null;
+    let imageUuid = null; // Store image UUID separately
     if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
-            imageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+            // Pass image UUID if provided (e.g., during import), otherwise PG generates
+            const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name, data.image_uuid);
+            imageId = imageResult.imageId;
+            imageUuid = imageResult.imageUuid; // Get the image UUID (generated or provided)
         } catch (error) {
             console.error("Failed to process or insert image:", error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
         }
     }
-
+    const newItemUuid = data.uuid || undefined; // Use provided UUID or let PG generate
     // Prepare the row data, ensuring description is null if empty
     const itemRowData = {
         name: data.name,
@@ -381,7 +391,9 @@ export const addItem = async (settings, data) => {
         location_id: data.location_id,
         category_id: data.category_id,
         owner_id: data.owner_id,
+        uuid: newItemUuid, // Add item UUID (or undefined for PG default)
         image_id: imageId, // Use the inserted image ID or null
+        image_uuid: imageUuid, // Use the inserted image UUID or null
         updated_at: null // Explicitly set updated_at to null on creation
         // PG trigger handles created_at
     };
@@ -394,12 +406,13 @@ export const addItem = async (settings, data) => {
 
     // Use handleResponse for the item insert result
     const result = await handleResponse(res, 'add', 'item');
-    // Extract item_id from response if needed, though not strictly required by current UI flow
-    if (!result.data || result.data.length === 0 || !result.data[0].item_id) {
+    // Extract item_id and uuid from response
+    if (!result.data || result.data.length === 0 || !result.data[0].item_id || !result.data[0].uuid) {
         console.error("Could not find item_id in PostgREST response:", result.data);
         // Don't throw error here, as the operation might have succeeded, just log
     } else {
-        console.log("Added item with ID:", result.data[0].item_id);
+        console.log("Added item with ID:", result.data[0].item_id, "UUID:", result.data[0].uuid);
+        // Optionally return the generated UUID if needed: return { success: true, status: result.status, uuid: result.data[0].uuid };
     }
     return { success: true, status: result.status }; // Return simple success
 };
@@ -409,7 +422,7 @@ export const addItem = async (settings, data) => {
  * Updates an item's details, including potentially the image.
  * Expects itemId and data like { name, description, location_id, category_id, owner_id, imageFile?, removeImage? }
  */
-export const updateItem = async (settings, itemId, data) => {
+export const updateItem = async (settings, itemId, data) => { // data should NOT contain uuid
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!itemId) throw new Error("Item ID is required for update.");
@@ -417,8 +430,8 @@ export const updateItem = async (settings, itemId, data) => {
         throw new Error("Item name, location ID, category ID, and owner ID are required for update.");
     }
 
-    // Fetch current item data to get existing image_id
-    const currentItemUrl = `${baseUrl}/items?item_id=eq.${itemId}&select=image_id`;
+    // Fetch current item data to get existing image_id and image_uuid
+    const currentItemUrl = `${baseUrl}/items?item_id=eq.${itemId}&select=image_id,image_uuid`; // Fetch image_uuid too
     const currentItemRes = await fetch(currentItemUrl, { headers: defaultHeaders(settings, false) });
     // Handle case where item might have been deleted between listing and updating
     if (!currentItemRes.ok && currentItemRes.status !== 404) {
@@ -426,22 +439,28 @@ export const updateItem = async (settings, itemId, data) => {
     }
     const currentItemData = currentItemRes.ok ? await currentItemRes.json() : [];
     const existingImageId = currentItemData[0]?.image_id; // PostgREST returns array
+    let existingImageUuid = currentItemData[0]?.image_uuid; // Get existing image UUID
 
     let newImageId = existingImageId; // Assume image doesn't change initially
+    let newImageUuid = existingImageUuid; // Assume image UUID doesn't change
 
     if (data.removeImage && existingImageId) {
         await _deleteImage(settings, existingImageId);
         newImageId = null;
+        newImageUuid = null; // Clear image UUID
     } else if (data.imageFile instanceof File) { // Check it's a File
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
             if (existingImageId) {
                 // Update existing image record
                 await _updateImage(settings, existingImageId, base64Data, data.imageFile.type, data.imageFile.name);
+                // UUID of image doesn't change on update
                 newImageId = existingImageId; // ID remains the same
             } else {
                 // Insert new image record
-                newImageId = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+                const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+                newImageId = imageResult.imageId;
+                newImageUuid = imageResult.imageUuid; // Get the new image UUID
             }
         } catch (error) {
             console.error("Failed to process or update/insert image:", error);
@@ -450,14 +469,16 @@ export const updateItem = async (settings, itemId, data) => {
     }
 
     const updateUrl = `${baseUrl}/items?item_id=eq.${itemId}`;
+    const { uuid, ...updateData } = data; // Ensure item's own UUID isn't in the update payload
     const payload = {
         // PG trigger handles updated_at
-        name: data.name,
-        description: data.description || null,
-        location_id: data.location_id,
-        category_id: data.category_id,
-        owner_id: data.owner_id,
+        name: updateData.name,
+        description: updateData.description || null,
+        location_id: updateData.location_id,
+        category_id: updateData.category_id,
+        owner_id: updateData.owner_id,
         image_id: newImageId, // Set the potentially updated image ID
+        image_uuid: newImageUuid, // Set the potentially updated image UUID
     };
 
     const res = await fetch(updateUrl, {
@@ -517,7 +538,7 @@ export const listItems = async (settings) => {
 
     try {
         // 1. Fetch all items (basic data + image_id)
-        const itemsUrl = `${baseUrl}/items?order=created_at.desc`;
+        const itemsUrl = `${baseUrl}/items?order=created_at.desc`; // Selects * including uuid, image_uuid
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: defaultHeaders(settings, false)
@@ -538,7 +559,7 @@ export const listItems = async (settings) => {
         let imageMap = {};
         if (imageIds.length > 0) {
             // Construct query like ?image_id=in.(1,5,12)&select=...
-            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})&select=image_id,image_data,image_mimetype,image_filename`;
+            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})&select=image_id,uuid,image_data,image_mimetype,image_filename`; // Select image uuid too
             const imagesRes = await fetch(imagesUrl, {
                 method: 'GET',
                 headers: defaultHeaders(settings, false)
@@ -547,7 +568,7 @@ export const listItems = async (settings) => {
                 const imagesResult = await handleResponse(imagesRes, 'list', 'images');
                 const imagesData = imagesResult.data || [];
                 // 3. Create a map of image_id -> { blob, filename }
-                imageMap = imagesData.reduce((map, img) => {
+                imageMap = imagesData.reduce((map, img) => { // Image UUID is already in the item data, no need to map it here
                     if (img.image_id && img.image_data && img.image_mimetype) {
                         const blob = base64ToBlob(img.image_data, img.image_mimetype);
                         if (blob) {
@@ -575,9 +596,9 @@ export const listItems = async (settings) => {
                 imageFile = new File([blob], filename, { type: blob.type });
             }
             // Remove base64 data if it was somehow included in item fetch (it shouldn't be)
-            const { image_data, ...restOfItem } = item; // eslint-disable-line no-unused-vars
+            // Keep uuid and image_uuid from the item fetch
             return {
-                ...restOfItem,
+                ...item, // Keep all original item fields including uuids
                 imageFile: imageFile // Add the File object (or null)
             };
         });
@@ -604,22 +625,31 @@ export const exportData = async (settings) => {
         const locations = await listLocations(settings);
         const categories = await listCategories(settings);
         const owners = await listOwners(settings);
-        // Fetch items *without* processing images here for efficiency
+        // Fetch items metadata including UUIDs
         const itemsRes = await fetch(`${baseUrl}/items?order=created_at.desc`, { headers: defaultHeaders(settings, false) });
         const itemsResult = await handleResponse(itemsRes, 'list items for export', 'items');
         const itemsMetadata = itemsResult.data || [];
 
+        // Fetch all image metadata separately for images.csv
+        const imagesMetaUrl = `${baseUrl}/images?select=image_id,uuid,image_mimetype,image_filename,created_at&order=image_id`;
+        const imagesMetaRes = await fetch(imagesMetaUrl, { headers: defaultHeaders(settings, false) });
+        const imagesMetaResult = await handleResponse(imagesMetaRes, 'list image metadata for export', 'images');
+        const allImagesMeta = imagesMetaResult.data || [];
+
         // 2. Create CSVs
-        const locationHeaders = ['location_id', 'name', 'description', 'created_at', 'updated_at'];
+        const locationHeaders = ['location_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('locations.csv', createCSV(locationHeaders, locations));
 
-        const categoryHeaders = ['category_id', 'name', 'description', 'created_at', 'updated_at'];
+        const categoryHeaders = ['category_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('categories.csv', createCSV(categoryHeaders, categories));
 
-        const ownerHeaders = ['owner_id', 'name', 'description', 'created_at', 'updated_at'];
+        const ownerHeaders = ['owner_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
         zip.file('owners.csv', createCSV(ownerHeaders, owners));
 
-        const itemHeaders = ['item_id', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const imageHeaders = ['image_id', 'uuid', 'image_mimetype', 'image_filename', 'created_at'];
+        zip.file('images.csv', createCSV(imageHeaders, allImagesMeta));
+
+        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
@@ -627,7 +657,7 @@ export const exportData = async (settings) => {
         const imageIds = itemsMetadata.map(item => item.image_id).filter(id => id != null);
         let imageExportMap = {};
         if (imageIds.length > 0) {
-            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})`;
+            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})&select=image_id,image_data,image_mimetype,image_filename`; // Select necessary fields
             const imagesRes = await fetch(imagesUrl, { headers: defaultHeaders(settings, false) });
             if (imagesRes.ok) {
                 const imagesResult = await handleResponse(imagesRes, 'list images for export', 'images');
@@ -653,6 +683,7 @@ export const exportData = async (settings) => {
             const itemCsvRow = { ...item };
             itemCsvRow.image_zip_filename = '';
             itemCsvRow.image_original_filename = '';
+            // item_id, uuid, image_id, image_uuid are already in itemCsvRow from the initial fetch
 
             if (item.image_id && imageExportMap[item.image_id]) {
                 const { blob, filename } = imageExportMap[item.image_id];
@@ -662,7 +693,6 @@ export const exportData = async (settings) => {
                 itemCsvRow.image_original_filename = filename;
                 imagesFolder.file(zipFilename, blob); // Add blob to zip
             }
-            // Remove image_id before adding to CSV data? No, keep it for import reference.
             itemsForCsv.push(itemCsvRow);
         }
         zip.file('items.csv', createCSV(itemHeaders, itemsForCsv));
@@ -695,7 +725,7 @@ export const importData = async (settings, zipFile) => {
         const loadedZip = await zip.loadAsync(zipFile);
 
         // Validate essential files
-        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv')) {
+        if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv') || !loadedZip.file('images.csv')) {
             throw new Error("Import file is missing required CSV or manifest files.");
         }
 
@@ -708,13 +738,16 @@ export const importData = async (settings, zipFile) => {
         const locationMap = {}; // exported_id -> new_postgrest_id
         const categoryMap = {};
         const ownerMap = {};
+        const imageMap = {}; // exported_image_id -> { newId: new_postgrest_id, uuid: image_uuid }
 
         // Import Locations
         const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
         for (const loc of locations) {
             const { location_id: exportedId, ...locData } = loc;
             // Preserve timestamps if they exist in the CSV
+            // Pass UUID from CSV
             const payload = {
+                uuid: locData.uuid, // Pass UUID
                 name: locData.name,
                 description: locData.description,
                 created_at: locData.created_at || undefined, // Let PG handle if null/missing
@@ -731,7 +764,9 @@ export const importData = async (settings, zipFile) => {
         const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
         for (const cat of categories) {
             const { category_id: exportedId, ...catData } = cat;
+            // Pass UUID from CSV
             const payload = {
+                uuid: catData.uuid, // Pass UUID
                 name: catData.name,
                 description: catData.description,
                 created_at: catData.created_at || undefined,
@@ -747,7 +782,9 @@ export const importData = async (settings, zipFile) => {
         const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
         for (const owner of owners) {
             const { owner_id: exportedId, ...ownerData } = owner;
+            // Pass UUID from CSV
             const payload = {
+                uuid: ownerData.uuid, // Pass UUID
                 name: ownerData.name,
                 description: ownerData.description,
                 created_at: ownerData.created_at || undefined,
@@ -759,23 +796,24 @@ export const importData = async (settings, zipFile) => {
             else throw new Error(`Failed to import owner: ${owner.name}`);
         }
 
+        // Import Images first to get new IDs mapped to UUIDs
+        // Correction: Process images within the item loop using addItem's logic
+
         // Import Items
         const items = parseCSV(await loadedZip.file('items.csv').async('string'));
         for (const item of items) {
-            const { item_id: exportedItemId, image_zip_filename, image_original_filename, location_id, category_id, owner_id, ...itemMetadata } = item;
+            const { item_id: exportedItemId, uuid: itemUuid, image_id: exportedImageId, image_uuid: imageUuidFromCsv, image_zip_filename, image_original_filename, location_id, category_id, owner_id, ...itemMetadata } = item;
+            let imageFile = null;
 
-            let newImageId = null;
             if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
                 try {
                     const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
                     const originalFilename = image_original_filename || image_zip_filename;
                     const determinedMimeType = getMimeTypeFromFilename(originalFilename);
-                    // Convert blob back to base64 for sending to PostgREST
-                    const imageFileForBase64 = new File([imageBlob], originalFilename, { type: determinedMimeType });
-                    const base64Data = await readFileAsBase64(imageFileForBase64);
-                    // Insert image and get its new ID
-                    newImageId = await _insertImage(settings, base64Data, determinedMimeType, originalFilename);
+                    imageFile = new File([imageBlob], originalFilename, { type: determinedMimeType });
+                    // We pass imageFile and imageUuidFromCsv to addItem below
                 } catch (zipError) {
+                     // TODO: Handle image processing errors more gracefully (e.g., import item without image)
                      console.error(`Error processing image ${image_zip_filename} from zip for item ${item.name}:`, zipError);
                      // Decide if you want to skip the item or throw the error
                      // continue; // Example: skip item if image processing fails
@@ -785,11 +823,13 @@ export const importData = async (settings, zipFile) => {
 
             const newItemData = {
                 name: itemMetadata.name,
-                description: itemMetadata.description,
+                description: itemMetadata.description || null,
+                uuid: itemUuid, // Pass item UUID from CSV
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
                 owner_id: ownerMap[owner_id],       // Map to new ID
-                image_id: newImageId,               // Use new image ID
+                image_uuid: imageUuidFromCsv, // Pass image UUID from CSV (addItem will use this for _insertImage)
+                imageFile: imageFile,               // Pass the File object (addItem will handle base64 conversion)
                 created_at: itemMetadata.created_at || undefined, // Preserve timestamp or let PG handle
                 updated_at: itemMetadata.updated_at || null   // Preserve timestamp or set null
             };
@@ -803,14 +843,14 @@ export const importData = async (settings, zipFile) => {
             // Remove undefined keys
             Object.keys(newItemData).forEach(key => newItemData[key] === undefined && delete newItemData[key]);
 
-            // POST the item data (addItem is not suitable here as it generates ID)
-            const res = await fetch(`${baseUrl}/items`, {
-                method: 'POST',
-                headers: defaultHeaders(settings, false), // Don't need representation back here
-                body: JSON.stringify(newItemData),
-            });
+            // Use addItem, which now handles UUIDs and image insertion correctly
+            const res = await addItem(settings, newItemData);
             // Check response, throw error if import failed for this item
-            await handleResponse(res, 'import', `item "${item.name}"`);
+            // Note: addItem returns { success: true, status: ... }, handleResponse is not needed here
+            // We might need a more robust check if addItem's return value changes
+            if (!res.success) {
+                 throw new Error(`Failed to import item "${item.name}" with status ${res.status}`);
+            }
         }
 
         console.log('PostgRESTProvider: Import completed successfully.');
