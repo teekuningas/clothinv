@@ -43,7 +43,6 @@ export const addCategory = async (settings, data) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-    // Perform the insert
     const insertRes = await fetch(`${baseUrl}/categories/-/insert`, {
         method: 'POST',
         headers: defaultHeaders(settings),
