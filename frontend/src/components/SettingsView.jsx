@@ -330,22 +330,27 @@ const SettingsView = () => {
         // Use summary if provided by API, otherwise format using counts, fallback to default
         let summaryMessage;
         if (result.summary) {
-            summaryMessage = result.summary;
+          summaryMessage = result.summary;
         } else if (result.counts) {
-            summaryMessage = intl.formatMessage({
-                id: "settings.data.importSuccessSummary", // New ID
-                defaultMessage: "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} items.",
-            }, {
-                locCount: result.counts.locations,
-                catCount: result.counts.categories,
-                ownerCount: result.counts.owners,
-                itemCount: result.counts.items,
-            });
+          summaryMessage = intl.formatMessage(
+            {
+              id: "settings.data.importSuccessSummary", // New ID
+              defaultMessage:
+                "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} items.",
+            },
+            {
+              locCount: result.counts.locations,
+              catCount: result.counts.categories,
+              ownerCount: result.counts.owners,
+              itemCount: result.counts.items,
+            },
+          );
         } else {
-            summaryMessage = intl.formatMessage({
-                id: "settings.data.importSuccessDefault",
-                defaultMessage: "Import completed successfully. Data has been replaced.",
-            });
+          summaryMessage = intl.formatMessage({
+            id: "settings.data.importSuccessDefault",
+            defaultMessage:
+              "Import completed successfully. Data has been replaced.",
+          });
         }
         setImportSummary(summaryMessage);
         /* Old code:

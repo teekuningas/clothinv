@@ -11,13 +11,15 @@
     "format:css": "stylelint \"**/*.css\" --fix"
   },
   "dependencies": {
+    "@types/uuid": "^10.0.0",
     "browser-image-compression": "^2.0.2",
     "jszip": "^3.10.1",
     "papaparse": "^5.5.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-intl": "^7.1.11",
-    "react-router-dom": "^7.5.3"
+    "react-router-dom": "^7.5.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.2",

@@ -1663,7 +1663,7 @@ const ItemsView = () => {
         imageUrl={imageViewModalUrl}
         imageAlt={imageViewModalAlt}
       />
- 
+
       {/* Webcam Capture Modal */}
       {isWebcamOpen && ( // Conditionally render the component
         <WebcamCapture
