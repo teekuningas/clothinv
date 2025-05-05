@@ -73,7 +73,10 @@ const SettingsView = () => {
     const provider = getProviderById(initialLocalState.providerType);
     if (provider && provider.configFields) {
       provider.configFields.forEach((field) => {
-        if (initialLocalState.settings && !(field.key in initialLocalState.settings)) {
+        if (
+          initialLocalState.settings &&
+          !(field.key in initialLocalState.settings)
+        ) {
           initialLocalState.settings[field.key] = ""; // Initialize missing fields
         }
       });
@@ -385,7 +388,8 @@ const SettingsView = () => {
             "EXTREME WARNING: This will permanently delete ALL data (items, locations, categories, owners, images) from the current provider ({providerName}). This action CANNOT BE UNDONE. Are you absolutely sure you want to proceed?",
         },
         {
-          providerName: // Use provider from settings
+          // Use provider from settings
+          providerName:
             providerDisplayNames[appSettings.apiProviderType] ||
             appSettings.apiProviderType,
         },
@@ -441,10 +445,17 @@ const SettingsView = () => {
       );
       setDestroyStatus("error");
     }
-  }, [api, appSettings.apiProviderType, providerDisplayNames, intl, updateAppSettings]); // Added updateAppSettings dependency
+  }, [
+    api,
+    appSettings.apiProviderType,
+    providerDisplayNames,
+    intl,
+    updateAppSettings,
+  ]); // Added updateAppSettings dependency
 
   // Get the definition for the currently selected provider in the local state
-  const selectedProviderId = localApiSettings?.providerType || appSettings.apiProviderType || "none"; // Use local state first, then context
+  const selectedProviderId =
+    localApiSettings?.providerType || appSettings.apiProviderType || "none"; // Use local state first, then context
   const selectedProvider = getProviderById(selectedProviderId);
   const availableProviderIds = getProviderIds(); // Get all available provider IDs
 
@@ -606,7 +617,9 @@ const SettingsView = () => {
               type="button"
               onClick={handleSaveApiConfig}
               className="button-primary"
-              disabled={apiSaveStatus === "saving" || apiSaveStatus === "success"}
+              disabled={
+                apiSaveStatus === "saving" || apiSaveStatus === "success"
+              }
             >
               {apiSaveStatus === "saving"
                 ? intl.formatMessage({
@@ -743,7 +756,8 @@ const SettingsView = () => {
                     "Export all items, locations, categories, and owners from the currently active provider ({providerName}) into a downloadable .zip file.",
                 },
                 {
-                  providerName: // Use provider from settings
+                  // Use provider from settings
+                  providerName:
                     providerDisplayNames[appSettings.apiProviderType] ||
                     appSettings.apiProviderType,
                 },
@@ -811,7 +825,8 @@ const SettingsView = () => {
                     "Warning: Importing data will REPLACE ALL existing data in the currently active provider ({providerName}). This action cannot be undone.",
                 },
                 {
-                  providerName: // Use provider from settings
+                  // Use provider from settings
+                  providerName:
                     providerDisplayNames[appSettings.apiProviderType] ||
                     appSettings.apiProviderType,
                 },
@@ -912,7 +927,8 @@ const SettingsView = () => {
                     "Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.",
                 },
                 {
-                  providerName: // Use provider from settings
+                  // Use provider from settings
+                  providerName:
                     providerDisplayNames[appSettings.apiProviderType] ||
                     appSettings.apiProviderType,
                 },
