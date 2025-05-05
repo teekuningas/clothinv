@@ -1579,7 +1579,6 @@ const ItemsView = () => {
         imageUrl={imageViewModalUrl}
         imageAlt={imageViewModalAlt}
       />
-
     </div>
   );
 };
