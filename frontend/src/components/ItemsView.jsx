@@ -858,7 +858,6 @@ const ItemsView = () => {
                   onClick={() => handleRotateImage('add')}
                   className="button-light rotate-image-button"
                   disabled={loading || isRotatingAdd}
-                  style={{ marginLeft: '8px' }} // Add some spacing
                 >
                   {isRotatingAdd
                     ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." })
@@ -872,7 +871,6 @@ const ItemsView = () => {
                   onClick={handleRemoveNewImage}
                   className="button-danger-light remove-image-button"
                   disabled={loading || isRotatingAdd} // Also disable during rotation
-                  style={{ marginLeft: '8px' }} // Add some spacing
                 >
                   {intl.formatMessage({
                     id: "items.editForm.removeImage", // Re-use existing translation
@@ -1414,7 +1412,6 @@ const ItemsView = () => {
                         onClick={() => handleRotateImage('edit')}
                         className="button-light rotate-image-button"
                         disabled={isUpdating || isDeleting || isRotatingEdit}
-                        style={{ marginLeft: '8px' }} // Add some spacing
                       >
                         {isRotatingEdit
                           ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." })
@@ -1428,7 +1425,6 @@ const ItemsView = () => {
                         onClick={handleRemoveEditImage}
                         className="button-danger-light remove-image-button"
                         disabled={isUpdating || isDeleting || isRotatingEdit} // Also disable during rotation
-                        style={{ marginLeft: '8px' }} // Add some spacing
                       >
                         {intl.formatMessage({
                             id: "items.editForm.removeImage", // Re-use existing translation
