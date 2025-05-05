@@ -1,5 +1,5 @@
 import * as datasetteProvider from './datasetteProvider';
-import * as indexedDBProvider from './indexedDBProvider'; // <-- Change import name and path
+import * as indexedDBProvider from './indexedDBProvider';
 import * as postgrestProvider from './postgrestProvider';
 // import * as homeboxProvider from './homeboxProvider';
 
@@ -51,17 +51,17 @@ export const providers = {
             'addOwner',
             'updateOwner',
             'deleteOwner',
-            'exportData', // Add export
-            'importData', // Add import
-            'destroyData', // Add this line
+            'exportData',
+            'importData',
+            'destroyData',
         ]
     },
 
     // --- IndexedDB Provider Definition ---
-    'indexedDB': { // <-- Change key
-        id: 'indexedDB', // <-- Change id
-        displayName: 'IndexedDB (Browser)', // <-- Change display name
-        module: indexedDBProvider, // <-- Change module reference
+    'indexedDB': {
+        id: 'indexedDB',
+        displayName: 'IndexedDB (Browser)',
+        module: indexedDBProvider,
         configFields: [],
         isConfiguredCheck: () => true, // Always configured as it needs no settings
         // Ensure this list matches the methods provided by datasetteProvider
@@ -82,9 +82,9 @@ export const providers = {
             'addOwner',
             'updateOwner',
             'deleteOwner',
-            'exportData', // Add export
-            'importData', // Add import
-            'destroyData', // Add this line
+            'exportData',
+            'importData',
+            'destroyData',
         ]
     },
 
@@ -112,7 +112,8 @@ export const providers = {
             }
         ],
         isConfiguredCheck: (settings) => !!settings?.postgrestApiUrl && !!settings?.postgrestApiToken, // Check both URL and Token
-        methods: [ // Copy this list exactly from localStorage or datasette provider
+        // List the API methods this provider implements
+        methods: [
             'listLocations', 'addLocation', 'updateLocation', 'deleteLocation',
             'listCategories', 'addCategory', 'updateCategory', 'deleteCategory',
             'listOwners', 'addOwner', 'updateOwner', 'deleteOwner',
