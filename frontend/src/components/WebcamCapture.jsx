@@ -245,30 +245,28 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
           )}
 
           {/* Show capture button only when stream is active */}
-          {stream &&
-            !isInitializing &&
-            !error && (
-              <button
-                className="webcam-capture-button"
-                onClick={handleCaptureClick}
-                aria-label={intl.formatMessage({
-                  id: "webcam.button.capture.ariaLabel",
-                  defaultMessage: "Capture photo",
-                })}
+          {stream && !isInitializing && !error && (
+            <button
+              className="webcam-capture-button"
+              onClick={handleCaptureClick}
+              aria-label={intl.formatMessage({
+                id: "webcam.button.capture.ariaLabel",
+                defaultMessage: "Capture photo",
+              })}
+            >
+              {/* Simple capture icon (could use SVG or FontAwesome) */}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                width="24"
+                height="24"
               >
-                {/* Simple capture icon (could use SVG or FontAwesome) */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  width="24"
-                  height="24"
-                >
-                  <path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm0 20a9 9 0 1 1 0-18 9 9 0 0 1 0 18Z" />
-                  <path d="M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z" />
-                </svg>
-              </button>
-            )}
+                <path d="M12 1a11 11 0 1 0 0 22 11 11 0 0 0 0-22Zm0 20a9 9 0 1 1 0-18 9 9 0 0 1 0 18Z" />
+                <path d="M12 6a6 6 0 1 0 0 12 6 6 0 0 0 0-12Z" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* Action Buttons Area */}
