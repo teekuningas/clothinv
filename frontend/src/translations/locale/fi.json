@@ -120,7 +120,6 @@
     "settings.api.fields.postgrestApiUrl.placeholder": "esim. http://localhost:4000",
     "settings.api.fields.postgrestApiToken.label": "PostgREST API-tunniste",
     "settings.api.fields.postgrestApiToken.placeholder": "Liitä JWT-tunniste tarvittaessa",
-    "settings.api.postgrestDescription": "Yhdistää PostgREST API -palvelimeen, joka tarjoaa REST-rajapinnan PostgreSQL-tietokannalle. Varmista, että PostgREST on käynnissä ja saavutettavissa alla olevasta URL-osoitteesta.",
     "settings.api.saveButton": "Tallenna API-määritys",
     "settings.api.saveButton.saving": "Tallennetaan API-määritystä...",
     "settings.api.saveSuccess": "API-määritys tallennettu onnistuneesti!",

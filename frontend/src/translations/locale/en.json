@@ -120,7 +120,6 @@
     "settings.api.fields.postgrestApiUrl.placeholder": "e.g., http://localhost:4000",
     "settings.api.fields.postgrestApiToken.label": "PostgREST API Token",
     "settings.api.fields.postgrestApiToken.placeholder": "Paste JWT token if required by API",
-    "settings.api.postgrestDescription": "Connects to a PostgREST API server, which provides a REST interface for a PostgreSQL database. Ensure PostgREST is running and accessible at the URL below.",
     "settings.api.saveButton": "Save API Config",
     "settings.api.saveButton.saving": "Saving API Config...",
     "settings.api.saveSuccess": "API configuration saved successfully!",
