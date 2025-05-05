@@ -504,26 +504,25 @@ const OwnersView = () => {
               <h4>{owner.name}</h4>
               {owner.description && <p>{owner.description}</p>}
               {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-              {api.isConfigured &&
-                typeof api.updateOwner === "function" && (
-                  <button
-                    onClick={() => handleEditClick(owner)}
-                    className="edit-button button-light" /* Add button-light */
-                    aria-label={intl.formatMessage(
-                      {
-                        id: "owners.editButton.label",
-                        defaultMessage: "Edit {name}",
-                      },
-                      { name: owner.name },
-                    )}
-                    disabled={loading || isUpdating || isDeleting}
-                  >
-                    {intl.formatMessage({
-                      id: "common.edit",
-                      defaultMessage: "Edit",
-                    })}
-                  </button>
-                )}
+              {api.isConfigured && typeof api.updateOwner === "function" && (
+                <button
+                  onClick={() => handleEditClick(owner)}
+                  className="edit-button button-light" /* Add button-light */
+                  aria-label={intl.formatMessage(
+                    {
+                      id: "owners.editButton.label",
+                      defaultMessage: "Edit {name}",
+                    },
+                    { name: owner.name },
+                  )}
+                  disabled={loading || isUpdating || isDeleting}
+                >
+                  {intl.formatMessage({
+                    id: "common.edit",
+                    defaultMessage: "Edit",
+                  })}
+                </button>
+              )}
             </div>
           ))}
         </div>

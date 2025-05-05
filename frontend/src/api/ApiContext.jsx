@@ -43,28 +43,31 @@ export const ApiProvider = ({ children }) => {
 
   // --- Helper: Bind API Methods ---
   // Binds methods from the selected provider's module using the current settings
-  const bindApiMethods = useCallback((providerType, currentApiSettings, configured) => {
-    const newApiMethods = {};
-    const provider = getProviderById(providerType);
+  const bindApiMethods = useCallback(
+    (providerType, currentApiSettings, configured) => {
+      const newApiMethods = {};
+      const provider = getProviderById(providerType);
 
-    if (provider && provider.module && configured) {
-      // Iterate through the methods listed in the registry for this provider
-      provider.methods.forEach((methodName) => {
-        const methodImpl = provider.module[methodName];
-        if (typeof methodImpl === "function") {
-          // Bind the method, passing the current settings object as the first argument
-          // Subsequent arguments (like 'data' for addItem) will be passed automatically
-          newApiMethods[methodName] = (...args) =>
-            methodImpl(currentApiSettings, ...args); // Pass only apiSettings
-        } else {
-          console.warn(
-            `Method '${methodName}' not found or not a function in provider module for '${providerType}'.`,
-          );
-        }
-      });
-    }
-    setApiMethods(newApiMethods);
-  }, []); // No dependencies needed as it uses the passed currentConfig
+      if (provider && provider.module && configured) {
+        // Iterate through the methods listed in the registry for this provider
+        provider.methods.forEach((methodName) => {
+          const methodImpl = provider.module[methodName];
+          if (typeof methodImpl === "function") {
+            // Bind the method, passing the current settings object as the first argument
+            // Subsequent arguments (like 'data' for addItem) will be passed automatically
+            newApiMethods[methodName] = (...args) =>
+              methodImpl(currentApiSettings, ...args); // Pass only apiSettings
+          } else {
+            console.warn(
+              `Method '${methodName}' not found or not a function in provider module for '${providerType}'.`,
+            );
+          }
+        });
+      }
+      setApiMethods(newApiMethods);
+    },
+    [],
+  ); // No dependencies needed as it uses the passed currentConfig
 
   // --- Effect: Bind API Methods on Config Change ---
   // Re-bind methods whenever the config object changes.

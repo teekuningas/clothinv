@@ -7,11 +7,7 @@ import React, {
 } from "react";
 import { IntlProvider } from "react-intl";
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings
-import {
-  availableLocales,
-  defaultLocale,
-  getLocaleCodes,
-} from "./i18n"; // Updated path
+import { availableLocales, defaultLocale, getLocaleCodes } from "./i18n"; // Updated path
 
 async function loadMessages(locale) {
   const validLocale = getLocaleCodes().includes(locale)

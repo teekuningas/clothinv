@@ -255,10 +255,7 @@ function App() {
             <Route path="/locations" element={<LocationsView />} />
             <Route path="/categories" element={<CategoriesView />} />
             <Route path="/owners" element={<OwnersView />} />
-            <Route
-              path="/settings"
-              element={<SettingsView />}
-            />
+            <Route path="/settings" element={<SettingsView />} />
             <Route path="/configure" element={<ConfigureFromUrl />} />
             <Route
               path="/export-configuration"
@@ -291,21 +288,26 @@ function App() {
                 </p>
               )}
             {/* General configuration warning */}
-            {settings.apiProviderType !== "none" && !api.isConfigured && ( // Use settings.apiProviderType and api.isConfigured
-              <p className="status-error"> {/* Keep error style */}
-                {intl.formatMessage(
-                  {
-                    id: "warning.providerNotConfigured",
-                    defaultMessage:
-                      "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
-                  },
-                  { providerType: settings.apiProviderType }, // Use settings.apiProviderType
-                )}
-              </p>
-            )}
+            {settings.apiProviderType !== "none" &&
+              !api.isConfigured && ( // Use settings.apiProviderType and api.isConfigured
+                <p className="status-error">
+                  {" "}
+                  {/* Keep error style */}
+                  {intl.formatMessage(
+                    {
+                      id: "warning.providerNotConfigured",
+                      defaultMessage:
+                        "Warning: The selected API provider ({providerType}) is not fully configured. Please check Settings.",
+                    },
+                    { providerType: settings.apiProviderType }, // Use settings.apiProviderType
+                  )}
+                </p>
+              )}
             {/* Informational message if no provider is selected - Use status-loading (info style) */}
             {settings.apiProviderType === "none" && ( // Use settings.apiProviderType
-              <p className="status-loading"> {/* Keep info style */}
+              <p className="status-loading">
+                {" "}
+                {/* Keep info style */}
                 {intl.formatMessage({
                   id: "info.noProviderSelected",
                   defaultMessage:

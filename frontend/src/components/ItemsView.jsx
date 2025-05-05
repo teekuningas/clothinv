@@ -270,7 +270,8 @@ const ItemsView = () => {
   // --- Image Compression Helper ---
   const processImageFile = useCallback(
     async (file) => {
-      if (!appSettings.imageCompressionEnabled || !(file instanceof File)) { // Read from appSettings
+      if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
+        // Read from appSettings
         console.log("Image compression skipped (disabled or not a file).");
         return file; // Return original if disabled or not a file
       }
@@ -349,7 +350,8 @@ const ItemsView = () => {
       );
       return;
     }
-    if (!api.isConfigured || !api.addItem) { // Use api.isConfigured and check method existence
+    if (!api.isConfigured || !api.addItem) {
+      // Use api.isConfigured and check method existence
       setError(
         api.isConfigured
           ? intl.formatMessage({
@@ -616,7 +618,8 @@ const ItemsView = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteCandidateId || !api.deleteItem) { // Check method existence
+    if (!deleteCandidateId || !api.deleteItem) {
+      // Check method existence
       setDeleteError(
         intl.formatMessage({
           id: "items.error.deleteInvalid",
@@ -1163,15 +1166,16 @@ const ItemsView = () => {
         </div>
       )}
 
-      {typeof api.listItems !== "function" && api.isConfigured && ( // Use api.isConfigured
-        <p className="status-warning">
-          {intl.formatMessage({
-            id: "items.list.notSupported",
-            defaultMessage:
-              "Listing items is not supported by the current API Provider.",
-          })}
-        </p>
-      )}
+      {typeof api.listItems !== "function" &&
+        api.isConfigured && ( // Use api.isConfigured
+          <p className="status-warning">
+            {intl.formatMessage({
+              id: "items.list.notSupported",
+              defaultMessage:
+                "Listing items is not supported by the current API Provider.",
+            })}
+          </p>
+        )}
       {typeof api.listItems === "function" &&
         !loading &&
         sortedItems.length === 0 && // Check sortedItems

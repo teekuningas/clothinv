@@ -8,7 +8,9 @@ import "./main.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <SettingsProvider> {/* SettingsProvider is outermost */}
+    <SettingsProvider>
+      {" "}
+      {/* SettingsProvider is outermost */}
       {/* Wrap everything with SettingsProvider */}
       <TranslationProvider>
         <ApiProvider>

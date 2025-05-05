@@ -97,7 +97,9 @@ const ConfigureFromUrl = () => {
             }
             settingsToUpdate.apiSettings[settingKey] = value;
             changesApplied++;
-            console.log(`Applying setting: apiSettings.${settingKey} = ${value}`);
+            console.log(
+              `Applying setting: apiSettings.${settingKey} = ${value}`,
+            );
           } else {
             console.warn(`Ignoring invalid apiSettings key: ${key}`);
           }
@@ -107,19 +109,27 @@ const ConfigureFromUrl = () => {
       // --- Process Deprecated Locale Parameter (for backward compatibility) ---
       const deprecatedLocaleValue = configParams.get("userLocale");
       if (deprecatedLocaleValue) {
-        console.warn("Ignoring deprecated URL parameter 'userLocale'. Use 'locale' instead.");
+        console.warn(
+          "Ignoring deprecated URL parameter 'userLocale'. Use 'locale' instead.",
+        );
         // If 'locale' wasn't already set by the new key, apply the old one
-        if (!settingsToUpdate.locale && validLocales.includes(deprecatedLocaleValue)) {
-            settingsToUpdate.locale = deprecatedLocaleValue;
-            changesApplied++;
-            console.log(`Applying deprecated setting: locale = ${deprecatedLocaleValue}`);
+        if (
+          !settingsToUpdate.locale &&
+          validLocales.includes(deprecatedLocaleValue)
+        ) {
+          settingsToUpdate.locale = deprecatedLocaleValue;
+          changesApplied++;
+          console.log(
+            `Applying deprecated setting: locale = ${deprecatedLocaleValue}`,
+          );
         }
       }
 
       // --- Final Status and Redirect ---
       if (changesApplied > 0) {
         updateSettings(settingsToUpdate); // Apply all collected settings at once
-        setStatusMessage(intl.formatMessage({
+        setStatusMessage(
+          intl.formatMessage({
             id: "configure.status.success",
             defaultMessage: "Configuration applied. Redirecting...",
           }),

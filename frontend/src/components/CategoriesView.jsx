@@ -504,26 +504,25 @@ const CategoriesView = () => {
               <h4>{cat.name}</h4>
               {cat.description && <p>{cat.description}</p>}
               {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-              {api.isConfigured &&
-                typeof api.updateCategory === "function" && (
-                  <button
-                    onClick={() => handleEditClick(cat)}
-                    className="edit-button button-light" /* Add button-light */
-                    aria-label={intl.formatMessage(
-                      {
-                        id: "categories.editButton.label",
-                        defaultMessage: "Edit {name}",
-                      },
-                      { name: cat.name },
-                    )}
-                    disabled={loading || isUpdating || isDeleting}
-                  >
-                    {intl.formatMessage({
-                      id: "common.edit",
-                      defaultMessage: "Edit",
-                    })}
-                  </button>
-                )}
+              {api.isConfigured && typeof api.updateCategory === "function" && (
+                <button
+                  onClick={() => handleEditClick(cat)}
+                  className="edit-button button-light" /* Add button-light */
+                  aria-label={intl.formatMessage(
+                    {
+                      id: "categories.editButton.label",
+                      defaultMessage: "Edit {name}",
+                    },
+                    { name: cat.name },
+                  )}
+                  disabled={loading || isUpdating || isDeleting}
+                >
+                  {intl.formatMessage({
+                    id: "common.edit",
+                    defaultMessage: "Edit",
+                  })}
+                </button>
+              )}
             </div>
           ))}
         </div>

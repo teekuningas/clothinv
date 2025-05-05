@@ -21,7 +21,10 @@ const ExportConfigurationLink = () => {
       if (settings.locale) {
         configParams.set("locale", settings.locale); // Use 'locale' key
         foundConfig = true;
-        console.log("ExportConfig: Added locale from settings:", settings.locale);
+        console.log(
+          "ExportConfig: Added locale from settings:",
+          settings.locale,
+        );
       }
     } catch (e) {
       console.error("ExportConfig: Error processing locale from settings:", e);
@@ -33,7 +36,10 @@ const ExportConfigurationLink = () => {
       if (settings.apiProviderType) {
         configParams.set("apiProviderType", settings.apiProviderType);
         foundConfig = true;
-        console.log("ExportConfig: Added apiProviderType from settings:", settings.apiProviderType);
+        console.log(
+          "ExportConfig: Added apiProviderType from settings:",
+          settings.apiProviderType,
+        );
       }
       // Add apiSettings
       if (settings.apiSettings && typeof settings.apiSettings === "object") {
@@ -41,7 +47,10 @@ const ExportConfigurationLink = () => {
           if (value !== null && value !== undefined) {
             configParams.set(`apiSettings.${key}`, String(value)); // Prefix with apiSettings.
             foundConfig = true;
-            console.log(`ExportConfig: Added apiSettings.${key} from settings:`, String(value));
+            console.log(
+              `ExportConfig: Added apiSettings.${key} from settings:`,
+              String(value),
+            );
           }
         }
       }
@@ -65,12 +74,21 @@ const ExportConfigurationLink = () => {
     try {
       // Add imageCompressionEnabled (convert boolean to string)
       if (settings.imageCompressionEnabled !== undefined) {
-        configParams.set("imageCompressionEnabled", String(settings.imageCompressionEnabled));
+        configParams.set(
+          "imageCompressionEnabled",
+          String(settings.imageCompressionEnabled),
+        );
         foundConfig = true;
-        console.log("ExportConfig: Added imageCompressionEnabled from settings:", settings.imageCompressionEnabled);
+        console.log(
+          "ExportConfig: Added imageCompressionEnabled from settings:",
+          settings.imageCompressionEnabled,
+        );
       }
     } catch (e) {
-      console.error("ExportConfig: Error processing imageCompressionEnabled from settings:", e);
+      console.error(
+        "ExportConfig: Error processing imageCompressionEnabled from settings:",
+        e,
+      );
     }
     // 4. Check if any config was found
     if (!foundConfig) {
