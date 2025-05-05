@@ -5,7 +5,7 @@ import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
-import { compressImage, rotateImageFile } from "../helpers/images"; // Import rotateImageFile
+import { compressImage, rotateImageFile } from "../helpers/images";
 import "./ItemsView.css";
 import "./ImageViewModal.css";
 
@@ -729,7 +729,7 @@ const ItemsView = () => {
       setImageViewModalUrl(null);
       setImageViewModalAlt("");
     }, 200); // Match CSS transition duration (assuming 200ms was intended)
-  }; // Close handleCloseImageViewModal
+  };
 
   // --- Render ---
   return (
@@ -761,7 +761,7 @@ const ItemsView = () => {
       ) : !api.addItem || // Check method existence
         !api.listLocations ||
         !api.listCategories ||
-        !api.listOwners ? ( // Added owner check
+        !api.listOwners ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "items.addForm.notSupported",
@@ -1288,7 +1288,7 @@ const ItemsView = () => {
                     typeof api.updateItem === "function" && (
                       <button
                         onClick={() => handleEditClick(item)}
-                        className="edit-button button-light" /* Add button-light */
+                        className="edit-button button-light"
                         aria-label={intl.formatMessage(
                           {
                             id: "items.editButton.label",
