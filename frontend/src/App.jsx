@@ -24,47 +24,7 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const api = useApi();
   const { settings } = useSettings();
-  /*
-      // NOTE: The responsibility for adding location/category/image and handling IDs
-      // The responsibility for adding related entities is handled within the provider's addItem method.
 
-      try {
-          // Use the generic isConfigured flag from the context
-          if (!api.config.isConfigured) {
-              throw new Error(`API provider (${api.config.providerType}) is not configured. Please check settings.`);
-          }
-          // Keep the check for datasette-specific feature
-          if (api.config.providerType !== 'datasette') {
-               throw new Error(`This 'Add Default Entries' button currently only supports the 'datasette' provider type. Current type: ${api.config.providerType}`);
-          }
-          // Check if the addItem method was successfully bound by the context
-          if (!api.addItem) {
-              throw new Error("API 'addItem' method is not available. Check provider configuration and console logs.");
-          }
-
-          // Prepare the composite data object for the single API call
-          const defaultData = {
-              location: { name: "Default Location", description: "Placeholder location" },
-              category: { name: "Default Category", description: "Placeholder category" },
-              image: { image_data: "placeholder image data", image_mimetype: "text/plain" },
-              item: {
-                  name: "Default Item",
-                  description: "Placeholder item created via API",
-                  // location_id, category_id, image_id will be handled by the provider
-              }
-          };
-
-          // Single call to the abstracted addItem method
-          await api.addItem(defaultData);
-
-          setSuccess('Successfully added default item (including location, category, image).');
-
-      } catch (err) {
-          console.error("Error adding default data:", err);
-          setError(err.message);
-      } finally {
-          setLoading(false);
-      }
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
