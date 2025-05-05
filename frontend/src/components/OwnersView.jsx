@@ -505,7 +505,7 @@ const OwnersView = () => {
               {api.isConfigured && typeof api.updateOwner === "function" && (
                 <button
                   onClick={() => handleEditClick(owner)}
-                  className="edit-button button-light" /* Add button-light */
+                  className="edit-button button-light"
                   aria-label={intl.formatMessage(
                     {
                       id: "owners.editButton.label",
@@ -552,7 +552,7 @@ const OwnersView = () => {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 required
-                disabled={isUpdating || isDeleting} // Disable during update or delete
+                disabled={isUpdating || isDeleting}
               />
             </div>
             <div className="form-group">
@@ -586,7 +586,6 @@ const OwnersView = () => {
                       defaultMessage: "Save Changes",
                     })}
               </button>
-              {/* Use button-danger for delete */}
               {api.isConfigured &&
                 typeof api.deleteOwner === "function" &&
                 typeof api.listItems === "function" && (
@@ -646,9 +645,7 @@ const OwnersView = () => {
                 },
               )}
             </p>
-            {/* Removed redundant "This action cannot be undone." as it's included above */}
             <div className="modal-actions">
-              {/* Use button-danger for confirm delete */}
               <button
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
@@ -664,7 +661,6 @@ const OwnersView = () => {
                       defaultMessage: "Confirm Delete",
                     })}
               </button>
-              {/* Use button-secondary for cancel */}
               <button
                 onClick={handleCancelDelete}
                 disabled={isDeleting}

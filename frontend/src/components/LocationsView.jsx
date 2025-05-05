@@ -502,7 +502,7 @@ const LocationsView = () => {
               {api.isConfigured && typeof api.updateLocation === "function" && (
                 <button
                   onClick={() => handleEditClick(loc)}
-                  className="edit-button button-light" /* Add button-light */
+                  className="edit-button button-light"
                   aria-label={intl.formatMessage(
                     {
                       id: "locations.editButton.label",
@@ -550,7 +550,7 @@ const LocationsView = () => {
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 required
-                disabled={isUpdating || isDeleting} // Disable during update or delete
+                disabled={isUpdating || isDeleting}
               />
             </div>
             <div className="form-group">
@@ -584,7 +584,6 @@ const LocationsView = () => {
                       defaultMessage: "Save Changes",
                     })}
               </button>
-              {/* Use button-danger for delete */}
               {api.isConfigured &&
                 typeof api.deleteLocation === "function" &&
                 typeof api.listItems === "function" && (
@@ -646,7 +645,6 @@ const LocationsView = () => {
               )}
             </p>
             <div className="modal-actions">
-              {/* Use button-danger for confirm delete */}
               <button
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
@@ -662,7 +660,6 @@ const LocationsView = () => {
                       defaultMessage: "Confirm Delete",
                     })}
               </button>
-              {/* Use button-secondary for cancel */}
               <button
                 onClick={handleCancelDelete}
                 disabled={isDeleting}
