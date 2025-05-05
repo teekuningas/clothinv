@@ -314,7 +314,7 @@ const ItemsView = () => {
         );
       }
     },
-    [appSettings.imageCompressionEnabled, intl], // Depend on the setting
+    [appSettings.imageCompressionEnabled, intl],
   ); // Depend on the setting
 
   // --- Add Item Handler ---
