@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useApi } from "../api/ApiContext"; // Import useApi hook
-import { useIntl } from "react-intl"; // Import useIntl
-import "./OwnersView.css"; // Import CSS
-import Modal from "./Modal"; // Import the Modal component
+import { useApi } from "../api/ApiContext";
+import { useIntl } from "react-intl";
+import "./OwnersView.css";
+import Modal from "./Modal";
 
 const OwnersView = () => {
   const [owners, setOwners] = useState([]);
@@ -21,8 +21,8 @@ const OwnersView = () => {
   const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
   const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
 
-  const api = useApi(); // Get API methods from context
-  const intl = useIntl(); // Get intl object
+  const api = useApi();
+  const intl = useIntl();
 
   // Function to fetch owners
   const fetchOwners = useCallback(async () => {
@@ -66,7 +66,7 @@ const OwnersView = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, intl]); // Add intl to dependencies
+  }, [api, intl]);
 
   // Fetch owners on component mount and when fetchOwners changes
   useEffect(() => {
@@ -75,8 +75,7 @@ const OwnersView = () => {
 
   // Function to handle adding a new owner
   const handleAddOwner = async (e) => {
-    // Make async
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     if (!newOwnerName.trim()) {
       setError(
@@ -149,7 +148,7 @@ const OwnersView = () => {
         );
       }
     } catch (err) {
-      console.error("Failed to add owner:", err); // Keep console error in English
+      console.error("Failed to add owner:", err);
       // Use intl for consistency, even if the message might be technical
       setError(
         intl.formatMessage(
@@ -242,7 +241,7 @@ const OwnersView = () => {
         );
       }
     } catch (err) {
-      console.error("Failed to update owner:", err); // Keep console error in English
+      console.error("Failed to update owner:", err);
       // Use intl for consistency
       setUpdateError(
         intl.formatMessage(
@@ -347,7 +346,6 @@ const OwnersView = () => {
         );
       }
     } catch (err) {
-      // err might already be translated if thrown above
       console.error("Failed to delete owner:", err);
       // Use intl for consistency, check if message is already translated from the 'in use' check
       // Simple check for keywords - adjust if needed for more robust language detection
@@ -569,7 +567,7 @@ const OwnersView = () => {
                 id="edit-owner-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                disabled={isUpdating || isDeleting} // Disable during update or delete
+                disabled={isUpdating || isDeleting}
               />
             </div>
             <div className="modal-actions">

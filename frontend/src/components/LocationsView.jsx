@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useApi } from "../api/ApiContext"; // Import useApi hook
-import { useIntl } from "react-intl"; // Import useIntl
-import "./LocationsView.css"; // Add basic styling (create this file later if needed)
-import Modal from "./Modal"; // Import the Modal component
+import { useApi } from "../api/ApiContext";
+import { useIntl } from "react-intl";
+import "./LocationsView.css";
+import Modal from "./Modal";
 
 const LocationsView = () => {
   const [locations, setLocations] = useState([]);
@@ -21,8 +21,8 @@ const LocationsView = () => {
   const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
   const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
 
-  const api = useApi(); // Get API methods from context
-  const intl = useIntl(); // Get intl object
+  const api = useApi();
+  const intl = useIntl();
 
   // Function to fetch locations
   const fetchLocations = useCallback(async () => {
@@ -66,7 +66,7 @@ const LocationsView = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, intl]); // Add intl to dependencies
+  }, [api, intl]);
 
   // Fetch locations on component mount and when fetchLocations changes
   useEffect(() => {
@@ -75,7 +75,7 @@ const LocationsView = () => {
 
   // Function to handle adding a new location
   const handleAddLocation = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
 
     if (!newLocationName.trim()) {
       setError(
@@ -149,6 +149,7 @@ const LocationsView = () => {
       }
     } catch (err) {
       console.error("Failed to add location:", err);
+      // Use intl for consistency, even if the message might be technical
       setError(
         intl.formatMessage(
           {
@@ -240,7 +241,7 @@ const LocationsView = () => {
         );
       }
     } catch (err) {
-      console.error("Failed to update location:", err); // Keep console error in English
+      console.error("Failed to update location:", err);
       setUpdateError(
         intl.formatMessage(
           {
@@ -344,7 +345,6 @@ const LocationsView = () => {
         );
       }
     } catch (err) {
-      // err might already be translated if thrown above
       console.error("Failed to delete location:", err);
       // Use intl for consistency, check if message is already translated from the 'in use' check
       const isAlreadyTranslated = [
@@ -565,7 +565,7 @@ const LocationsView = () => {
                 id="edit-location-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
-                disabled={isUpdating || isDeleting} // Disable during update or delete
+                disabled={isUpdating || isDeleting}
               />
             </div>
             <div className="modal-actions">
