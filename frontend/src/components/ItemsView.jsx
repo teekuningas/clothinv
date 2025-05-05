@@ -20,11 +20,10 @@ const ItemsView = () => {
   // Add form state
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
-  const [newItemLocationId, setNewItemLocationId] = useState(""); // Store ID
-  const [newItemCategoryId, setNewItemCategoryId] = useState(""); // Store ID
-  const [newItemImageFile, setNewItemImageFile] = useState(null); // Store File object
-  // REMOVED: const [newItemImagePreview, setNewItemImagePreview] = useState(null);
-  const [newItemOwnerId, setNewItemOwnerId] = useState(""); // Store ID
+  const [newItemLocationId, setNewItemLocationId] = useState("");
+  const [newItemCategoryId, setNewItemCategoryId] = useState("");
+  const [newItemImageFile, setNewItemImageFile] = useState(null);
+  const [newItemOwnerId, setNewItemOwnerId] = useState("");
 
   // General status state
   const [loading, setLoading] = useState(false); // For initial list loading and adding
@@ -35,11 +34,10 @@ const ItemsView = () => {
   const [editingItemId, setEditingItemId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
-  const [editLocationId, setEditLocationId] = useState(""); // Add state for edit location
-  const [editCategoryId, setEditCategoryId] = useState(""); // Add state for edit category
-  const [editItemImageFile, setEditItemImageFile] = useState(null); // Store File object for edit
-  // REMOVED: const [editItemImagePreview, setEditItemImagePreview] = useState(null);
-  const [editOwnerId, setEditOwnerId] = useState(""); // Add state for edit owner
+  const [editLocationId, setEditLocationId] = useState("");
+  const [editCategoryId, setEditCategoryId] = useState("");
+  const [editItemImageFile, setEditItemImageFile] = useState(null);
+  const [editOwnerId, setEditOwnerId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
   const [imageMarkedForRemoval, setImageMarkedForRemoval] = useState(false); // Track if user wants to remove existing image
@@ -67,9 +65,9 @@ const ItemsView = () => {
   // Filter state
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [filterName, setFilterName] = useState("");
-  const [filterLocationIds, setFilterLocationIds] = useState([]); // Array of selected location_id
-  const [filterCategoryIds, setFilterCategoryIds] = useState([]); // Array of selected category_id
-  const [filterOwnerIds, setFilterOwnerIds] = useState([]); // Array of selected owner_id
+  const [filterLocationIds, setFilterLocationIds] = useState([]);
+  const [filterCategoryIds, setFilterCategoryIds] = useState([]);
+  const [filterOwnerIds, setFilterOwnerIds] = useState([]);
 
   // Sort state
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
@@ -123,7 +121,7 @@ const ItemsView = () => {
           api.listItems(),
           api.listLocations(),
           api.listCategories(),
-          api.listOwners(), // Add this
+          api.listOwners(),
         ]);
       setItems(itemsData || []);
       setLocations(locationsData || []);
@@ -206,7 +204,7 @@ const ItemsView = () => {
       }
     });
     return itemsToSort;
-  }, [filteredItems, sortCriteria]); // Depend on filteredItems and sortCriteria
+  }, [filteredItems, sortCriteria]);
 
   // Effect to create/revoke Blob URLs for item list display
   useEffect(() => {
@@ -226,7 +224,7 @@ const ItemsView = () => {
       );
       setItemImageUrls({}); // Clear the state on cleanup
     };
-  }, [sortedItems]); // Re-run when sortedItems changes
+  }, [sortedItems]);
 
   // --- Helper Functions ---
   const getLocationNameById = (id) =>
@@ -380,9 +378,7 @@ const ItemsView = () => {
       let fileToSend = newItemImageFile;
       // Process image before sending if a file exists
       if (newItemImageFile instanceof File) {
-        // setLoading(true); // Remove: Outer loading state is sufficient
         fileToSend = await processImageFile(newItemImageFile);
-        // setLoading(false); // Remove: Outer finally block handles this
       }
 
       const result = await api.addItem({
@@ -735,7 +731,7 @@ const ItemsView = () => {
 
       setIsWebcamOpen(false); // Close the modal
     },
-    [webcamTarget, processImageFile, addImageUrl, editImageUrl], // Add dependencies
+    [webcamTarget, processImageFile, addImageUrl, editImageUrl],
   );
 
   // --- Render ---
