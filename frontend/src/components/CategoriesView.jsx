@@ -27,10 +27,10 @@ const CategoriesView = () => {
   // Function to fetch categories
   const fetchCategories = useCallback(async () => {
     // Only fetch if the provider is configured and listCategories exists
-    if (!api.config.isConfigured || typeof api.listCategories !== "function") {
+    if (!api.isConfigured || typeof api.listCategories !== "function") {
       setCategories([]); // Clear categories if not configured or function missing
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "categories.list.notSupported",
               defaultMessage:
@@ -88,9 +88,9 @@ const CategoriesView = () => {
       return;
     }
     // Only add if the provider is configured and addCategory exists
-    if (!api.config.isConfigured || typeof api.addCategory !== "function") {
+    if (!api.isConfigured || typeof api.addCategory !== "function") {
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "categories.addForm.notSupported",
               defaultMessage:
@@ -397,7 +397,7 @@ const CategoriesView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
       {/* Add Category Form */}
-      {!api.config.isConfigured ? (
+      {!api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
@@ -474,7 +474,7 @@ const CategoriesView = () => {
           defaultMessage: "Existing Categories",
         })}
       </h3>
-      {typeof api.listCategories !== "function" && api.config.isConfigured && (
+      {typeof api.listCategories !== "function" && api.isConfigured && (
         <p className="status-warning">
           {intl.formatMessage({
             id: "categories.list.notSupported",
@@ -487,7 +487,7 @@ const CategoriesView = () => {
         !loading &&
         categories.length === 0 &&
         !error &&
-        api.config.isConfigured && (
+        api.isConfigured && (
           <p>
             {intl.formatMessage({
               id: "categories.list.empty",
@@ -504,7 +504,7 @@ const CategoriesView = () => {
               <h4>{cat.name}</h4>
               {cat.description && <p>{cat.description}</p>}
               {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-              {api.config.isConfigured &&
+              {api.isConfigured &&
                 typeof api.updateCategory === "function" && (
                   <button
                     onClick={() => handleEditClick(cat)}
@@ -590,7 +590,7 @@ const CategoriesView = () => {
                     })}
               </button>
               {/* Use button-danger for delete */}
-              {api.config.isConfigured &&
+              {api.isConfigured &&
                 typeof api.deleteCategory === "function" &&
                 typeof api.listItems === "function" && (
                   <button

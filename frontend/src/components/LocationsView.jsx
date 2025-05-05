@@ -27,10 +27,10 @@ const LocationsView = () => {
   // Function to fetch locations
   const fetchLocations = useCallback(async () => {
     // Only fetch if the provider is configured and listLocations exists
-    if (!api.config.isConfigured || typeof api.listLocations !== "function") {
+    if (!api.isConfigured || typeof api.listLocations !== "function") {
       setLocations([]); // Clear locations if not configured
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "locations.list.notSupported",
               defaultMessage:
@@ -87,9 +87,9 @@ const LocationsView = () => {
       return;
     }
     // Only add if the provider is configured and addLocation exists
-    if (!api.config.isConfigured || typeof api.addLocation !== "function") {
+    if (!api.isConfigured || typeof api.addLocation !== "function") {
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "locations.addForm.notSupported",
               defaultMessage:
@@ -393,7 +393,7 @@ const LocationsView = () => {
       {success && <p className="status-success">{success}</p>}
 
       {/* Add Location Form */}
-      {!api.config.isConfigured ? (
+      {!api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
@@ -482,7 +482,7 @@ const LocationsView = () => {
         !loading &&
         locations.length === 0 &&
         !error &&
-        api.config.isConfigured && (
+        api.isConfigured && (
           <p>
             {intl.formatMessage({
               id: "locations.list.empty",
@@ -499,7 +499,7 @@ const LocationsView = () => {
               <h4>{loc.name}</h4>
               {loc.description && <p>{loc.description}</p>}
               {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-              {api.config.isConfigured &&
+              {api.isConfigured &&
                 typeof api.updateLocation === "function" && (
                   <button
                     onClick={() => handleEditClick(loc)}
@@ -586,7 +586,7 @@ const LocationsView = () => {
                     })}
               </button>
               {/* Use button-danger for delete */}
-              {api.config.isConfigured &&
+              {api.isConfigured &&
                 typeof api.deleteLocation === "function" &&
                 typeof api.listItems === "function" && (
                   <button

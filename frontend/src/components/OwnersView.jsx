@@ -27,10 +27,10 @@ const OwnersView = () => {
   // Function to fetch owners
   const fetchOwners = useCallback(async () => {
     // Only fetch if the provider is configured and listOwners exists
-    if (!api.config.isConfigured || typeof api.listOwners !== "function") {
+    if (!api.isConfigured || typeof api.listOwners !== "function") {
       setOwners([]); // Clear owners if not configured or function missing
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "owners.list.notSupported",
               defaultMessage:
@@ -88,9 +88,9 @@ const OwnersView = () => {
       return;
     }
     // Only add if the provider is configured and addOwner exists
-    if (!api.config.isConfigured || typeof api.addOwner !== "function") {
+    if (!api.isConfigured || typeof api.addOwner !== "function") {
       setError(
-        api.config.isConfigured
+        api.isConfigured
           ? intl.formatMessage({
               id: "owners.addForm.notSupported",
               defaultMessage:
@@ -397,7 +397,7 @@ const OwnersView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
       {/* Add Owner Form */}
-      {!api.config.isConfigured ? (
+      {!api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
@@ -474,7 +474,7 @@ const OwnersView = () => {
           defaultMessage: "Existing Owners",
         })}
       </h3>
-      {typeof api.listOwners !== "function" && api.config.isConfigured && (
+      {typeof api.listOwners !== "function" && api.isConfigured && (
         <p className="status-warning">
           {intl.formatMessage({
             id: "owners.list.notSupported",
@@ -487,7 +487,7 @@ const OwnersView = () => {
         !loading &&
         owners.length === 0 &&
         !error &&
-        api.config.isConfigured && (
+        api.isConfigured && (
           <p>
             {intl.formatMessage({
               id: "owners.list.empty",
@@ -504,7 +504,7 @@ const OwnersView = () => {
               <h4>{owner.name}</h4>
               {owner.description && <p>{owner.description}</p>}
               {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-              {api.config.isConfigured &&
+              {api.isConfigured &&
                 typeof api.updateOwner === "function" && (
                   <button
                     onClick={() => handleEditClick(owner)}
@@ -590,7 +590,7 @@ const OwnersView = () => {
                     })}
               </button>
               {/* Use button-danger for delete */}
-              {api.config.isConfigured &&
+              {api.isConfigured &&
                 typeof api.deleteOwner === "function" &&
                 typeof api.listItems === "function" && (
                   <button
