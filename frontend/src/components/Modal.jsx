@@ -1,9 +1,9 @@
 import React from "react";
-import { useIntl } from "react-intl"; // Import useIntl
-import "./Modal.css"; // Create corresponding CSS file
+import { useIntl } from "react-intl";
+import "./Modal.css";
 
 const Modal = ({ show, onClose, title, children }) => {
-  const intl = useIntl(); // Get intl object
+  const intl = useIntl();
 
   if (!show) {
     return null;
