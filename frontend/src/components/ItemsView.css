@@ -18,16 +18,8 @@
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
-    font-size: 0.9em; /* Slightly smaller for filter labels */
+    /* font-size: 0.9em; */ /* Removed - Handled by .checkbox-item label or default */
     color: var(--color-text-label);
-}
-
-.checkbox-item label {
-    margin-bottom: 0; /* Reset margin from .filter-group label */
-    font-weight: normal;
-    font-size: 0.95em; /* Slightly smaller than base */
-    cursor: pointer;
-    color: var(--color-text-base);
 }
 
 .add-item-form .form-group {
