@@ -19,7 +19,7 @@
 }
 
 .settings-fieldset .form-actions {
-  margin-top: 20px; /* Reduced margin */
+  margin-top: 15px; /* Further reduced margin */
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -27,6 +27,11 @@
 
 .settings-fieldset .feedback-section { /* Container for status messages */
     margin-top: 10px;
+}
+
+/* Add margin for the specific feedback sections in Language/API/Image */
+.settings-fieldset .save-feedback {
+    margin-top: 10px; /* Add space below action buttons */
 }
 
 /* --- Data Management Section --- */
@@ -73,26 +78,6 @@
     font-weight: bold;
     overflow-wrap: break-word; /* Ensure long text wraps */
     box-sizing: border-box; /* Add this */
-}
-
-/* Style for aligning an input/select and its inline save button */
-.setting-with-button {
-    display: flex;
-    align-items: center; /* Vertically align items */
-    gap: 10px; /* Space between control and button */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-}
-
-/* Ensure the control within the flex container takes up available space */
-.setting-with-button > select,
-.setting-with-button > .checkbox-item { /* Target the checkbox wrapper */
-    flex-grow: 1; /* Allow control to grow */
-    min-width: 150px; /* Prevent control from becoming too small */
-}
-
-/* Adjust inline button width if needed, or let it size naturally */
-.setting-with-button > .button-save-inline {
-    flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 

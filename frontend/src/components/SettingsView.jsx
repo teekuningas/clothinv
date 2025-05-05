@@ -673,11 +673,12 @@ const SettingsView = () => {
               defaultMessage: "Image Processing",
             })}
           </legend>
-          <div className="form-group checkbox-group">
-            <div className="setting-with-button">
-              <div className="checkbox-item">
-                <input
-                  type="checkbox"
+          {/* Use standard form-group structure */}
+          <div className="form-group">
+            {/* Keep checkbox-item for potential specific styling if needed */}
+            <div className="checkbox-item">
+              <input
+                type="checkbox"
                   id="imageCompressionEnabled"
                   name="imageCompressionEnabled"
                   checked={localImageCompressionEnabled} // Use local state
@@ -693,9 +694,11 @@ const SettingsView = () => {
                 </label>
               </div>
             </div>
-            <div className="form-actions">
-              <button
-                type="button"
+          </div>
+          {/* Standard form-actions block */}
+          <div className="form-actions">
+            <button
+              type="button"
                 onClick={handleSaveImageSettings}
                 className="button-primary"
                 disabled={
@@ -713,7 +716,7 @@ const SettingsView = () => {
                     })}
               </button>
             </div>
-          </div>
+
           {/* Save Status Feedback for Image Settings */}
           <div className="save-feedback" style={{ minHeight: "20px" }}>
             {imageSaveStatus === "success" && (
