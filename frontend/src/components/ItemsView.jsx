@@ -250,7 +250,7 @@ const ItemsView = () => {
   };
 
   const handleRemoveNewImage = () => {
-    if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke URL
+    if (addImageUrl) URL.revokeObjectURL(addImageUrl);
     setNewItemImageFile(null);
     setAddImageUrl(null);
   };
@@ -260,7 +260,7 @@ const ItemsView = () => {
     async (file) => {
       if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
         console.log("Image compression skipped (disabled or not a file).");
-        return file; // Return original if disabled or not a file
+        return file;
       }
 
       console.log(
