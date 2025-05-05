@@ -1,14 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom"; // Removed useNavigate
 import { useIntl } from "react-intl";
-// Import keys from their source files
-import { LS_API_PROVIDER_CONFIG_KEY } from "../api/ApiContext";
-import { LS_LOCALE_KEY, getLocaleCodes } from "../translations/i18n";
-// Removed getProviderById import
+import { useSettings } from "../settings/SettingsContext"; // Import useSettings
+import { getLocaleCodes } from "../translations/i18n"; // Keep for locale validation
 
-// Define keys directly if not exported from context/i18n
-// const LS_API_PROVIDER_CONFIG_KEY = 'apiProviderConfig';
-// const LS_LOCALE_KEY = 'userLocale';
+// Removed LS key imports
 
 // Helper function to update nested properties in an object based on a path string
 // Example: updateNestedObject(obj, 'settings.datasetteBaseUrl', 'http://new.url')
@@ -36,8 +32,8 @@ const updateNestedObject = (obj, path, value) => {
 
 const ConfigureFromUrl = () => {
   const [searchParams] = useSearchParams();
-  // Removed useNavigate hook
   const intl = useIntl();
+  const { updateSettings } = useSettings(); // Get update function from context
   const [statusMessage, setStatusMessage] = useState(
     intl.formatMessage({
       id: "configure.status.processing",
@@ -65,95 +61,65 @@ const ConfigureFromUrl = () => {
       const decodedQueryString = atob(encodedValues);
       // Parse the query string into parameters
       const configParams = new URLSearchParams(decodedQueryString);
+      const validLocales = getLocaleCodes();
 
       let changesApplied = 0;
-      let apiConfigModified = false;
-      let currentApiConfig = null;
-
-      // --- Process API Provider Config Parameters ---
-      try {
-        const savedApiConfig = localStorage.getItem(LS_API_PROVIDER_CONFIG_KEY);
-        currentApiConfig = savedApiConfig
-          ? JSON.parse(savedApiConfig)
-          : { providerType: "none", settings: {} };
-        // Ensure settings is an object if it's missing or null
-        if (!currentApiConfig.settings) {
-          currentApiConfig.settings = {};
-        }
-      } catch (e) {
-        console.error(
-          "Failed to parse existing API config from localStorage:",
-          e,
-        );
-        // Start with a default structure if parsing fails
-        currentApiConfig = { providerType: "none", settings: {} };
-        // Optionally set an error state or message here
-      }
+      const settingsToUpdate = {}; // Object to collect all settings changes
 
       for (const [key, value] of configParams.entries()) {
-        if (key.startsWith("apiProviderConfig.")) {
-          const path = key.substring("apiProviderConfig.".length); // e.g., "providerType" or "settings.datasetteBaseUrl"
-          if (path) {
-            // Ensure path is not empty
-            updateNestedObject(currentApiConfig, path, value);
-            apiConfigModified = true;
+        console.log(`Processing param: ${key} = ${value}`);
+        if (key === "locale") {
+          if (validLocales.includes(value)) {
+            settingsToUpdate.locale = value;
             changesApplied++;
-            console.log(`Applied API config change: ${path} = ${value}`);
+            console.log(`Applying setting: locale = ${value}`);
           } else {
-            console.warn(`Ignoring invalid API config key: ${key}`);
+            console.warn(`Ignoring invalid locale value: ${value}`);
+          }
+        } else if (key === "apiProviderType") {
+          // Basic validation could be added here if needed (e.g., check against getProviderIds)
+          settingsToUpdate.apiProviderType = value;
+          changesApplied++;
+          console.log(`Applying setting: apiProviderType = ${value}`);
+        } else if (key === "imageCompressionEnabled") {
+          // Convert string "true"/"false" to boolean
+          settingsToUpdate.imageCompressionEnabled = value === "true";
+          changesApplied++;
+          console.log(
+            `Applying setting: imageCompressionEnabled = ${settingsToUpdate.imageCompressionEnabled}`,
+          );
+        } else if (key.startsWith("apiSettings.")) {
+          const settingKey = key.substring("apiSettings.".length);
+          if (settingKey) {
+            // Initialize apiSettings if it doesn't exist yet
+            if (!settingsToUpdate.apiSettings) {
+              settingsToUpdate.apiSettings = {};
+            }
+            settingsToUpdate.apiSettings[settingKey] = value;
+            changesApplied++;
+            console.log(`Applying setting: apiSettings.${settingKey} = ${value}`);
+          } else {
+            console.warn(`Ignoring invalid apiSettings key: ${key}`);
           }
         }
       }
 
-      // Save the modified API config back to localStorage if changes were made
-      if (apiConfigModified) {
-        try {
-          localStorage.setItem(
-            LS_API_PROVIDER_CONFIG_KEY,
-            JSON.stringify(currentApiConfig),
-          );
-          console.log(
-            "Saved updated API configuration to localStorage:",
-            currentApiConfig,
-          );
-        } catch (e) {
-          console.error(
-            "Failed to save updated API config to localStorage:",
-            e,
-          );
-          // Handle this error - maybe set isError state?
-          setStatusMessage(
-            intl.formatMessage({
-              id: "configure.error.saveApiFailed",
-              defaultMessage: "Error saving API configuration.",
-            }),
-          );
-          setIsError(true);
-          return; // Stop processing if saving failed
-        }
-      }
-
-      // --- Process Locale Parameter ---
-      const localeValue = configParams.get("userLocale");
-      if (localeValue) {
-        const validLocales = getLocaleCodes();
-        if (validLocales.includes(localeValue)) {
-          localStorage.setItem(LS_LOCALE_KEY, localeValue);
-          console.log("Applied Locale configuration from URL:", localeValue);
-          changesApplied++;
-        } else {
-          console.warn(
-            "Invalid Locale configuration in URL data:",
-            localeValue,
-          );
-          // Optionally set a non-blocking warning message part here
+      // --- Process Deprecated Locale Parameter (for backward compatibility) ---
+      const deprecatedLocaleValue = configParams.get("userLocale");
+      if (deprecatedLocaleValue) {
+        console.warn("Ignoring deprecated URL parameter 'userLocale'. Use 'locale' instead.");
+        // If 'locale' wasn't already set by the new key, apply the old one
+        if (!settingsToUpdate.locale && validLocales.includes(deprecatedLocaleValue)) {
+            settingsToUpdate.locale = deprecatedLocaleValue;
+            changesApplied++;
+            console.log(`Applying deprecated setting: locale = ${deprecatedLocaleValue}`);
         }
       }
 
       // --- Final Status and Redirect ---
       if (changesApplied > 0) {
-        setStatusMessage(
-          intl.formatMessage({
+        updateSettings(settingsToUpdate); // Apply all collected settings at once
+        setStatusMessage(intl.formatMessage({
             id: "configure.status.success",
             defaultMessage: "Configuration applied. Redirecting...",
           }),
@@ -196,8 +162,8 @@ const ConfigureFromUrl = () => {
         ),
       );
       setIsError(true);
-    }
-  }, [searchParams, intl]); // Removed navigate from dependencies
+    } // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, intl, updateSettings]); // Add updateSettings to dependencies
   return (
     // Use settings-view class for consistent padding/styling
     <div className="settings-view" style={{ textAlign: "center" }}>

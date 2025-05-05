@@ -1,76 +1,53 @@
 import React, { useState, useEffect } from "react";
-// Removed useSearchParams import
 import { useIntl } from "react-intl";
-// Import localStorage keys
-import { LS_API_PROVIDER_CONFIG_KEY } from "../api/ApiContext";
-import { LS_LOCALE_KEY } from "../translations/i18n";
+import { useSettings } from "../settings/SettingsContext"; // Import useSettings
+
+// Removed LS key imports
 
 const ExportConfigurationLink = () => {
   // Removed useSearchParams hook
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
+  const { settings } = useSettings(); // Get settings from context
 
   useEffect(() => {
+    // Get settings directly from context instead of localStorage
     const configParams = new URLSearchParams();
     let foundConfig = false;
 
-    // 1. Get Locale from localStorage
+    // 1. Add Locale from settings context
     try {
-      const localeValue = localStorage.getItem(LS_LOCALE_KEY);
-      if (localeValue) {
-        configParams.set("userLocale", localeValue);
+      if (settings.locale) {
+        configParams.set("locale", settings.locale); // Use 'locale' key
         foundConfig = true;
-        console.log(
-          "ExportConfig: Added userLocale from localStorage:",
-          localeValue,
-        );
+        console.log("ExportConfig: Added locale from settings:", settings.locale);
       }
     } catch (e) {
-      console.error("ExportConfig: Error reading locale from localStorage:", e);
-      // Optionally set a non-critical error/warning here if needed
+      console.error("ExportConfig: Error processing locale from settings:", e);
     }
 
-    // 2. Get API Config from localStorage
+    // 2. Add API Config from settings context
     try {
-      const savedApiConfig = localStorage.getItem(LS_API_PROVIDER_CONFIG_KEY);
-      if (savedApiConfig) {
-        const apiConfig = JSON.parse(savedApiConfig); // Parse the JSON string
-
-        // Add providerType
-        if (apiConfig.providerType) {
-          configParams.set(
-            "apiProviderConfig.providerType",
-            apiConfig.providerType,
-          );
-          foundConfig = true;
-          console.log(
-            "ExportConfig: Added apiProviderConfig.providerType from localStorage:",
-            apiConfig.providerType,
-          );
-        }
-
-        // Add settings if they exist and are an object
-        if (apiConfig.settings && typeof apiConfig.settings === "object") {
-          for (const [key, value] of Object.entries(apiConfig.settings)) {
-            // Ensure value is not null/undefined before setting
-            if (value !== null && value !== undefined) {
-              configParams.set(
-                `apiProviderConfig.settings.${key}`,
-                String(value),
-              ); // Convert value to string
-              foundConfig = true;
-              console.log(
-                `ExportConfig: Added apiProviderConfig.settings.${key} from localStorage:`,
-                String(value),
-              );
-            }
+      // Add providerType
+      if (settings.apiProviderType) {
+        configParams.set("apiProviderType", settings.apiProviderType);
+        foundConfig = true;
+        console.log("ExportConfig: Added apiProviderType from settings:", settings.apiProviderType);
+      }
+      // Add apiSettings
+      if (settings.apiSettings && typeof settings.apiSettings === "object") {
+        for (const [key, value] of Object.entries(settings.apiSettings)) {
+          if (value !== null && value !== undefined) {
+            configParams.set(`apiSettings.${key}`, String(value)); // Prefix with apiSettings.
+            foundConfig = true;
+            console.log(`ExportConfig: Added apiSettings.${key} from settings:`, String(value));
           }
         }
       }
     } catch (e) {
       console.error(
-        "ExportConfig: Error reading or parsing API config from localStorage:",
+        "ExportConfig: Error processing API config from settings:",
         e,
       );
       setError(
@@ -84,7 +61,18 @@ const ExportConfigurationLink = () => {
       return; // Stop processing if API config fails critically
     }
 
-    // 3. Check if any config was found
+    // 3. Add Image Compression setting
+    try {
+      // Add imageCompressionEnabled (convert boolean to string)
+      if (settings.imageCompressionEnabled !== undefined) {
+        configParams.set("imageCompressionEnabled", String(settings.imageCompressionEnabled));
+        foundConfig = true;
+        console.log("ExportConfig: Added imageCompressionEnabled from settings:", settings.imageCompressionEnabled);
+      }
+    } catch (e) {
+      console.error("ExportConfig: Error processing imageCompressionEnabled from settings:", e);
+    }
+    // 4. Check if any config was found
     if (!foundConfig) {
       setError(
         intl.formatMessage({
@@ -119,7 +107,7 @@ const ExportConfigurationLink = () => {
     }
 
     // End of useEffect body
-  }, [intl]); // Dependency array changed to [intl]
+  }, [intl, settings]); // Add settings to dependencies
 
   const handleCopyUrl = () => {
     if (!generatedUrl) return; // Don't copy if URL generation failed
