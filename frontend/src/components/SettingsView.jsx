@@ -6,7 +6,6 @@ import {
   getProviderDisplayNames,
 } from "../api/providerRegistry";
 import { useApi } from "../api/ApiContext"; // Keep useApi for export/import/destroy
-// REMOVED: import { useTranslationContext } from "../translations/TranslationContext";
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings hook
 import "./SettingsView.css";
 const SettingsView = () => {
@@ -157,7 +156,6 @@ const SettingsView = () => {
       setLanguageSaveError(error.message || "An unexpected error occurred.");
       setLanguageSaveStatus("error");
     }
-    // Depend on local state and the update function from SettingsContext
   }, [localLocale, updateAppSettings]);
 
   // Handle saving ONLY the API configuration
@@ -178,7 +176,7 @@ const SettingsView = () => {
       setApiSaveError(error.message || "An unexpected error occurred.");
       setApiSaveStatus("error");
     }
-  }, [localApiSettings, updateAppSettings]); // Depend on local state and update function
+  }, [localApiSettings, updateAppSettings]);
 
   // Handle changes ONLY for Image settings inputs (e.g., checkbox)
   const handleImageSettingsChange = useCallback((e) => {
@@ -207,7 +205,7 @@ const SettingsView = () => {
       setImageSaveError(error.message || "An unexpected error occurred.");
       setImageSaveStatus("error");
     }
-  }, [localImageCompressionEnabled, updateAppSettings]); // Depend on local state and update function
+  }, [localImageCompressionEnabled, updateAppSettings]);
 
   // --- Export Handler ---
   const handleExport = useCallback(async () => {
@@ -259,7 +257,7 @@ const SettingsView = () => {
       );
       setExportStatus("error");
     }
-  }, [api, appSettings.apiProviderType, intl]); // Depend on provider from settings
+  }, [api, appSettings.apiProviderType, intl]);
 
   // --- Import Handlers ---
   const handleFileChange = (event) => {
@@ -364,7 +362,7 @@ const SettingsView = () => {
       );
       setImportStatus("error");
     }
-  }, [api, importFile, intl]);
+  }, [api, importFile, intl, updateAppSettings]); // Added updateAppSettings dependency
 
   const handleDestroy = useCallback(async () => {
     if (typeof api.destroyData !== "function") {
@@ -443,7 +441,7 @@ const SettingsView = () => {
       );
       setDestroyStatus("error");
     }
-  }, [api, appSettings.apiProviderType, providerDisplayNames, intl]); // Depend on provider from settings
+  }, [api, appSettings.apiProviderType, providerDisplayNames, intl, updateAppSettings]); // Added updateAppSettings dependency
 
   // Get the definition for the currently selected provider in the local state
   const selectedProviderId = localApiSettings?.providerType || appSettings.apiProviderType || "none"; // Use local state first, then context

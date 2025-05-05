@@ -257,7 +257,6 @@ function App() {
             <Route path="/owners" element={<OwnersView />} />
             <Route
               path="/settings"
-              // SettingsView now gets its data from useSettings and useApi internally
               element={<SettingsView />}
             />
             <Route path="/configure" element={<ConfigureFromUrl />} />

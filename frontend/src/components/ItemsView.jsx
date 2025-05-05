@@ -307,7 +307,7 @@ const ItemsView = () => {
         return file;
       }
     },
-    [appSettings.imageCompressionEnabled, intl], // Depend on the setting from context
+    [appSettings.imageCompressionEnabled, intl],
   ); // Depend on the setting
 
   // --- Add Item Handler ---

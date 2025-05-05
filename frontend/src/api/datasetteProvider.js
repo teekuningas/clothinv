@@ -19,8 +19,6 @@ const defaultHeaders = (settings) => {
     return headers;
 };
 
-// Removed readFileAsBase64, createCSV, parseCSV - now imported
-
 // handleResponse updated to be more generic and return JSON if possible
 const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {
@@ -35,10 +33,7 @@ const handleResponse = async (res, operation, entityDescription) => {
 // --- Internal Helper Functions (Not Exported Directly to Context) ---
 // These now accept the 'settings' object instead of individual config parameters.
 
-// Note: addLocationInternal was removed and replaced by the exported addLocation below.
-
-// Rename and export this function
-export const addCategory = async (settings, data) => { // Rename to addCategory and export
+export const addCategory = async (settings, data) => {
     const categoryData = {
         row: { ...data, updated_at: null } // Explicitly set updated_at to null on creation
         // created_at should be handled by DB default
@@ -105,7 +100,6 @@ export const addLocation = async (settings, data) => {
         body: JSON.stringify(locationData),
     });
     // Use handleResponse for initial check, but we need the ID later
-    // Use updated handleResponse
     const insertResult = await handleResponse(insertRes, 'add', 'location');
     if (!insertResult.success) {
          // Error already thrown by handleResponse, but be explicit
@@ -158,7 +152,6 @@ export const listLocations = async (settings) => {
     }
 
     const data = await res.json();
-    // The response is already the array of location objects thanks to _shape=array
     console.log("Fetched locations:", data);
     return data; // Returns array like [{location_id: 1, name: 'Closet', ...}, ...]
 };
@@ -242,7 +235,6 @@ export const listCategories = async (settings) => {
     }
 
     const data = await res.json();
-    // The response is already the array of category objects thanks to _shape=array
     console.log("Fetched categories:", data);
     return data; // Returns array like [{category_id: 1, name: 'Tops', ...}, ...]
 };
@@ -322,7 +314,6 @@ export const listOwners = async (settings) => {
     }
 
     const data = await res.json();
-    // The response is already the array of owner objects thanks to _shape=array
     console.log("Fetched owners:", data);
     return data; // Returns array like [{owner_id: 1, name: 'Alice', ...}, ...]
 };
@@ -341,7 +332,6 @@ export const addOwner = async (settings, data) => { // Rename to addOwner and ex
         headers: defaultHeaders(settings),
         body: JSON.stringify(ownerData),
     });
-    // Use updated handleResponse
     const insertResult = await handleResponse(insertRes, 'add', 'owner');
      if (!insertResult.success) {
          throw new Error(`Owner insert failed with status ${insertRes.status}`);
@@ -658,8 +648,6 @@ export const listItems = async (settings) => {
             return [];
         }
 
-        // Removed base64ToBlob - now imported
-
         // 2. Fetch all images (including filename)
         const imagesUrl = `${baseUrl}/images.json?_shape=array`;
         const imagesRes = await fetch(imagesUrl, {
@@ -717,7 +705,6 @@ export const listItems = async (settings) => {
 // --- Export/Import ---
 
 export const exportData = async (settings) => {
-    console.log('DatasetteProvider: exportData called');
     const zip = new JSZip();
 
     try {
@@ -779,7 +766,6 @@ export const exportData = async (settings) => {
 };
 
 export const importData = async (settings, zipFile) => {
-    console.log('DatasetteProvider: importData called');
     const zip = new JSZip();
     try {
         const loadedZip = await zip.loadAsync(zipFile);
@@ -902,7 +888,6 @@ export const importData = async (settings, zipFile) => {
 };
 
 export const destroyData = async (settings) => {
-    console.log('DatasetteProvider: destroyData called');
     try {
         // --- Clear existing data ---
         console.log("Clearing existing Datasette data (Items first)...");

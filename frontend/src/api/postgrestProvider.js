@@ -9,8 +9,6 @@ import {
     parseCSV
 } from './providerUtils'; // Import shared utilities
 
-// Removed getMimeTypeFromFilename - now imported
-
 // Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings, preferRepresentation = true) => {
     const headers = {
@@ -27,8 +25,6 @@ const defaultHeaders = (settings, preferRepresentation = true) => {
     }
     return headers;
 };
-
-// Removed readFileAsBase64, base64ToBlob, createCSV, parseCSV - now imported
 
 // handleResponse updated for PostgREST error format
 const handleResponse = async (res, operation, entityDescription) => {
@@ -65,8 +61,6 @@ const handleResponse = async (res, operation, entityDescription) => {
         return { success: true, status: res.status, data: null };
     }
 };
-
-// --- Internal Helper Functions (Not Exported Directly to Context) ---
 
 // --- Exported API Methods (Bound by ApiContext) ---
 // These are the functions listed in the providerRegistry 'methods' array.
@@ -601,7 +595,6 @@ export const listItems = async (settings) => {
 // --- Export/Import ---
 
 export const exportData = async (settings) => {
-    console.log('PostgRESTProvider: exportData called');
     const zip = new JSZip();
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
@@ -694,7 +687,6 @@ export const exportData = async (settings) => {
 };
 
 export const importData = async (settings, zipFile) => {
-    console.log('PostgRESTProvider: importData called');
     const zip = new JSZip();
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
@@ -832,7 +824,6 @@ export const importData = async (settings, zipFile) => {
 };
 
 export const destroyData = async (settings) => {
-    console.log('PostgRESTProvider: destroyData called');
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 

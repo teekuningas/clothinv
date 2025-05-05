@@ -95,7 +95,6 @@ export const TranslationProvider = ({ children }) => {
   // The context value
   const value = {
     locale,
-    // changeLocale removed
     availableLocales,
     loadingMessages,
     loadError,

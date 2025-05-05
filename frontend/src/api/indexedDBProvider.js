@@ -103,7 +103,7 @@ const getAllFromStore = async (storeName) => {
     });
 };
 
-export const destroyData = async (settings) => { // eslint-disable-line no-unused-vars
+export const destroyData = async (settings) => {
     console.log('IndexedDBProvider: destroyData called');
     try {
         console.log("Clearing all IndexedDB object stores...");
@@ -145,9 +145,7 @@ export const destroyData = async (settings) => { // eslint-disable-line no-unuse
 
 // --- Export/Import ---
 
-// Removed createCSV - now imported
-
-export const exportData = async (settings) => { // eslint-disable-line no-unused-vars
+export const exportData = async (settings) => {
     console.log('IndexedDBProvider: exportData called');
     const zip = new JSZip();
 
@@ -209,9 +207,7 @@ export const exportData = async (settings) => { // eslint-disable-line no-unused
     }
 };
 
-// Removed parseCSV - now imported
-
-export const importData = async (settings, zipFile) => { // eslint-disable-line no-unused-vars
+export const importData = async (settings, zipFile) => {
     console.log('IndexedDBProvider: importData called');
     const zip = new JSZip();
     try {
@@ -442,12 +438,12 @@ const getFromStore = async (storeName, key) => {
 // --- Exported API Methods ---
 
 // Locations
-export const listLocations = async (settings) => { // eslint-disable-line no-unused-vars
+export const listLocations = async (settings) => {
     console.log('IndexedDBProvider: listLocations called');
     return getAllFromStore(STORES.locations);
 };
 
-export const addLocation = async (settings, data) => { // eslint-disable-line no-unused-vars
+export const addLocation = async (settings, data) => {
     console.log('IndexedDBProvider: addLocation called with data:', data);
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -506,7 +502,7 @@ export const addLocation = async (settings, data) => { // eslint-disable-line no
     });
 };
 
-export const updateLocation = async (settings, locationId, data) => { // eslint-disable-line no-unused-vars
+export const updateLocation = async (settings, locationId, data) => {
     console.log(`IndexedDBProvider: updateLocation called for ID ${locationId} with data:`, data);
     const existing = await getFromStore(STORES.locations, locationId);
     if (!existing) return { success: false, message: 'Location not found' };
@@ -519,7 +515,7 @@ export const updateLocation = async (settings, locationId, data) => { // eslint-
     return { success: true };
 };
 
-export const deleteLocation = async (settings, locationId) => { // eslint-disable-line no-unused-vars
+export const deleteLocation = async (settings, locationId) => {
     console.log(`IndexedDBProvider: deleteLocation called for ID ${locationId}`);
     // Check if used by items
     const items = await getAllFromStore(STORES.items);
@@ -536,12 +532,12 @@ export const deleteLocation = async (settings, locationId) => { // eslint-disabl
 };
 
 // Categories (similar structure to Locations)
-export const listCategories = async (settings) => { // eslint-disable-line no-unused-vars
+export const listCategories = async (settings) => {
     console.log('IndexedDBProvider: listCategories called');
     return getAllFromStore(STORES.categories);
 };
 
-export const addCategory = async (settings, data) => { // eslint-disable-line no-unused-vars
+export const addCategory = async (settings, data) => {
     console.log('IndexedDBProvider: addCategory called with data:', data);
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -599,7 +595,7 @@ export const addCategory = async (settings, data) => { // eslint-disable-line no
     });
 };
 
-export const updateCategory = async (settings, categoryId, data) => { // eslint-disable-line no-unused-vars
+export const updateCategory = async (settings, categoryId, data) => {
     console.log(`IndexedDBProvider: updateCategory called for ID ${categoryId} with data:`, data);
     const existing = await getFromStore(STORES.categories, categoryId);
     if (!existing) return { success: false, message: 'Category not found' };
@@ -612,7 +608,7 @@ export const updateCategory = async (settings, categoryId, data) => { // eslint-
     return { success: true };
 };
 
-export const deleteCategory = async (settings, categoryId) => { // eslint-disable-line no-unused-vars
+export const deleteCategory = async (settings, categoryId) => {
     console.log(`IndexedDBProvider: deleteCategory called for ID ${categoryId}`);
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.category_id === categoryId);
@@ -626,12 +622,12 @@ export const deleteCategory = async (settings, categoryId) => { // eslint-disabl
 };
 
 // Owners (similar structure to Locations)
-export const listOwners = async (settings) => { // eslint-disable-line no-unused-vars
+export const listOwners = async (settings) => {
     console.log('IndexedDBProvider: listOwners called');
     return getAllFromStore(STORES.owners);
 };
 
-export const addOwner = async (settings, data) => { // eslint-disable-line no-unused-vars
+export const addOwner = async (settings, data) => {
     console.log('IndexedDBProvider: addOwner called with data:', data);
     const db = await openDB();
     return new Promise((resolve, reject) => {
@@ -689,7 +685,7 @@ export const addOwner = async (settings, data) => { // eslint-disable-line no-un
     });
 };
 
-export const updateOwner = async (settings, ownerId, data) => { // eslint-disable-line no-unused-vars
+export const updateOwner = async (settings, ownerId, data) => {
     console.log(`IndexedDBProvider: updateOwner called for ID ${ownerId} with data:`, data);
     const existing = await getFromStore(STORES.owners, ownerId);
     if (!existing) return { success: false, message: 'Owner not found' };
@@ -702,7 +698,7 @@ export const updateOwner = async (settings, ownerId, data) => { // eslint-disabl
     return { success: true };
 };
 
-export const deleteOwner = async (settings, ownerId) => { // eslint-disable-line no-unused-vars
+export const deleteOwner = async (settings, ownerId) => {
     console.log(`IndexedDBProvider: deleteOwner called for ID ${ownerId}`);
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.owner_id === ownerId);
@@ -717,7 +713,7 @@ export const deleteOwner = async (settings, ownerId) => { // eslint-disable-line
 
 
 // Items
-export const listItems = async (settings) => { // eslint-disable-line no-unused-vars
+export const listItems = async (settings) => {
     console.log('IndexedDBProvider: listItems called');
     const itemsMetadata = await getAllFromStore(STORES.items);
     const itemsWithFiles = [];
@@ -738,7 +734,7 @@ export const listItems = async (settings) => { // eslint-disable-line no-unused-
     return itemsWithFiles;
 };
 
-export const addItem = async (settings, data) => { // eslint-disable-line no-unused-vars
+export const addItem = async (settings, data) => {
     console.log('IndexedDBProvider: addItem called with data:', data);
     const { imageFile, ...restOfData } = data; // Separate image file
     const db = await openDB();
@@ -814,7 +810,7 @@ export const addItem = async (settings, data) => { // eslint-disable-line no-unu
 };
 
 
-export const updateItem = async (settings, itemId, data) => { // eslint-disable-line no-unused-vars
+export const updateItem = async (settings, itemId, data) => {
     console.log(`IndexedDBProvider: updateItem called for ID ${itemId} with data:`, data);
 
     // Get existing item metadata first
@@ -887,7 +883,7 @@ export const updateItem = async (settings, itemId, data) => { // eslint-disable-
 };
 
 
-export const deleteItem = async (settings, itemId) => { // eslint-disable-line no-unused-vars
+export const deleteItem = async (settings, itemId) => {
     console.log(`IndexedDBProvider: deleteItem called for ID ${itemId}`);
 
     // Check if item exists before attempting delete (optional)
