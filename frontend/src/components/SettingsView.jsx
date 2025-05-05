@@ -37,7 +37,6 @@ const SettingsView = () => {
   const [saveError, setSaveError] = useState(null);
   const [providerDisplayNames, setProviderDisplayNames] = useState({});
   const intl = useIntl(); // Get intl object
-  // Removed duplicate state declarations for saveStatus and saveError
 
   // Local state for Image settings being edited
   const [localImageCompressionEnabled, setLocalImageCompressionEnabled] = useState(appSettings.imageCompressionEnabled);
@@ -149,10 +148,6 @@ const SettingsView = () => {
 
   // Handle saving ONLY the Language configuration
   const handleSaveLanguage = useCallback(async () => {
-    // Prevent saving if the locale hasn't actually changed
-    if (localLocale === currentLocale) {
-      return;
-    }
     setLanguageSaveStatus("saving");
     setLanguageSaveError(null);
     try {
@@ -184,7 +179,6 @@ const SettingsView = () => {
       setSaveError(error.message || "An unexpected error occurred.");
       setSaveStatus("error");
     }
-    // Removed duplicate catch block
   }, [localApiSettings, saveApiConfig]); // Dependencies: local state being saved, context function
 
   // Handle changes ONLY for Image settings inputs (e.g., checkbox)
@@ -200,10 +194,6 @@ const SettingsView = () => {
 
   // Handle saving ONLY the Image settings
   const handleSaveImageSettings = useCallback(async () => {
-    // Prevent saving if the setting hasn't actually changed
-    if (localImageCompressionEnabled === appSettings.imageCompressionEnabled) {
-      return;
-    }
     setImageSaveStatus("saving");
     setImageSaveError(null);
     try {
@@ -489,10 +479,9 @@ const SettingsView = () => {
                 defaultMessage: "Display Language:",
               })}
             </label>
-            {/* Removed setting-with-button wrapper */}
-              <select
+            <select
                 id="locale"
-                name="locale" // Informational name
+                name="locale"
                 value={localLocale} // Value from local state
                 onChange={handleLocaleChange} // Use dedicated handler
                 disabled={languageLoading || languageSaveStatus === 'saving'} // Disable while loading/saving
@@ -504,15 +493,13 @@ const SettingsView = () => {
                   </option>
                 ))}
               </select>
-            {/* Removed button and closing div from here */}
           </div>
-          {/* Added form-actions wrapper for the button */}
           <div className="form-actions">
               <button
                 type="button"
                 onClick={handleSaveLanguage}
-                className="button-primary" // Removed button-save-inline
-                disabled={languageSaveStatus === 'saving' || languageSaveStatus === 'success' || localLocale === currentLocale || languageLoading}
+                className="button-primary"
+                disabled={languageSaveStatus === 'saving' || languageSaveStatus === 'success' || languageLoading}
               >
                 {languageSaveStatus === 'saving'
                   ? intl.formatMessage({ id: "common.saving", defaultMessage: "Saving..." })
@@ -564,7 +551,6 @@ const SettingsView = () => {
             selectedProvider.configFields &&
             selectedProvider.configFields.map((field) => (
               <div className="form-group" key={field.key}>
-                {/* Use intl.formatMessage for the label */}
                 <label htmlFor={`api-setting-${field.key}`}>
                   {intl.formatMessage({ id: field.label })}:
                 </label>
@@ -574,7 +560,6 @@ const SettingsView = () => {
                   name={field.key} // Name matches the key within localApiSettings.settings
                   value={localApiSettings.settings?.[field.key] || ""} // Access nested setting safely
                   onChange={handleApiChange} // Use API change handler
-                  // Use intl.formatMessage for the placeholder
                   placeholder={
                     field.placeholder
                       ? intl.formatMessage({ id: field.placeholder })
@@ -598,7 +583,6 @@ const SettingsView = () => {
 
           {/* Action Buttons for API Settings */}
           <div className="form-actions">
-            {/* Use button-primary */}
             <button
               type="button"
               onClick={handleSaveApiConfig}
@@ -618,10 +602,7 @@ const SettingsView = () => {
           </div>
 
           {/* Save Status Feedback for API Settings */}
-          {/* Use common status classes */}
           <div className="save-feedback" style={{ minHeight: "20px" }}>
-            {" "}
-            {/* Remove margin-top, handled by status class */}
             {saveStatus === "success" && (
               <p className="status-success">
                 {intl.formatMessage({
@@ -630,7 +611,6 @@ const SettingsView = () => {
                 })}
               </p>
             )}
-            {/* Use status-error class */}
             {saveStatus === "error" && (
               <p className="status-error">
                 {intl.formatMessage(
@@ -653,9 +633,9 @@ const SettingsView = () => {
               defaultMessage: "Image Processing",
             })}
           </legend>
-          <div className="form-group checkbox-group"> {/* Use checkbox-group for alignment */}
-            <div className="setting-with-button"> {/* Wrapper for checkbox item and button */}
-              <div className="checkbox-item"> {/* Wrap label and input */}
+          <div className="form-group checkbox-group">
+            <div className="setting-with-button">
+              <div className="checkbox-item">
                 <input
                   type="checkbox"
                   id="imageCompressionEnabled"
@@ -671,15 +651,13 @@ const SettingsView = () => {
                   })}
                 </label>
               </div>
-              {/* Button removed from here */}
             </div>
-            {/* Added form-actions wrapper for the button */}
             <div className="form-actions">
               <button
                 type="button"
                 onClick={handleSaveImageSettings}
-                className="button-primary" // Removed button-save-inline
-                disabled={imageSaveStatus === 'saving' || imageSaveStatus === 'success' || localImageCompressionEnabled === appSettings.imageCompressionEnabled}
+                className="button-primary"
+                disabled={imageSaveStatus === 'saving' || imageSaveStatus === 'success'}
               >
                 {imageSaveStatus === 'saving'
                   ? intl.formatMessage({ id: "common.saving", defaultMessage: "Saving..." })
@@ -698,7 +676,6 @@ const SettingsView = () => {
           </div>
         </fieldset>
 
-        {/* --- Data Management (MOVED INSIDE FORM) --- */}
         <fieldset className="settings-fieldset">
           <legend>
             {intl.formatMessage({
@@ -730,7 +707,6 @@ const SettingsView = () => {
               )}
             </p>
             <div className="form-actions">
-              {/* Use button-primary */}
               <button
                 type="button"
                 onClick={handleExport}
@@ -805,7 +781,6 @@ const SettingsView = () => {
                   defaultMessage: "Select .zip file to import:",
                 })}
               </label>
-              {/* Button-like Label - Use button-light */}
               <label
                 htmlFor="import-file-input"
                 className={`button-light button-file-input ${importStatus === "importing" || !api.importData || !apiConfig.isConfigured ? "disabled" : ""}`}
@@ -815,7 +790,6 @@ const SettingsView = () => {
                   defaultMessage: "Choose File",
                 })}
               </label>
-              {/* Hidden Actual File Input */}
               <input
                 type="file"
                 id="import-file-input"
@@ -826,9 +800,8 @@ const SettingsView = () => {
                   !api.importData ||
                   !apiConfig.isConfigured
                 }
-                className="hidden-file-input" // Add class to hide
+                className="hidden-file-input"
               />
-              {/* Display Selected Filename */}
               {importFile && (
                 <p className="selected-file-name">
                   {intl.formatMessage({
@@ -840,7 +813,6 @@ const SettingsView = () => {
               )}
             </div>
             <div className="form-actions">
-              {/* Use button-danger */}
               <button
                 type="button"
                 onClick={handleImport}
@@ -864,8 +836,6 @@ const SettingsView = () => {
               </button>
             </div>
             <div className="feedback-section" style={{ minHeight: "40px" }}>
-              {" "}
-              {/* More space for summary */}
               {importStatus === "success" && (
                 <p className="status-success">{importSummary}</p>
               )}
@@ -906,7 +876,6 @@ const SettingsView = () => {
               )}
             </p>
             <div className="form-actions">
-              {/* Use button-danger */}
               <button
                 type="button"
                 onClick={handleDestroy}
