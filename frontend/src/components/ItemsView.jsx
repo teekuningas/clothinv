@@ -36,7 +36,7 @@ const ItemsView = () => {
   const [editOwnerId, setEditOwnerId] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
-  const [imageMarkedForRemoval, setImageMarkedForRemoval] = useState(false); // Track if user wants to remove existing image
+  const [imageMarkedForRemoval, setImageMarkedForRemoval] = useState(false);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteCandidateId, setDeleteCandidateId] = useState(null);
@@ -52,8 +52,8 @@ const ItemsView = () => {
 
   // State for managing temporary Blob URLs for display
   const [itemImageUrls, setItemImageUrls] = useState({}); // Map itemId -> blobUrl
-  const [addImageUrl, setAddImageUrl] = useState(null); // Blob URL for add form preview
-  const [editImageUrl, setEditImageUrl] = useState(null); // Blob URL for edit form preview
+  const [addImageUrl, setAddImageUrl] = useState(null);
+  const [editImageUrl, setEditImageUrl] = useState(null);
 
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [filterName, setFilterName] = useState("");
@@ -231,12 +231,12 @@ const ItemsView = () => {
         // Revoke previous add form blob URL if exists
         if (addImageUrl) URL.revokeObjectURL(addImageUrl);
         setNewItemImageFile(file);
-        setAddImageUrl(URL.createObjectURL(file)); // Create new blob URL for preview
+        setAddImageUrl(URL.createObjectURL(file));
       } else if (type === "edit") {
         // Revoke previous edit form blob URL if exists
         if (editImageUrl) URL.revokeObjectURL(editImageUrl);
         setEditItemImageFile(file);
-        setEditImageUrl(URL.createObjectURL(file)); // Create new blob URL for preview
+        setEditImageUrl(URL.createObjectURL(file));
         setImageMarkedForRemoval(false); // New file selected, so don't mark for removal
       }
     }
@@ -392,7 +392,7 @@ const ItemsView = () => {
         setAddImageUrl(null);
         setNewItemOwnerId("");
         await new Promise((resolve) => setTimeout(resolve, 250)); // Add delay before refetch
-        fetchData(); // Refresh the list
+        fetchData();
       } else {
         setError(
           intl.formatMessage(
@@ -460,15 +460,15 @@ const ItemsView = () => {
     setEditingItemId(item.item_id);
     setEditName(item.name);
     setEditDescription(item.description || "");
-    setEditLocationId(item.location_id || ""); // Set initial location ID
-    setEditCategoryId(item.category_id || ""); // Set initial category ID
-    setEditOwnerId(item.owner_id || ""); // Set initial owner ID
+    setEditLocationId(item.location_id || "");
+    setEditCategoryId(item.category_id || "");
+    setEditOwnerId(item.owner_id || "");
 
     // Handle image state for edit modal
     if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous edit preview URL
     if (item.imageFile instanceof File) {
-      setEditItemImageFile(item.imageFile); // Set the actual File object
-      setEditImageUrl(URL.createObjectURL(item.imageFile)); // Create blob URL for preview
+      setEditItemImageFile(item.imageFile);
+      setEditImageUrl(URL.createObjectURL(item.imageFile));
     } else {
       setEditItemImageFile(null);
       setEditImageUrl(null);
@@ -484,9 +484,9 @@ const ItemsView = () => {
     setEditingItemId(null);
     setEditName("");
     setEditDescription("");
-    setEditLocationId(""); // Reset edit location ID
-    setEditCategoryId(""); // Reset edit category ID
-    setEditOwnerId(""); // Reset edit owner ID
+    setEditLocationId("");
+    setEditCategoryId("");
+    setEditOwnerId("");
 
     // Clear image state and revoke URL on cancel
     if (editImageUrl) URL.revokeObjectURL(editImageUrl);
