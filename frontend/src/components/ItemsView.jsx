@@ -290,12 +290,19 @@ const ItemsView = () => {
 
       try {
        // console.log("Compressing image..."); // Optional: Keep for debugging if needed
-       const compressedFile = await imageCompression(file, options);
+       const compressedBlob = await imageCompression(file, options); // This returns a Blob
        // console.log(
-       //   `Compressed image size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`,
+       //   `Compressed image size: ${(compressedBlob.size / 1024 / 1024).toFixed(2)} MB`,
        // ); // Optional: Keep for debugging if needed
-       return compressedFile;
-     } catch (error) {
+
+       // Convert the compressed Blob back into a File object
+       // Use the original filename and the Blob's type (or fallback to original type)
+       const compressedFile = new File([compressedBlob], file.name, {
+         type: compressedBlob.type || file.type, // Use blob's type, fallback to original
+         lastModified: Date.now(), // Set last modified timestamp
+       });
+       return compressedFile; // Return the File object
+      } catch (error) {
        console.error("Image compression failed:", error);
        // Instead of setting error here and returning original file,
        // throw the error so the calling function handles it.
