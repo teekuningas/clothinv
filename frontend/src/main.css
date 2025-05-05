@@ -1,54 +1,54 @@
 :root {
   /* Core Interaction Colors */
-  --color-primary: #0d6efd;          /* Bootstrap Blue */
-  --color-primary-hover: #0b5ed7;     /* Darker Blue */
-  --color-primary-text: #fff;      /* White */
-  --color-secondary: #6c757d;        /* Bootstrap Grey */
-  --color-secondary-hover: #5c636a;    /* Darker Grey */
-  --color-secondary-text: #fff;     /* White (for dark grey buttons) */
-  --color-danger: #dc3545;           /* Bootstrap Red */
-  --color-danger-hover: #bb2d3b;      /* Darker Red */
-  --color-danger-text: #fff;       /* White */
-  --color-danger-light-bg: #f8d7da;    /* Light Red (matches error bg) */
-  --color-danger-light-text: #842029;   /* Dark Red (matches error text) */
-  --color-danger-light-border: #f5c2c7; /* Slightly darker red border */
-  --color-danger-light-hover-bg: #f1b0b7; /* Darker light red */
-  --color-danger-light-hover-text: #6a1a21; /* Darker red text */
-  --color-danger-light-hover-border: #ec9fa9; /* Darker border */
+  --color-primary: #0d6efd;
+  --color-primary-hover: #0b5ed7;
+  --color-primary-text: #fff;
+  --color-secondary: #6c757d;
+  --color-secondary-hover: #5c636a;
+  --color-secondary-text: #fff;
+  --color-danger: #dc3545;
+  --color-danger-hover: #bb2d3b;
+  --color-danger-text: #fff;
+  --color-danger-light-bg: #f8d7da;
+  --color-danger-light-text: #842029;
+  --color-danger-light-border: #f5c2c7;
+  --color-danger-light-hover-bg: #f1b0b7;
+  --color-danger-light-hover-text: #6a1a21;
+  --color-danger-light-hover-border: #ec9fa9;
 
   /* Text */
-  --color-text-base: #212529;         /* Near Black */
-  --color-text-muted: #6c757d;        /* Grey (matches secondary) */
-  --color-text-label: #495057;        /* Darker Grey for Labels */
-  --color-text-link: var(--color-primary); /* Link color */
-  --color-text-light: #f8f9fa;       /* Very light text (for dark backgrounds if needed) */
+  --color-text-base: #212529;
+  --color-text-muted: #6c757d;
+  --color-text-label: #495057;
+  --color-text-link: var(--color-primary);
+  --color-text-light: #f8f9fa;
 
   /* Backgrounds */
-  --color-bg-body: #f8f9fa;          /* Very Light Grey */
-  --color-bg-container: #fff;     /* White (cards, modals) */
-  --color-bg-subtle: #e9ecef;        /* Lighter Grey (forms, disabled) */
+  --color-bg-body: #f8f9fa;
+  --color-bg-container: #fff;
+  --color-bg-subtle: #e9ecef;
 
   /* Borders */
-  --color-border: #dee2e6;           /* Default Light Grey Border */
-  --color-border-input: #ced4da;      /* Input border */
-  --color-border-divider: #e9ecef;    /* Subtle divider (matches subtle bg) */
+  --color-border: #dee2e6;
+  --color-border-input: #ced4da;
+  --color-border-divider: #e9ecef;
 
   /* Status Colors (Background + Text for contrast) */
-  --color-success-bg: #d1e7dd;       /* Light Green */
-  --color-success-text: #0f5132;      /* Dark Green */
-  --color-warning-bg: #fff3cd;       /* Light Yellow */
-  --color-warning-text: #664d03;      /* Dark Yellow */
-  --color-info-bg: #cff4fc;          /* Light Cyan */
-  --color-info-text: #055160;         /* Dark Cyan */
-  --color-error-bg: #f8d7da;         /* Light Red */
-  --color-error-text: #842029;        /* Dark Red */
+  --color-success-bg: #d1e7dd;
+  --color-success-text: #0f5132;
+  --color-warning-bg: #fff3cd;
+  --color-warning-text: #664d03;
+  --color-info-bg: #cff4fc;
+  --color-info-text: #055160;
+  --color-error-bg: #f8d7da;
+  --color-error-text: #842029;
 
   /* Overlays & Special */
-  --color-backdrop: rgb(0 0 0 / 50%); /* Standard modal backdrop */
-  --color-overlay-dark-bg: #2c2c2c;   /* Webcam dark background */
-  --color-overlay-button-bg: rgb(255 255 255 / 80%); /* Webcam capture button bg */
+  --color-backdrop: rgb(0 0 0 / 50%);
+  --color-overlay-dark-bg: #2c2c2c;
+  --color-overlay-button-bg: rgb(255 255 255 / 80%);
   --color-overlay-button-hover: rgb(255 255 255 / 100%);
-  --color-overlay-button-icon: #333; /* Webcam capture button icon */
+  --color-overlay-button-icon: #333;
 }
 
 * {
@@ -75,44 +75,44 @@ body {
 }
 
 /* Common Status Message Styles */
-.status-loading, /* Use info style */
+.status-loading,
 .status-error,
 .status-success,
 .status-warning {
-    padding: 10px 15px; /* Increased padding slightly */
+    padding: 10px 15px;
     margin-bottom: 15px;
     border-radius: 4px;
-    border: 1px solid var(--color-border); /* Use default border */
-    font-weight: 500; /* Slightly bolder text */
+    border: 1px solid var(--color-border);
+    font-weight: 500;
 }
 
 .status-loading {
     background-color: var(--color-info-bg);
     color: var(--color-info-text);
-    border-color: var(--color-info-bg); /* Match background for less emphasis */
+    border-color: var(--color-info-bg);
 }
 
 .status-error {
     background-color: var(--color-error-bg);
     color: var(--color-error-text);
-    border-color: var(--color-error-bg); /* Match background */
+    border-color: var(--color-error-bg);
 }
 
 .status-success {
     background-color: var(--color-success-bg);
     color: var(--color-success-text);
-    border-color: var(--color-success-bg); /* Match background */
+    border-color: var(--color-success-bg);
 }
 
 .status-warning {
     background-color: var(--color-warning-bg);
     color: var(--color-warning-text);
-    border-color: var(--color-warning-bg); /* Match background */
+    border-color: var(--color-warning-bg);
 }
 
 /* Common Form Group Structure */
 .form-group {
-  margin-bottom: 15px; /* Consistent spacing */
+  margin-bottom: 15px;
 }
 
 .form-group label {
@@ -124,7 +124,7 @@ body {
 
 /* Applied globally to button elements */
 button {
-    padding: 10px 15px; /* Default padding */
+    padding: 10px 15px;
     font-weight: bold;
     border: 1px solid transparent;
     border-radius: 4px;
@@ -137,7 +137,7 @@ button {
 
 /* Keep :focus-visible */
 button:focus-visible {
-    outline: 2px solid var(--color-primary); /* Use primary for focus */
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
 }
 
@@ -175,8 +175,6 @@ button:disabled {
     background-color: var(--color-secondary);
     color: var(--color-secondary-text);
     border-color: var(--color-secondary);
-
-    /* Opacity is handled globally */
 }
 
 .button-secondary:hover:not(:disabled) {
@@ -188,8 +186,8 @@ button:disabled {
 
 /* Light Button (Choose File, Take Picture, Edit, Filters) */
 .button-light {
-    background-color: var(--color-bg-subtle); /* Light grey background */
-    color: var(--color-text-base); /* Standard text color */
+    background-color: var(--color-bg-subtle);
+    color: var(--color-text-base);
     border-color: var(--color-border-input);
 }
 
@@ -204,16 +202,14 @@ button:disabled {
 
 .button-light:disabled {
     background-color: var(--color-bg-subtle);
-    color: var(--color-text-muted); /* Muted text when disabled */
+    color: var(--color-text-muted);
     border-color: var(--color-border);
-
-    /* Opacity is handled globally */
 }
 
 .button-light:hover:not(:disabled) {
-    background-color: var(--color-border); /* Use border color for subtle darker hover */
-    border-color: var(--color-border-input); /* Keep border consistent or slightly darken */
-    color: var(--color-text-base); /* Keep text color */
+    background-color: var(--color-border);
+    border-color: var(--color-border-input);
+    color: var(--color-text-base);
 }
 
 /* Danger Button (Confirm Delete, Import, Destroy) */
@@ -227,8 +223,6 @@ button:disabled {
     background-color: var(--color-danger);
     color: var(--color-danger-text);
     border-color: var(--color-danger);
-
-    /* Opacity is handled globally */
 }
 
 .button-danger:hover:not(:disabled) {
@@ -247,8 +241,6 @@ button:disabled {
     background-color: var(--color-danger-light-bg);
     color: var(--color-danger-light-text);
     border-color: var(--color-danger-light-border);
-
-    /* Opacity is handled globally */
 }
 
 .button-danger-light:hover:not(:disabled) {
@@ -272,7 +264,7 @@ button:disabled {
 .form-group select {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid var(--color-border-input); /* CHANGE */
+    border: 1px solid var(--color-border-input);
     border-radius: 4px;
     font-size: 1em;
     box-sizing: border-box;
@@ -322,7 +314,6 @@ button:disabled {
     }
 }
 
-/* Applied via .delete-confirm-content class */
 .delete-confirm-content p {
     margin-bottom: 10px;
     line-height: 1.5;
@@ -332,7 +323,6 @@ button:disabled {
     font-weight: bold;
 }
 
-/* Applied via .hidden-file-input class */
 .hidden-file-input {
     width: 0.1px;
     height: 0.1px;
@@ -345,10 +335,6 @@ button:disabled {
 /* Apply .button-light class in JSX for visual styling */
 .button-file-input {
     display: inline-block;
-
-    /* Remove background-color, color, border-color */
-
-    /* Keep padding, cursor, text-align, vertical-align, margin, radius, font-weight, line-height, font-size, transition */
     padding: 10px 15px;
     cursor: pointer;
     text-align: center;
@@ -361,41 +347,30 @@ button:disabled {
     transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* --- Checkbox Item Structure --- */
 .checkbox-item {
-    display: flex; /* Align checkbox and label horizontally */
-    align-items: center; /* Vertically center align */
-    margin-bottom: 5px; /* Space between checkbox lines */
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
 }
 
 .checkbox-item input[type="checkbox"] {
-    margin-right: 8px; /* Space between checkbox and label */
+    margin-right: 8px;
     cursor: pointer;
-
-    width: 18px; /* Increased size */
-    height: 18px; /* Increased size */
-    flex-shrink: 0; /* Prevent shrinking in flex container */
-
-    /* Use primary color for the checkmark/fill */
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
     accent-color: var(--color-primary);
-
-    /* Optional: Add a subtle border */
     border: 1px solid var(--color-border-input);
 }
 
 .checkbox-item label {
-    margin-bottom: 0; /* Override default label margin */
-    font-weight: normal; /* Use normal weight for checkbox labels */
-    cursor: pointer; /* Indicate label is clickable */
-
-    /* Ensure label color matches base text */
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
     color: var(--color-text-base);
-
-    /* Prevent label text selection when clicking */
     user-select: none;
 }
 
-/* Optional: Style for when the checkbox is focused */
 .checkbox-item input[type="checkbox"]:focus-visible {
     outline: 2px solid var(--color-primary);
     outline-offset: 1px;

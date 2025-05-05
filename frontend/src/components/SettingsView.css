@@ -1,5 +1,5 @@
 .settings-view h2 {
-    margin-bottom: 20px; /* Space below title */
+    margin-bottom: 20px;
 }
 
 .settings-fieldset {
@@ -13,25 +13,25 @@
 .settings-fieldset legend {
     font-weight: bold;
     padding: 0 10px;
-    margin-left: 10px; /* Indent legend slightly */
+    margin-left: 10px;
     font-size: 1.1em;
     color: var(--color-text-label);
 }
 
 .settings-fieldset .form-actions {
-  margin-top: 15px; /* Further reduced margin */
+  margin-top: 15px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
 }
 
-.settings-fieldset .feedback-section { /* Container for status messages */
+.settings-fieldset .feedback-section {
     margin-top: 10px;
 }
 
 /* Add margin for the specific feedback sections in Language/API/Image */
 .settings-fieldset .save-feedback {
-    margin-top: 10px; /* Add space below action buttons */
+    margin-top: 10px;
 }
 
 /* --- Data Management Section --- */
@@ -43,9 +43,9 @@
 }
 
 .data-management-section:first-of-type {
-    margin-top: 0; /* No top margin for the first section */
+    margin-top: 0;
     padding-top: 0;
-    border-top: none; /* No top border for the first section */
+    border-top: none;
 }
 
 .data-management-section .selected-file-name {
@@ -66,7 +66,7 @@
     color: var(--color-text-label);
     margin-bottom: 15px;
     line-height: 1.5;
-    overflow-wrap: break-word; /* Ensure long text wraps */
+    overflow-wrap: break-word;
 }
 
 .data-management-section .warning-text {
@@ -76,16 +76,16 @@
     padding: 10px 15px;
     border-radius: 4px;
     font-weight: bold;
-    overflow-wrap: break-word; /* Ensure long text wraps */
+    overflow-wrap: break-word;
     box-sizing: border-box;
 }
 
 
 @media (width <= 768px) {
   .settings-fieldset .form-actions {
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    justify-content: flex-start; /* Align wrapped buttons to the start */
-    gap: 8px; /* Optional: Adjust gap for wrapped buttons */
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
   }
 
   /* Make data management buttons full width on mobile */
@@ -95,7 +95,7 @@
 
   /* Reduce padding on fieldsets for smaller screens */
   .settings-fieldset {
-    padding: 15px 10px; /* Reduce horizontal padding */
+    padding: 15px 10px;
   }
 
 }

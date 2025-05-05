@@ -8,7 +8,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1100; /* Ensure it's above other modals */
+    z-index: 1100;
     padding: 15px;
     box-sizing: border-box;
     cursor: pointer;
@@ -25,54 +25,54 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px; /* Space between video container and actions */
+    gap: 15px;
     color: var(--color-text-light);
 }
 
 /* Combined status message styling */
 .webcam-status-message {
-    position: absolute; /* Position inside the video container */
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column; /* Allow text and potentially buttons inside */
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 15px;
     box-sizing: border-box;
     text-align: center;
-    border-radius: 4px; /* Match container */
-    z-index: 5; /* Below capture button, above hidden video */
+    border-radius: 4px;
+    z-index: 5;
 }
 
 .webcam-loading {
     color: var(--color-info-text);
     background-color: var(--color-info-bg);
-    border: 1px solid var(--color-info-bg); /* Add border */
+    border: 1px solid var(--color-info-bg);
 }
 
 .webcam-error {
     color: var(--color-error-text);
     background-color: var(--color-error-bg);
-    border: 1px solid var(--color-error-bg); /* Add border */
+    border: 1px solid var(--color-error-bg);
 }
 
 .webcam-error p {
-    margin: 0; /* Reset paragraph margin */
+    margin: 0;
 }
 
 
 .webcam-video-container {
-    position: relative; /* For positioning the capture button AND status messages */
+    position: relative;
     width: 100%;
     max-width: 640px;
-    aspect-ratio: 4 / 3; /* Common webcam aspect ratio */
+    aspect-ratio: 4 / 3;
     background-color: #000;
     border-radius: 4px;
     overflow: hidden;
-    display: flex; /* Center potential error/loading messages if video hidden */
+    display: flex;
     justify-content: center;
     align-items: center;
 }
@@ -81,8 +81,7 @@
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Fill the container */
-
+    object-fit: cover;
     /* Visibility is controlled inline */
 }
 
@@ -110,7 +109,7 @@
 }
 
 .webcam-capture-button:active {
-     transform: translateX(-50%) scale(0.95); /* Slight shrink on click */
+     transform: translateX(-50%) scale(0.95);
 }
 
 .webcam-capture-button svg {
@@ -121,8 +120,8 @@
 
 .webcam-actions {
     display: flex;
-    justify-content: center; /* Center buttons */
-    gap: 15px; /* Space between buttons */
-    width: 100%; /* Take full width for centering */
-    margin-top: 5px; /* Small space above buttons */
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+    margin-top: 5px;
 }

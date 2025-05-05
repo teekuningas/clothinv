@@ -11,7 +11,6 @@
     color: var(--color-text-base);
 }
 
-/* Specific width override for text inputs in this view */
 .add-location-form .form-group input[type="text"],
 .edit-location-form .form-group input[type="text"] {
     width: calc(100% - 22px);
@@ -24,10 +23,9 @@
 
 .location-card {
     padding: 15px;
-    margin-bottom: 15px; /* Use margin if not using grid gap */
+    margin-bottom: 15px;
     position: relative;
 
-    /* Use variables for border/background */
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background-color: var(--color-bg-container);
@@ -46,6 +44,6 @@
     font-size: 0.95em;
 }
 
-.edit-location-form { /* Styles specific to the form inside the edit modal */
-    padding: 10px 0 0; /* Add padding top, remove others */
+.edit-location-form {
+    padding: 10px 0 0;
 }

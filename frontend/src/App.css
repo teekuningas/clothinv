@@ -7,33 +7,33 @@
 }
 
 .app-header {
-  background-color: var(--color-bg-container); /* Use white */
-  padding: 15px 20px 10px; /* Adjust padding */
+  background-color: var(--color-bg-container);
+  padding: 15px 20px 10px;
   color: var(--color-text-base);
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--color-border); /* Add border */
+  border-bottom: 1px solid var(--color-border);
   font-size: 2.5rem;
   margin-top: 0;
 }
 
 /* --- Desktop Navigation --- */
 .app-nav {
-  margin-top: 0; /* Remove margin */
+  margin-top: 0;
   padding-bottom: 10px;
-  border-bottom: none; /* Remove double border */
+  border-bottom: none;
 }
 
 /* Target 'a' tags rendered by NavLink */
 .app-nav a {
-  background-color: transparent; /* Inactive is transparent */
-  color: var(--color-text-muted); /* Muted text for inactive */
-  border: 1px solid transparent; /* No border for inactive */
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid transparent;
   padding: 8px 15px;
   margin: 0 5px;
   cursor: pointer;
   border-radius: 4px;
   font-size: 0.9em;
-  font-weight: bold; /* Match buttons */
+  font-weight: bold;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
   text-decoration: none;
   display: inline-block;
@@ -44,13 +44,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%; /* Ensure nav takes width for button alignment */
+    width: 100%;
 }
 
 /* Target 'a' tags rendered by NavLink */
 .mobile-nav a {
     background-color: transparent;
-    color: var(--color-text-base); /* Base text color */
+    color: var(--color-text-base);
     border: none;
     padding: 15px 30px;
     margin: 10px 0;
@@ -62,18 +62,18 @@
     text-align: center;
     transition: background-color 0.2s ease, color 0.2s ease;
     text-decoration: none;
-    font-weight: 500; /* Slightly less bold */
+    font-weight: 500;
 }
 
 .app-nav a:hover {
-  background-color: var(--color-bg-subtle); /* Subtle background on hover */
-  color: var(--color-text-base); /* Darker text on hover */
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text-base);
   border-color: transparent;
 }
 
 /* Style for the active NavLink using the .active class */
 .app-nav a.active {
-  background-color: var(--color-primary); /* Use primary */
+  background-color: var(--color-primary);
   color: var(--color-primary-text);
   cursor: default;
   border-color: var(--color-primary);
@@ -89,34 +89,30 @@
     display: none;
     background: none;
     border: none;
-    color: var(--color-text-base); /* Use base text color */
+    color: var(--color-text-base);
     font-size: 2rem;
     cursor: pointer;
     position: absolute;
-    top: 15px; /* Adjust as needed */
-    right: 20px; /* Adjust as needed */
-
-    /* Lower z-index so it's below the overlay */
-    z-index: 1090; /* Ensure it's below the overlay (1050 -> 1100) */
-    padding: 5px; /* Add some padding for easier interaction */
-    line-height: 1; /* Prevent extra spacing */
+    top: 15px;
+    right: 20px;
+    z-index: 1090;
+    padding: 5px;
+    line-height: 1;
 }
 
 /* Mobile Menu Overlay */
 .mobile-menu-overlay {
-    position: fixed; /* Cover the whole screen */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgb(255 255 255 / 98%); /* Almost opaque white */
+    background-color: rgb(255 255 255 / 98%);
     z-index: 1100;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    /* Add transitions for smoother open/close */
     opacity: 1;
     visibility: visible;
     transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -130,36 +126,35 @@
     right: 20px;
     background: none;
     border: none;
-    color: var(--color-text-muted); /* Muted close button */
+    color: var(--color-text-muted);
     font-size: 2.5rem;
     cursor: pointer;
     line-height: 1;
-    padding: 5px; /* Add some padding */
-    z-index: 1110; /* Higher than overlay */
+    padding: 5px;
+    z-index: 1110;
 }
 
 .close-menu-button:hover {
-    color: var(--color-text-base); /* Darken on hover */
+    color: var(--color-text-base);
 }
 
 
 .mobile-nav a:hover {
-    background-color: var(--color-bg-subtle); /* Subtle hover */
-    color: var(--color-primary); /* Use primary color on hover */
+    background-color: var(--color-bg-subtle);
+    color: var(--color-primary);
 }
 
 /* Style for the active NavLink using the .active class */
 .mobile-nav a.active {
-    color: var(--color-primary); /* Active is primary color */
-    background-color: transparent; /* No background for active */
-    font-weight: bold; /* Make active bold */
+    color: var(--color-primary);
+    background-color: transparent;
+    font-weight: bold;
     cursor: default;
 }
 
 /* Apply styles for screens smaller than 768px (typical tablet/mobile breakpoint) */
 @media (width <= 768px) {
     .app-header {
-        /* Ensure header has relative positioning for absolute children */
         position: relative;
         padding: 15px 70px 5px 15px;
     }
@@ -171,21 +166,21 @@
 
     /* Show the hamburger button */
     .hamburger-button {
-        display: block; /* Or 'inline-block' if preferred */
-        top: 10px; /* Adjust position slightly */
+        display: block;
+        top: 10px;
         right: 15px;
     }
 
     /* Adjust header title if needed */
     .app-header h1 {
-        font-size: 1.8rem; /* Slightly smaller title on mobile */
-        text-align: left; /* Align title left on mobile */
+        font-size: 1.8rem;
+        text-align: left;
     }
 
      /* Adjust header paragraph if needed */
     .app-header p {
-        font-size: 1rem; /* Slightly smaller text */
-        text-align: left; /* Align left */
-        margin-bottom: 5px; /* Reduce bottom margin */
+        font-size: 1rem;
+        text-align: left;
+        margin-bottom: 5px;
     }
 }

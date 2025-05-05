@@ -14,14 +14,10 @@
 
 /* Filter & Checkbox Label Styles (Lower Specificity) */
 .filter-group label,
-.filter-group legend { /* Style legend like label */
+.filter-group legend {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
-
-    /* font-size: 0.9em; */
-
- /* Removed - Handled by .checkbox-item label or default */
     color: var(--color-text-label);
 }
 
@@ -36,34 +32,32 @@
 
 .add-item-form .form-group input[type="file"],
 .edit-item-form .form-group input[type="file"] {
-    margin-top: 5px; /* Space above file input */
+    margin-top: 5px;
 }
 
 /* Image Preview Styles */
 .image-preview {
     margin-bottom: 0;
     max-width: 250px;
-    max-height: 250px; /* Limit preview height */
+    max-height: 250px;
     border: 1px solid var(--color-border-input);
     border-radius: 4px;
     overflow: hidden;
     align-self: flex-start;
-    background-color: var(--color-bg-container); /* Add white background */
+    background-color: var(--color-bg-container);
 }
 
 .image-preview img {
-    display: block; /* Remove extra space below image */
+    display: block;
     width: 100%;
-    height: auto; /* Maintain aspect ratio */
+    height: auto;
 }
 
 /* --- Items List (Gallery) --- */
 .items-list {
     display: grid;
-
-    /* Adjust minmax for desired card width */
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px; /* Space between cards */
+    gap: 20px;
     padding: 0;
     margin-top: 20px;
 }
@@ -76,24 +70,23 @@
     box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
     display: flex;
     flex-direction: column;
-    position: relative; /* For positioning edit button */
-    overflow: hidden; /* Ensure content stays within rounded corners */
+    position: relative;
+    overflow: hidden;
 }
 
 /* Container for image or placeholder */
 .item-image-container {
     width: 100%;
-    height: 200px; /* Fixed height for image area */
+    height: 200px;
     border-bottom: 1px solid var(--color-border-divider);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background-color: var(--color-bg-subtle); /* Default background */
+    background-color: var(--color-bg-subtle);
 }
 
 .item-image-container.placeholder {
-    /* Remove gradient, just use subtle background */
     background-color: var(--color-bg-subtle);
 }
 
@@ -104,20 +97,20 @@
 .item-image-container img.item-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Cover the area, cropping if needed */
+    object-fit: cover;
 }
 
 /* Loading/Error states (Optional) */
 .item-image-loading,
 .item-image-error {
-    font-size: 0.9em; /* Slightly smaller text */
+    font-size: 0.9em;
     color: var(--color-text-muted);
     text-align: center;
 }
 
 .item-card-content {
     padding: 15px;
-    flex-grow: 1; /* Allow content to take remaining space */
+    flex-grow: 1;
 }
 
 .item-card h4 {
@@ -135,8 +128,6 @@
 
 .item-card p.item-meta {
     font-size: 0.85em;
-
-    /* Slightly smaller meta text */
     color: var(--color-text-label);
     margin-bottom: 5px;
 }
@@ -150,9 +141,9 @@
 .add-item-form .form-group-image,
 .edit-item-form .form-group-image {
     display: flex;
-    flex-direction: column; /* Stack label, preview, input, remove button */
-    gap: 8px; /* Space between elements */
-    margin-bottom: 15px; /* Consistent bottom margin */
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
 }
 
 .add-item-form .form-group-image label,
@@ -166,16 +157,15 @@
 
 
 .form-group-image-actions {
-    /* Container for buttons related to image input */
-    margin-top: 8px; /* Space above the action buttons */
-    display: flex; /* Arrange buttons horizontally */
-    gap: 10px; /* Space between buttons */
-    flex-wrap: wrap; /* Allow wrapping */
-    align-items: stretch; /* Vertically align items and stretch height */
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: stretch;
 }
 
 .edit-item-form .form-group {
-    margin-bottom: 15px; /* More space in modal */
+    margin-bottom: 15px;
 }
 
 .edit-item-form .form-group label {
@@ -183,7 +173,6 @@
     font-weight: bold;
 }
 
-/* Specific font-size override for remove image button */
 .remove-image-button {
     font-size: 0.9em;
 }
@@ -191,32 +180,27 @@
 /* Responsive stacking for image action buttons */
 @media (width <= 600px) {
     .form-group-image-actions {
-        flex-direction: column; /* Stack vertically */
-        align-items: stretch; /* Make items fill the container width */
+        flex-direction: column;
+        align-items: stretch;
     }
 }
 
 .edit-item-form .image-preview {
-    align-self: center; /* Center the preview horizontally */
-    margin-bottom: 8px; /* Add space below the centered preview */
+    align-self: center;
+    margin-bottom: 8px;
 }
 
 /* Container for Sort and Filter controls */
 .list-controls-container {
     display: flex;
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    gap: 15px; /* Space between sort and filter */
-
-    /* REMOVED: align-items: flex-end; */
-    margin-bottom: 20px; /* Space below the controls */
-    justify-content: center; /* Center the button */
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+    justify-content: center;
 }
-
-/* REMOVED: .sort-widget specific styles */
 
 /* --- Filters --- */
 
-/* .filter-toggle-button styling is now handled by the button-light class and the container */
 .filter-toggle-button {
     /* margin handled by container now */
 }
@@ -239,19 +223,19 @@
 }
 
 .filters-container #sort-criteria {
-    min-width: 250px; /* Make the sort dropdown wider */
+    min-width: 250px;
 }
 
 .checkbox-group {
-    border: none; /* Remove default fieldset border */
+    border: none;
     padding: 0;
     margin: 0;
-    margin-bottom: 15px; /* Keep margin */
+    margin-bottom: 15px;
 }
 
 .checkbox-group legend {
-    padding: 0; /* Remove default legend padding */
-    margin-bottom: 8px; /* Space below legend */
+    padding: 0;
+    margin-bottom: 8px;
 }
 
 .filter-group {
@@ -259,7 +243,7 @@
 }
 
 .filter-group input[type="text"] {
-    width: calc(100% - 22px); /* Adjust for padding/border */
+    width: calc(100% - 22px);
     padding: 8px 10px;
     border: 1px solid #ced4da;
     border-radius: 4px;
@@ -274,5 +258,5 @@
 }
 
 .reset-filters-button {
-    margin-top: 10px; /* Keep specific margin */
+    margin-top: 10px;
 }

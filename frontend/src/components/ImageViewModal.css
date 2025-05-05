@@ -8,15 +8,14 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1050; /* Ensure it's above other content, adjust if needed */
-    padding: 20px; /* Add padding for smaller screens */
+    z-index: 1050;
+    padding: 20px;
     box-sizing: border-box;
-    cursor: pointer; /* Indicate clicking backdrop closes */
+    cursor: pointer;
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
 }
 
-/* Add this class when the modal should be visible */
 .image-view-modal-backdrop.show {
     opacity: 1;
 }
@@ -25,24 +24,24 @@
     position: relative;
     max-width: 90vw;
     max-height: 90vh;
-    overflow: hidden; /* Prevent scrollbars on the container itself */
+    overflow: hidden;
     background-color: var(--color-bg-container);
     padding: 5px;
     border-radius: 4px;
     box-shadow: 0 5px 15px rgb(0 0 0 / 30%);
-    display: flex; /* Helps center image if smaller than max */
+    display: flex;
     justify-content: center;
     align-items: center;
-    cursor: default; /* Reset cursor for the content area */
+    cursor: default;
 }
 
 .image-view-modal-content img {
     display: block;
-    max-width: 100%; /* Ensure image fits within content area width */
-    max-height: calc(90vh - 40px); /* Adjust based on padding/button */
-    height: auto; /* Maintain aspect ratio */
-    width: auto; /* Maintain aspect ratio */
-    object-fit: contain; /* Show whole image, letterboxed if needed */
+    max-width: 100%;
+    max-height: calc(90vh - 40px);
+    height: auto;
+    width: auto;
+    object-fit: contain;
 }
 
 .image-view-modal-close {
@@ -55,19 +54,18 @@
     border-radius: 50%;
     width: 36px;
     height: 36px;
-    font-size: 32px; /* Further increase font size */
-    line-height: 36px; /* Match height for vertical centering */
+    font-size: 32px;
+    line-height: 36px;
     text-align: center;
 
-    /* Add flex centering for robustness */
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     padding: 0;
-    z-index: 1051; /* Above the content */
-    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; /* Added color/shadow transition */
-    box-shadow: 0 1px 3px rgb(0 0 0 / 30%); /* Slightly softer shadow */
+    z-index: 1051;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
 }
 
 .image-view-modal-close:hover,

@@ -6,19 +6,19 @@
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    padding: 15px; /* Padding for smaller screens */
+    padding: 15px;
 }
 
 .modal-content {
     background-color: var(--color-bg-container);
     padding: 20px;
     border-radius: 5px;
-    max-width: 500px; /* Max width */
-    width: 90%; /* Responsive width */
-    max-height: 90vh; /* Max height */
-    overflow-y: auto; /* Allow scrolling if content overflows */
-    box-shadow: 0 5px 15px rgb(0 0 0 / 20%); /* Add subtle shadow */
-    position: relative; /* For positioning close button */
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgb(0 0 0 / 20%);
+    position: relative;
 }
 
 .modal-header {
@@ -42,7 +42,7 @@
     font-size: 1.8rem;
     line-height: 1;
     cursor: pointer;
-    padding: 0 5px; /* Minimal padding */
+    padding: 0 5px;
     color: var(--color-text-muted);
 }
 
