@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS items (
     location_id INTEGER,
     category_id INTEGER,
     image_id INTEGER,
+    image_uuid TEXT, -- Added column to store the UUID of the linked image
     owner_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
