@@ -215,7 +215,7 @@ export const exportData = async (settings) => {
         const manifest = {
             exportFormatVersion: "1.0",
             exportedAt: new Date().toISOString(),
-            sourceProvider: "indexedDB" // <-- Change this value
+            sourceProvider: "indexedDB"
         };
         zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 
@@ -349,7 +349,7 @@ export const importData = async (settings, zipFile) => {
             // Use a transaction to add item and image together
             const dbItem = await openDB();
             const itemTx = dbItem.transaction([STORES.items, STORES.images], 'readwrite');
-            const itemsStore = itemTx.objectStore(STORES.items); // Define itemsStore here
+            const itemsStore = itemTx.objectStore(STORES.items);
             const imagesStore = itemTx.objectStore(STORES.images);
 
             const itemReq = itemsStore.put(itemMetadata); // Use put for add/update
@@ -881,7 +881,7 @@ export const addItem = async (settings, data) => {
                     reject(`Error adding image: ${event.target.error}`);
                 };
             }
-        }; // End counterRequest.onsuccess
+        };
 
         transaction.oncomplete = () => {
             console.log(`IndexedDBProvider: Item ${newId} added successfully.`);
@@ -914,7 +914,6 @@ export const updateItem = async (settings, itemId, data) => {
     // Prepare updated metadata
     const updatedItemMetadata = {
         ...existingItem,
-        // uuid: existingItem.uuid, // Ensure UUID is NOT overwritten
         ...restOfData,
         updated_at: new Date().toISOString()
     };
