@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useIntl } from "react-intl";
-import "./WebcamCapture.css"; // We'll create this CSS file next
 
 // Helper function to convert Base64 Data URL to File object
 function dataURLtoFile(dataurl, filename) {
@@ -44,7 +43,6 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
 
   // --- Camera Control Logic ---
 
-  // Function to stop the camera stream
   const stopCamera = useCallback(() => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
@@ -53,11 +51,8 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
-      console.log("Camera stream stopped."); // Debug log
     }
   }, [stream]);
-
-  // Function to start the camera stream
   const startCamera = useCallback(async () => {
     // Stop any existing stream first
     stopCamera();
@@ -79,13 +74,11 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
     }
 
     try {
-      console.log("Requesting camera access..."); // Debug log
       // Request video stream
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: true, // Basic video constraints
         audio: false,
       });
-      console.log("Camera access granted, stream received."); // Debug log
       setStream(newStream);
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
@@ -156,9 +149,6 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
 
     // Cleanup function for when component unmounts while shown
     return () => {
-      console.log(
-        "WebcamCapture unmounting or show changed to false, stopping camera.",
-      ); // Debug log
       stopCamera();
     };
   }, [show, startCamera, stopCamera]); // Rerun when 'show' changes or functions change
@@ -257,7 +247,7 @@ const WebcamCapture = ({ show, onCapture, onClose }) => {
           {/* Show capture button only when stream is active */}
           {stream &&
             !isInitializing &&
-            !error && ( // Condition remains the same
+            !error && (
               <button
                 className="webcam-capture-button"
                 onClick={handleCaptureClick}
