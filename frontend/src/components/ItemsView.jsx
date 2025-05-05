@@ -1663,13 +1663,15 @@ const ItemsView = () => {
         imageUrl={imageViewModalUrl}
         imageAlt={imageViewModalAlt}
       />
-
+ 
       {/* Webcam Capture Modal */}
-      <WebcamCapture
-        show={isWebcamOpen}
-        onCapture={handleWebcamCapture}
-        onClose={() => setIsWebcamOpen(false)}
-      />
+      {isWebcamOpen && ( // Conditionally render the component
+        <WebcamCapture
+          show={isWebcamOpen} // Pass show={true} since it's only rendered when true
+          onCapture={handleWebcamCapture}
+          onClose={() => setIsWebcamOpen(false)}
+        />
+      )}
     </div>
   );
 };
