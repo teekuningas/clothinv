@@ -7,13 +7,13 @@ import {
     base64ToBlob,
     createCSV,
     parseCSV
-} from './providerUtils'; // Import shared utilities
+} from './providerUtils';
 
 // Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings, preferRepresentation = true) => {
     const headers = {
         'Content-Type': 'application/json',
-        'Accept': 'application/json', // Expect JSON responses
+        'Accept': 'application/json',
     };
     // Crucial for getting created/updated records back from POST/PATCH
     if (preferRepresentation) {
@@ -49,7 +49,7 @@ const handleResponse = async (res, operation, entityDescription) => {
     // For successful POST/PATCH with Prefer: return=representation, response body contains the data
     // For successful GET, response body contains the data
     // For successful DELETE or PATCH without representation, body might be empty
-    if (res.status === 204) { // No Content
+    if (res.status === 204) {
         return { success: true, status: res.status, data: null };
     }
     try {
@@ -102,9 +102,9 @@ export const addLocation = async (settings, data) => {
         throw new Error("Failed to retrieve location_id after insert.");
     }
     const newLocationId = result.data[0].location_id;
-    const newUuid = result.data[0].uuid; // Get UUID from response
+    const newUuid = result.data[0].uuid;
     console.log("Retrieved new location ID:", newLocationId, "UUID:", newUuid);
-    return { success: true, status: result.status, newId: newLocationId, uuid: newUuid }; // Return UUID
+    return { success: true, status: result.status, newId: newLocationId, uuid: newUuid };
 };
 
 export const updateLocation = async (settings, locationId, data) => {
@@ -377,7 +377,7 @@ export const addItem = async (settings, data) => {
             // Pass image UUID if provided (e.g., during import), otherwise PG generates
             const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name, data.image_uuid);
             imageId = imageResult.imageId;
-            imageUuid = imageResult.imageUuid; // Get the image UUID (generated or provided)
+            imageUuid = imageResult.imageUuid;
         } catch (error) {
             console.error("Failed to process or insert image:", error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
@@ -404,9 +404,7 @@ export const addItem = async (settings, data) => {
         body: JSON.stringify(itemRowData),
     });
 
-    // Use handleResponse for the item insert result
     const result = await handleResponse(res, 'add', 'item');
-    // Extract item_id and uuid from response
     if (!result.data || result.data.length === 0 || !result.data[0].item_id || !result.data[0].uuid) {
         console.error("Could not find item_id in PostgREST response:", result.data);
         // Don't throw error here, as the operation might have succeeded, just log
@@ -414,7 +412,7 @@ export const addItem = async (settings, data) => {
         console.log("Added item with ID:", result.data[0].item_id, "UUID:", result.data[0].uuid);
         // Optionally return the generated UUID if needed: return { success: true, status: result.status, uuid: result.data[0].uuid };
     }
-    return { success: true, status: result.status }; // Return simple success
+    return { success: true, status: result.status };
 };
 
 
@@ -435,11 +433,11 @@ export const updateItem = async (settings, itemId, data) => { // data should NOT
     const currentItemRes = await fetch(currentItemUrl, { headers: defaultHeaders(settings, false) });
     // Handle case where item might have been deleted between listing and updating
     if (!currentItemRes.ok && currentItemRes.status !== 404) {
-        await handleResponse(currentItemRes, 'fetch current item data for update', `item ID ${itemId}`); // Throw error
+        await handleResponse(currentItemRes, 'fetch current item data for update', `item ID ${itemId}`);
     }
     const currentItemData = currentItemRes.ok ? await currentItemRes.json() : [];
     const existingImageId = currentItemData[0]?.image_id; // PostgREST returns array
-    let existingImageUuid = currentItemData[0]?.image_uuid; // Get existing image UUID
+    let existingImageUuid = currentItemData[0]?.image_uuid;
 
     let newImageId = existingImageId; // Assume image doesn't change initially
     let newImageUuid = existingImageUuid; // Assume image UUID doesn't change
@@ -460,7 +458,7 @@ export const updateItem = async (settings, itemId, data) => { // data should NOT
                 // Insert new image record
                 const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
                 newImageId = imageResult.imageId;
-                newImageUuid = imageResult.imageUuid; // Get the new image UUID
+                newImageUuid = imageResult.imageUuid;
             }
         } catch (error) {
             console.error("Failed to process or update/insert image:", error);
