@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom"; // Removed useNavigate
 import { useIntl } from "react-intl";
-import { useSettings } from "../settings/SettingsContext"; // Import useSettings
+import { useSettings } from "../settings/SettingsContext";
 import { getLocaleCodes } from "../translations/i18n"; // Keep for locale validation
 
 // Removed LS key imports
@@ -33,7 +33,7 @@ const updateNestedObject = (obj, path, value) => {
 const ConfigureFromUrl = () => {
   const [searchParams] = useSearchParams();
   const intl = useIntl();
-  const { updateSettings } = useSettings(); // Get update function from context
+  const { updateSettings } = useSettings();
   const [statusMessage, setStatusMessage] = useState(
     intl.formatMessage({
       id: "configure.status.processing",
@@ -143,7 +143,7 @@ const ConfigureFromUrl = () => {
       } else {
         setStatusMessage(
           intl.formatMessage({
-            id: "configure.error.noValidParams", // Changed ID
+            id: "configure.error.noValidParams",
             defaultMessage:
               "Error: No valid configuration parameters found in the provided data.",
           }),
