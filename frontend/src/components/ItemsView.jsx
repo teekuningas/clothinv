@@ -277,45 +277,46 @@ const ItemsView = () => {
       }
 
       console.log(
-        `Original image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`,
+        `Original image size: ${(file.size / 1024 / 1024).toFixed(3)} MB`,
       );
 
       const options = {
-        maxSizeMB: 1, // Max size in MB
+        maxSizeMB: 0.2, // Max size in MB
         maxWidthOrHeight: 1024, // Max width or height
         useWebWorker: true, // Use web worker for performance
-        // fileType: 'image/jpeg', // Optional: force output type
-        // initialQuality: 0.8, // Optional: set initial quality
+        fileType: "image/jpeg", // Force output type
       };
 
       try {
-       // console.log("Compressing image..."); // Optional: Keep for debugging if needed
-       const compressedBlob = await imageCompression(file, options); // This returns a Blob
-       // console.log(
-       //   `Compressed image size: ${(compressedBlob.size / 1024 / 1024).toFixed(2)} MB`,
-       // ); // Optional: Keep for debugging if needed
+        const compressedBlob = await imageCompression(file, options);
 
-       // Convert the compressed Blob back into a File object
-       // Use the original filename and the Blob's type (or fallback to original type)
-       const compressedFile = new File([compressedBlob], file.name, {
-         type: compressedBlob.type || file.type, // Use blob's type, fallback to original
-         lastModified: Date.now(), // Set last modified timestamp
-       });
-       return compressedFile; // Return the File object
+        console.log(
+          `Compressed image size: ${(compressedBlob.size / 1024 / 1024).toFixed(3)} MB`,
+        );
+
+        // Convert the compressed Blob back into a File object
+        // Use the original filename and the Blob's type (or fallback to original type)
+        const compressedFile = new File([compressedBlob], file.name, {
+          type: compressedBlob.type || file.type, // Use blob's type, fallback to original
+          lastModified: Date.now(), // Set last modified timestamp
+        });
+        return compressedFile; // Return the File object
       } catch (error) {
-       console.error("Image compression failed:", error);
-       // Instead of setting error here and returning original file,
-       // throw the error so the calling function handles it.
-       // Note: We need a translation string for this new error context.
-       // Let's add one (assuming you'll add it to your translation files):
-       // "items.error.compressionFailed": "Image compression failed"
-       throw new Error(
-           intl.formatMessage({ id: "items.error.compressionFailed" , defaultMessage: "Image compression failed" }) +
-           `: ${error.message}`
-       );
-     }
-   },
-   [appSettings.imageCompressionEnabled, intl], // Depend on the setting
+        console.error("Image compression failed:", error);
+        // Instead of setting error here and returning original file,
+        // throw the error so the calling function handles it.
+        // Note: We need a translation string for this new error context.
+        // Let's add one (assuming you'll add it to your translation files):
+        // "items.error.compressionFailed": "Image compression failed"
+        throw new Error(
+          intl.formatMessage({
+            id: "items.error.compressionFailed",
+            defaultMessage: "Image compression failed",
+          }) + `: ${error.message}`,
+        );
+      }
+    },
+    [appSettings.imageCompressionEnabled, intl], // Depend on the setting
   ); // Depend on the setting
 
   // --- Add Item Handler ---
