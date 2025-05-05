@@ -854,7 +854,15 @@ export const importData = async (settings, zipFile) => {
         }
 
         console.log('PostgRESTProvider: Import completed successfully.');
-        return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
+        return {
+            success: true,
+            counts: {
+                locations: locations.length,
+                categories: categories.length,
+                owners: owners.length,
+                items: items.length
+            }
+        };
 
     } catch (error) {
         console.error("Error during PostgREST import:", error);

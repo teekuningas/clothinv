@@ -327,14 +327,35 @@ const SettingsView = () => {
       const result = await api.importData(importFile);
       if (result.success) {
         setImportStatus("success");
-        setImportSummary(
+        // Use summary if provided by API, otherwise format using counts, fallback to default
+        let summaryMessage;
+        if (result.summary) {
+            summaryMessage = result.summary;
+        } else if (result.counts) {
+            summaryMessage = intl.formatMessage({
+                id: "settings.data.importSuccessSummary", // New ID
+                defaultMessage: "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} items.",
+            }, {
+                locCount: result.counts.locations,
+                catCount: result.counts.categories,
+                ownerCount: result.counts.owners,
+                itemCount: result.counts.items,
+            });
+        } else {
+            summaryMessage = intl.formatMessage({
+                id: "settings.data.importSuccessDefault",
+                defaultMessage: "Import completed successfully. Data has been replaced.",
+            });
+        }
+        setImportSummary(summaryMessage);
+        /* Old code:
           result.summary ||
             intl.formatMessage({
               id: "settings.data.importSuccessDefault",
               defaultMessage:
                 "Import completed successfully. Data has been replaced.",
             }),
-        );
+        */
         setImportFile(null); // Clear the file input state
         // Clear the actual input element value
         const fileInput = document.getElementById("import-file-input");

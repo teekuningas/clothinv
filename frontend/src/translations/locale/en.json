@@ -150,6 +150,7 @@
     "settings.data.importConfirmReplace": "WARNING: Importing will replace ALL existing data (items, locations, categories, owners). This action cannot be undone. Are you sure you want to proceed?",
     "settings.data.importFailedUnknown": "Import failed for an unknown reason.",
     "settings.data.importUnexpectedError": "An unexpected error occurred during import.",
+   "settings.data.importSuccessSummary": "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} items.",
     "settings.data.destroyTitle": "Destroy Data",
     "settings.data.destroyWarning": "Warning: This action will permanently delete ALL data (items, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.",
     "settings.data.destroyButton": "Destroy All Data",

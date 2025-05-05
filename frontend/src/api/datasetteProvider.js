@@ -953,7 +953,15 @@ export const importData = async (settings, zipFile) => {
         }
 
         console.log('DatasetteProvider: Import completed successfully.');
-        return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
+        return {
+            success: true,
+            counts: {
+                locations: locations.length,
+                categories: categories.length,
+                owners: owners.length,
+                items: items.length
+            }
+        };
 
     } catch (error) { // TODO: Improve error handling and potential rollback/cleanup
         console.error("Error during Datasette import:", error);

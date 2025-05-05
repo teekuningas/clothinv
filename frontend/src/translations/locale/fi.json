@@ -150,6 +150,7 @@
     "settings.data.importConfirmReplace": "VAROITUS: Tuonti korvaa KAIKKI olemassa olevat tiedot (vaatteet, sijainnit, kategoriat, omistajat). Toimintoa ei voi peruuttaa. Haluatko varmasti jatkaa?",
     "settings.data.importFailedUnknown": "Tuonti epäonnistui tuntemattomasta syystä.",
     "settings.data.importUnexpectedError": "Tuonnin aikana tapahtui odottamaton virhe.",
+   "settings.data.importSuccessSummary": "Tuonti onnistui. Korvattu data: {locCount} sijaintia, {catCount} kategoriaa, {ownerCount} omistajaa, {itemCount} vaatetta.",
     "settings.data.destroyTitle": "Tuhoa tiedot",
     "settings.data.destroyWarning": "Varoitus: Tämä toiminto poistaa pysyvästi KAIKKI tiedot (vaatteet, sijainnit, kategoriat, omistajat, kuvat) nykyisestä aktiivisesta palvelusta ({providerName}). Toimintoa EI VOI PERUUTTAA.",
     "settings.data.destroyButton": "Tuhoa kaikki tiedot",

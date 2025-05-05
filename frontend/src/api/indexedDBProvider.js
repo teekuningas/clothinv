@@ -376,7 +376,15 @@ export const importData = async (settings, zipFile) => {
         console.log("Items and images imported.");
 
         console.log('IndexedDBProvider: Import completed successfully.');
-        return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
+        return {
+            success: true,
+            counts: {
+                locations: locations.length,
+                categories: categories.length,
+                owners: owners.length,
+                items: items.length
+            }
+        };
         // Note: Image count isn't explicitly tracked in summary, but they are imported.
     } catch (error) {
         console.error("Error during IndexedDB import:", error);
