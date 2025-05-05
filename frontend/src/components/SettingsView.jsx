@@ -6,6 +6,7 @@ import {
   getProviderDisplayNames,
 } from "../api/providerRegistry";
 import { useApi } from "../api/ApiContext"; // Keep useApi for export/import/destroy
+import { useTranslationContext } from "../translations/TranslationContext.jsx"; // Import translation context hook
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings hook
 import "./SettingsView.css";
 const SettingsView = () => {
@@ -13,6 +14,7 @@ const SettingsView = () => {
   const { settings: appSettings, updateSettings: updateAppSettings } =
     useSettings(); // Get general app settings
   const api = useApi(); // Get full API context to access export/import methods
+  const { availableLocales } = useTranslationContext(); // Get available locales from context
 
   // Local state for Language setting being edited - Initialize from settings context
   const [localLocale, setLocalLocale] = useState(appSettings.locale);
