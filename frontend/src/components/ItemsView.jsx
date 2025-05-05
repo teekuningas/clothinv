@@ -250,6 +250,56 @@ const ItemsView = () => {
     setAddImageUrl(null);
   };
 
+  // --- Rotate Image Handler ---
+  const handleRotateImage = async (formType) => {
+    const isAdd = formType === 'add';
+    const currentFile = isAdd ? newItemImageFile : editItemImageFile;
+    const setRotating = isAdd ? setIsRotatingAdd : setIsRotatingEdit;
+    const setFile = isAdd ? setNewItemImageFile : setEditItemImageFile;
+    const currentPreviewUrl = isAdd ? addImageUrl : editImageUrl;
+    const setPreviewUrl = isAdd ? setAddImageUrl : setEditImageUrl;
+
+    if (!currentFile) return; // No file to rotate
+
+    setRotating(true);
+    setError(null); // Clear previous errors
+    setUpdateError(null);
+
+    try {
+      console.log(`Rotating image for ${formType}...`);
+      const rotatedFile = await rotateImageFile(currentFile);
+      console.log(`Rotation successful for ${formType}. New file:`, rotatedFile);
+
+      // Update the file state
+      setFile(rotatedFile);
+
+      // Update the preview URL
+      if (currentPreviewUrl) {
+        URL.revokeObjectURL(currentPreviewUrl); // Revoke the old URL
+        console.log(`Revoked old preview URL for ${formType}: ${currentPreviewUrl}`);
+      }
+      const newPreviewUrl = URL.createObjectURL(rotatedFile);
+      setPreviewUrl(newPreviewUrl); // Create and set the new URL
+      console.log(`Created new preview URL for ${formType}: ${newPreviewUrl}`);
+
+    } catch (rotationError) {
+      console.error(`Image rotation failed for ${formType}:`, rotationError);
+      const rotationErrorMessage = intl.formatMessage(
+        { id: "items.error.rotate", defaultMessage: "Image rotation failed: {error}" },
+        { error: rotationError.message }
+      );
+      if (isAdd) {
+        setError(rotationErrorMessage);
+      } else {
+        setUpdateError(rotationErrorMessage); // Show error in the modal
+      }
+      // Keep the old file/preview
+    } finally {
+      setRotating(false);
+    }
+  };
+
+
   // --- Add Item Handler ---
   const handleAddItem = async (e) => {
     e.preventDefault();
