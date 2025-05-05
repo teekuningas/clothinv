@@ -1513,7 +1513,6 @@ const ItemsView = () => {
                     ))}
                   </select>
                 </div>
-                {/* Location/Category dropdowns are NOT included in edit for now - REMOVED */}
                 <div className="modal-actions">
                   <button
                     type="submit"
