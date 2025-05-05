@@ -12,8 +12,6 @@ const ApiContext = createContext();
 
 export const useApi = () => useContext(ApiContext);
 
-// REMOVED LS_API_PROVIDER_CONFIG_KEY
-
 // --- Helper: Calculate Configuration Status --- (Moved before ApiProvider for clarity)
 // Determines if the provider is configured based on its registry definition
 const checkConfiguration = (providerType, settings) => {
@@ -75,18 +73,15 @@ export const ApiProvider = ({ children }) => {
     bindApiMethods(apiProviderType, apiSettings, isConfigured);
   }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]); // Depend on relevant settings and calculated status
 
-  // --- Function: Update Configuration ---
   // REMOVED updateConfiguration function - This is now handled by SettingsContext.updateSettings
 
   // --- Context Value ---
-  // Expose the config object, bound API methods, and the update function
   const value = {
     // Provide relevant parts of the config and the calculated status
     apiProviderType: apiProviderType,
     apiSettings: apiSettings,
     isConfigured: isConfigured,
     ...apiMethods, // Spread bound methods (e.g., addItem)
-    // updateConfiguration removed
   };
 
   return <ApiContext.Provider value={value}>{children}</ApiContext.Provider>;

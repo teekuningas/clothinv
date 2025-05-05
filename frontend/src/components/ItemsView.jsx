@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApi } from "../api/ApiContext";
-import { useSettings } from "../settings/SettingsContext"; // Already imported
+import { useSettings } from "../settings/SettingsContext";
 import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression"; // Import the library
 import Modal from "./Modal";
@@ -76,7 +76,7 @@ const ItemsView = () => {
 
   // --- Hooks ---
   const api = useApi();
-  const { settings: appSettings } = useSettings(); // Get app settings from context
+  const { settings: appSettings } = useSettings();
   const intl = useIntl();
 
   // --- Data Fetching ---

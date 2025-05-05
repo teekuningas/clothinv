@@ -4,7 +4,7 @@ import React, {
   useState,
   useEffect,
   useCallback,
-} from "react"; // Removed useCallback as changeLocale is removed
+} from "react";
 import { IntlProvider } from "react-intl";
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings
 import {
@@ -44,8 +44,6 @@ async function loadMessages(locale) {
     }
   }
 }
-
-// REMOVED getInitialLocale function
 
 // Create the context
 const TranslationContext = createContext(null);

@@ -39,7 +39,7 @@ export const SettingsProvider = ({ children }) => {
     let initialSettings = { ...defaultSettings }; // Start with defaults
 
     if (savedSettings) {
-      try { // Load the single settings object
+      try {
         const parsedSettings = JSON.parse(savedSettings);
         // Merge saved settings with defaults, ensuring defaults are present if missing in saved data
         initialSettings = { ...defaultSettings, ...parsedSettings }; // Ensure all keys exist
