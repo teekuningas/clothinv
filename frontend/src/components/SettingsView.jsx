@@ -678,43 +678,42 @@ const SettingsView = () => {
             <div className="checkbox-item">
               <input
                 type="checkbox"
-                  id="imageCompressionEnabled"
-                  name="imageCompressionEnabled"
-                  checked={localImageCompressionEnabled} // Use local state
-                  onChange={handleImageSettingsChange} // Use new handler
-                  disabled={imageSaveStatus === "saving"} // Disable while saving
-                />
-                <label htmlFor="imageCompressionEnabled">
-                  {intl.formatMessage({
-                    id: "settings.image.compressionEnabled.label",
-                    defaultMessage:
-                      "Enable image compression (reduces size before saving):",
-                  })}
-                </label>
-              </div>
+                id="imageCompressionEnabled"
+                name="imageCompressionEnabled"
+                checked={localImageCompressionEnabled} // Use local state
+                onChange={handleImageSettingsChange} // Use new handler
+                disabled={imageSaveStatus === "saving"} // Disable while saving
+              />
+              <label htmlFor="imageCompressionEnabled">
+                {intl.formatMessage({
+                  id: "settings.image.compressionEnabled.label",
+                  defaultMessage:
+                    "Enable image compression (reduces size before saving):",
+                })}
+              </label>
             </div>
           </div>
           {/* Standard form-actions block */}
           <div className="form-actions">
             <button
               type="button"
-                onClick={handleSaveImageSettings}
-                className="button-primary"
-                disabled={
-                  imageSaveStatus === "saving" || imageSaveStatus === "success"
-                }
-              >
-                {imageSaveStatus === "saving"
-                  ? intl.formatMessage({
-                      id: "common.saving",
-                      defaultMessage: "Saving...",
-                    })
-                  : intl.formatMessage({
-                      id: "settings.image.saveButton",
-                      defaultMessage: "Save Image Settings",
-                    })}
-              </button>
-            </div>
+              onClick={handleSaveImageSettings}
+              className="button-primary"
+              disabled={
+                imageSaveStatus === "saving" || imageSaveStatus === "success"
+              }
+            >
+              {imageSaveStatus === "saving"
+                ? intl.formatMessage({
+                    id: "common.saving",
+                    defaultMessage: "Saving...",
+                  })
+                : intl.formatMessage({
+                    id: "settings.image.saveButton",
+                    defaultMessage: "Save Image Settings",
+                  })}
+            </button>
+          </div>
 
           {/* Save Status Feedback for Image Settings */}
           <div className="save-feedback" style={{ minHeight: "20px" }}>
