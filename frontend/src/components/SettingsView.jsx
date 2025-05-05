@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useIntl } from "react-intl"; // Import useIntl
-import JSZip from "jszip"; // Import JSZip for potential use (though logic is in provider)
 import {
   getProviderIds,
   getProviderById,
@@ -10,7 +9,6 @@ import { useApi } from "../api/ApiContext"; // Import useApi hook
 import { useTranslationContext } from "../translations/TranslationContext"; // Import translation hook
 import { useSettings } from "../settings/SettingsContext"; // Import useSettings hook
 import "./SettingsView.css";
-// SettingsView now gets its state and save functions from context
 const SettingsView = () => {
   const { config: apiConfig, updateConfiguration: saveApiConfig } = useApi(); // Get API context
   const {
@@ -30,8 +28,6 @@ const SettingsView = () => {
   const [languageSaveError, setLanguageSaveError] = useState(null);
 
   // Local state ONLY holds the API configuration being edited
-
-  // Local state ONLY holds the API configuration being edited
   const [localApiSettings, setLocalApiSettings] = useState({
     providerType: "none",
     settings: {},
@@ -49,9 +45,6 @@ const SettingsView = () => {
   const [imageSaveStatus, setImageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
   const [imageSaveError, setImageSaveError] = useState(null);
 
-  // Initialize provider display names once
-
-  // Initialize provider display names once
   // State for Export
   const [exportStatus, setExportStatus] = useState("idle"); // 'idle', 'exporting', 'success', 'error'
   const [exportError, setExportError] = useState(null);
@@ -167,7 +160,6 @@ const SettingsView = () => {
       await changeLocale(localLocale); // Assuming changeLocale might become async if needed
       setLanguageSaveStatus("success");
       // Optionally reset status after a delay
-      // setTimeout(() => setLanguageSaveStatus('idle'), 3000);
     } catch (error) {
       // This catch might not be strictly necessary if changeLocale doesn't throw
       // but good practice in case it's modified later.
@@ -219,7 +211,6 @@ const SettingsView = () => {
       await updateAppSettings({ imageCompressionEnabled: localImageCompressionEnabled }); // updateAppSettings is sync, but use await for future-proofing
       setImageSaveStatus("success");
       // Optionally reset status after a delay
-      // setTimeout(() => setImageSaveStatus('idle'), 3000);
     } catch (error) {
       console.error("Error saving image settings:", error);
       setImageSaveError(error.message || "An unexpected error occurred.");
@@ -384,7 +375,6 @@ const SettingsView = () => {
     }
   }, [api, importFile, intl]);
 
-  // --- Destroy Handler ---
   const handleDestroy = useCallback(async () => {
     if (typeof api.destroyData !== "function") {
       setDestroyError(
@@ -398,7 +388,6 @@ const SettingsView = () => {
       return;
     }
 
-    // *** Confirmation Dialog ***
     const confirmed = window.confirm(
       intl.formatMessage(
         {
