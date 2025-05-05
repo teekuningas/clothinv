@@ -533,9 +533,7 @@ const ItemsView = () => {
       let fileToSend = editItemImageFile;
       // Process image before sending if a new file was selected
       if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-        // setIsUpdating(true);
         fileToSend = await processImageFile(editItemImageFile);
-        // setIsUpdating(false);
       }
 
       const result = await api.updateItem(editingItemId, {
