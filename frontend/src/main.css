@@ -63,8 +63,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--color-bg-body); /* CHANGE */
-  color: var(--color-text-base); /* CHANGE */
+  background-color: var(--color-bg-body);
+  color: var(--color-text-base);
   line-height: 1.6;
 }
 
@@ -86,7 +86,7 @@ body {
     font-weight: 500; /* Slightly bolder text */
 }
 
-.status-loading { /* Use info colors */
+.status-loading {
     background-color: var(--color-info-bg);
     color: var(--color-info-text);
     border-color: var(--color-info-bg); /* Match background for less emphasis */
@@ -306,7 +306,7 @@ button:disabled {
     gap: 10px;
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 1px solid var(--color-border-divider); /* CHANGE */
+    border-top: 1px solid var(--color-border-divider);
 }
 
 /* Responsive Modal Actions */
@@ -344,7 +344,7 @@ button:disabled {
 
 /* Apply .button-light class in JSX for visual styling */
 .button-file-input {
-    display: inline-block; /* Keep display */
+    display: inline-block;
 
     /* Remove background-color, color, border-color */
 
@@ -372,7 +372,6 @@ button:disabled {
     margin-right: 8px; /* Space between checkbox and label */
     cursor: pointer;
 
-    /* Define size */
     width: 18px; /* Increased size */
     height: 18px; /* Increased size */
     flex-shrink: 0; /* Prevent shrinking in flex container */

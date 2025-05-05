@@ -18,13 +18,12 @@
 }
 
 
-.categories-list { /* Container for cards */
+.categories-list {
     padding: 0;
     margin-top: 20px;
 }
 
 .category-card {
-    /* Keep specific layout/spacing */
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
     position: relative;

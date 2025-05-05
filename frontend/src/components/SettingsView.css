@@ -77,7 +77,7 @@
     border-radius: 4px;
     font-weight: bold;
     overflow-wrap: break-word; /* Ensure long text wraps */
-    box-sizing: border-box; /* Add this */
+    box-sizing: border-box;
 }
 
 

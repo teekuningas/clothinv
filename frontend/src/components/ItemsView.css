@@ -196,7 +196,6 @@
     }
 }
 
-/* Add this new rule */
 .edit-item-form .image-preview {
     align-self: center; /* Center the preview horizontally */
     margin-bottom: 8px; /* Add space below the centered preview */
@@ -239,7 +238,6 @@
     color: var(--color-text-base);
 }
 
-/* Add this new rule */
 .filters-container #sort-criteria {
     min-width: 250px; /* Make the sort dropdown wider */
 }

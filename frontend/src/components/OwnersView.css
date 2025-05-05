@@ -17,13 +17,12 @@
     width: calc(100% - 22px);
 }
 
-.owners-list { /* Container for cards */
+.owners-list {
     padding: 0;
     margin-top: 20px;
 }
 
 .owner-card {
-    /* Keep specific layout/spacing */
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
     position: relative;

@@ -17,13 +17,12 @@
     width: calc(100% - 22px);
 }
 
-.locations-list { /* Container for cards */
+.locations-list {
     padding: 0;
     margin-top: 20px;
 }
 
 .location-card {
-    /* Keep specific layout/spacing */
     padding: 15px;
     margin-bottom: 15px; /* Use margin if not using grid gap */
     position: relative;
