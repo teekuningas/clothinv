@@ -5,10 +5,8 @@ import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
-import WebcamCapture from "./WebcamCapture";
 import "./ItemsView.css";
 import "./ImageViewModal.css";
-import "./WebcamCapture.css";
 
 const ItemsView = () => {
   const [items, setItems] = useState([]);
@@ -46,9 +44,6 @@ const ItemsView = () => {
   const [isImageViewModalOpen, setIsImageViewModalOpen] = useState(false);
   const [imageViewModalUrl, setImageViewModalUrl] = useState(null);
   const [imageViewModalAlt, setImageViewModalAlt] = useState("");
-
-  const [isWebcamOpen, setIsWebcamOpen] = useState(false);
-  const [webcamTarget, setWebcamTarget] = useState("add"); // 'add' or 'edit'
 
   // State for managing temporary Blob URLs for display
   const [itemImageUrls, setItemImageUrls] = useState({}); // Map itemId -> blobUrl
@@ -685,13 +680,6 @@ const ItemsView = () => {
     }, 200); // Match CSS transition duration
   };
 
-  // --- Webcam Handlers ---
-  const handleOpenWebcam = (target) => {
-    // target is 'add' or 'edit'
-    setWebcamTarget(target);
-    setIsWebcamOpen(true);
-  };
-
   const handleWebcamCapture = useCallback(
     async (imageFile) => {
       if (!(imageFile instanceof File)) return;
@@ -835,18 +823,6 @@ const ItemsView = () => {
                   defaultMessage: "Choose File",
                 })}
               </label>
-              {/* Use button-secondary for webcam -> CHANGE TO button-light */}
-              <button
-                type="button"
-                onClick={() => handleOpenWebcam("add")}
-                disabled={loading}
-                className="button-light"
-              >
-                {intl.formatMessage({
-                  id: "items.addForm.takePicture",
-                  defaultMessage: "Take Picture",
-                })}
-              </button>
               {/* Show remove button only if there's a preview URL */}
               {addImageUrl && (
                 <button
@@ -1387,18 +1363,6 @@ const ItemsView = () => {
                         defaultMessage: "Choose File",
                       })}
                     </label>
-                    {/* Use button-secondary for webcam -> CHANGE TO button-light */}
-                    <button
-                      type="button"
-                      onClick={() => handleOpenWebcam("edit")}
-                      disabled={isUpdating || isDeleting}
-                      className="button-light" // CHANGED from button-secondary
-                    >
-                      {intl.formatMessage({
-                        id: "items.addForm.takePicture",
-                        defaultMessage: "Take Picture",
-                      })}
-                    </button>
                     {/* Show remove button only if there's an image currently displayed */}
                     {displayImageUrl &&
                       typeof api.deleteItem === "function" && (
@@ -1639,14 +1603,6 @@ const ItemsView = () => {
         imageAlt={imageViewModalAlt}
       />
 
-      {/* Webcam Capture Modal */}
-      {isWebcamOpen && ( // Conditionally render the component
-        <WebcamCapture
-          show={isWebcamOpen} // Pass show={true} since it's only rendered when true
-          onCapture={handleWebcamCapture}
-          onClose={() => setIsWebcamOpen(false)}
-        />
-      )}
     </div>
   );
 };
