@@ -176,7 +176,7 @@ const ItemsView = () => {
       ) {
         return false;
       }
-      return true; // Item passes all active filters
+      return true;
     });
   }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]);
 
@@ -213,7 +213,7 @@ const ItemsView = () => {
       Object.values(newItemImageUrls).forEach((url) =>
         URL.revokeObjectURL(url),
       );
-      setItemImageUrls({}); // Clear the state on cleanup
+      setItemImageUrls({});
     };
   }, [sortedItems]);
 
@@ -249,7 +249,6 @@ const ItemsView = () => {
     event.target.value = null;
   };
 
-  // Handler for removing image in Add form
   const handleRemoveNewImage = () => {
     if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke URL
     setNewItemImageFile(null);
@@ -260,7 +259,6 @@ const ItemsView = () => {
   const processImageFile = useCallback(
     async (file) => {
       if (!appSettings.imageCompressionEnabled || !(file instanceof File)) {
-        // Read from appSettings
         console.log("Image compression skipped (disabled or not a file).");
         return file; // Return original if disabled or not a file
       }
