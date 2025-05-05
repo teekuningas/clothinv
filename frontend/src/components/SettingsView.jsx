@@ -459,7 +459,6 @@ const SettingsView = () => {
 
   return (
     <div className="settings-view">
-      {" "}
       {/* Changed class name */}
       <h2>
         {intl.formatMessage({
