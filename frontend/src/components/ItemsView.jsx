@@ -5,7 +5,7 @@ import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
-import { compressImage } from "../../helpers/images"; // Adjust path if needed
+import { compressImage } from "../helpers/images";
 import "./ItemsView.css";
 import "./ImageViewModal.css";
 
