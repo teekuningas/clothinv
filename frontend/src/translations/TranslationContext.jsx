@@ -83,7 +83,6 @@ export const TranslationProvider = ({ children }) => {
       });
   }, [locale, isInitialLoad]);
 
-
   const value = {
     locale,
     availableLocales,
