@@ -931,12 +931,15 @@ export const importData = async (settings, zipFile) => {
 
             const newItemData = {
                 ...itemMetadata,
+                uuid: itemUuid, // Use item's UUID from CSV
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
                 owner_id: ownerMap[owner_id],       // Map to new ID
+                image_uuid: imageUuidFromItemCsv, // Pass image UUID from CSV (addItem will use this for _insertImage)
                 imageFile: imageFile,
                 created_at: itemMetadata.created_at, // Preserve timestamp
                 updated_at: itemMetadata.updated_at  // Preserve timestamp
+                // addItem will handle image_id and image_uuid generation/storage
             };
 
             // Ensure mapped IDs are valid before adding
@@ -952,7 +955,7 @@ export const importData = async (settings, zipFile) => {
         console.log('DatasetteProvider: Import completed successfully.');
         return { success: true, summary: `Import successful. Replaced data with ${locations.length} locations, ${categories.length} categories, ${owners.length} owners, ${items.length} items.` };
 
-    } catch (error) {
+    } catch (error) { // TODO: Improve error handling and potential rollback/cleanup
         console.error("Error during Datasette import:", error);
         // Datasette rollback is complex, data might be partially imported/deleted.
         return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
