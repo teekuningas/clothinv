@@ -1168,16 +1168,15 @@ const ItemsView = () => {
         </div>
       )}
 
-      {typeof api.listItems !== "function" &&
-        api.isConfigured && (
-          <p className="status-warning">
-            {intl.formatMessage({
-              id: "items.list.notSupported",
-              defaultMessage:
-                "Listing items is not supported by the current API Provider.",
-            })}
-          </p>
-        )}
+      {typeof api.listItems !== "function" && api.isConfigured && (
+        <p className="status-warning">
+          {intl.formatMessage({
+            id: "items.list.notSupported",
+            defaultMessage:
+              "Listing items is not supported by the current API Provider.",
+          })}
+        </p>
+      )}
       {typeof api.listItems === "function" &&
         !loading &&
         sortedItems.length === 0 && // Check sortedItems
