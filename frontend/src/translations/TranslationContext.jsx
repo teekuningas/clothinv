@@ -6,8 +6,8 @@ import React, {
   useCallback,
 } from "react";
 import { IntlProvider } from "react-intl";
-import { useSettings } from "../settings/SettingsContext"; // Import useSettings
-import { availableLocales, defaultLocale, getLocaleCodes } from "./i18n"; // Updated path
+import { useSettings } from "../settings/SettingsContext";
+import { availableLocales, defaultLocale, getLocaleCodes } from "./i18n";
 
 async function loadMessages(locale) {
   const validLocale = getLocaleCodes().includes(locale)
@@ -41,10 +41,8 @@ async function loadMessages(locale) {
   }
 }
 
-// Create the context
 const TranslationContext = createContext(null);
 
-// Custom hook to use the context
 export const useTranslationContext = () => {
   const context = useContext(TranslationContext);
   if (!context) {
@@ -55,14 +53,13 @@ export const useTranslationContext = () => {
   return context;
 };
 
-// Create the provider component
 export const TranslationProvider = ({ children }) => {
-  const { settings } = useSettings(); // Get settings from context
-  const locale = settings.locale || defaultLocale; // Get locale from settings, fallback
+  const { settings } = useSettings();
+  const locale = settings.locale || defaultLocale;
   const [messages, setMessages] = useState({});
   const [loadingMessages, setLoadingMessages] = useState(true);
-  const [loadError, setLoadError] = useState(null); // Track loading errors
-  const [isInitialLoad, setIsInitialLoad] = useState(true); // Track initial load
+  const [loadError, setLoadError] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Effect to load messages when locale changes
   useEffect(() => {
@@ -84,11 +81,9 @@ export const TranslationProvider = ({ children }) => {
         // Only set loading to false after attempt, regardless of initial or subsequent load
         setLoadingMessages(false);
       });
-  }, [locale, isInitialLoad]); // Depend on locale from settings
+  }, [locale, isInitialLoad]);
 
-  // REMOVED changeLocale function
 
-  // The context value
   const value = {
     locale,
     availableLocales,
@@ -104,7 +99,7 @@ export const TranslationProvider = ({ children }) => {
     }
     // Show blocking error ONLY if it happened during initial load
     if (isInitialLoad && loadError) {
-      return <div>Error: {loadError} Please try refreshing.</div>; // Display error
+      return <div>Error: {loadError} Please try refreshing.</div>;
     }
     // After initial load, always render IntlProvider + children.
     // Messages will update when subsequent loads finish.
