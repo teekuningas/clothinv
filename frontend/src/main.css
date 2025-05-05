@@ -372,8 +372,9 @@ button:disabled {
     margin-right: 8px; /* Space between checkbox and label */
     cursor: pointer;
     /* Define size */
-    width: 16px;
-    height: 16px;
+    width: 18px; /* Increased size */
+    height: 18px; /* Increased size */
+    flex-shrink: 0; /* Prevent shrinking in flex container */
     /* Use primary color for the checkmark/fill */
     accent-color: var(--color-primary);
     /* Optional: Add a subtle border */
