@@ -17,7 +17,6 @@ const ItemsView = () => {
   const [categories, setCategories] = useState([]);
   const [owners, setOwners] = useState([]);
 
-  // Add form state
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemLocationId, setNewItemLocationId] = useState("");
@@ -25,12 +24,10 @@ const ItemsView = () => {
   const [newItemImageFile, setNewItemImageFile] = useState(null);
   const [newItemOwnerId, setNewItemOwnerId] = useState("");
 
-  // General status state
   const [loading, setLoading] = useState(false); // For initial list loading and adding
   const [error, setError] = useState(null); // For list loading and adding errors
   const [success, setSuccess] = useState(null); // For general success messages
 
-  // Edit state
   const [editingItemId, setEditingItemId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -42,18 +39,15 @@ const ItemsView = () => {
   const [updateError, setUpdateError] = useState(null);
   const [imageMarkedForRemoval, setImageMarkedForRemoval] = useState(false); // Track if user wants to remove existing image
 
-  // Delete state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteCandidateId, setDeleteCandidateId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
 
-  // Image View Modal State
   const [isImageViewModalOpen, setIsImageViewModalOpen] = useState(false);
   const [imageViewModalUrl, setImageViewModalUrl] = useState(null);
   const [imageViewModalAlt, setImageViewModalAlt] = useState("");
 
-  // Webcam Modal State
   const [isWebcamOpen, setIsWebcamOpen] = useState(false);
   const [webcamTarget, setWebcamTarget] = useState("add"); // 'add' or 'edit'
 
@@ -62,14 +56,12 @@ const ItemsView = () => {
   const [addImageUrl, setAddImageUrl] = useState(null); // Blob URL for add form preview
   const [editImageUrl, setEditImageUrl] = useState(null); // Blob URL for edit form preview
 
-  // Filter state
   const [isFilterVisible, setIsFilterVisible] = useState(false);
   const [filterName, setFilterName] = useState("");
   const [filterLocationIds, setFilterLocationIds] = useState([]);
   const [filterCategoryIds, setFilterCategoryIds] = useState([]);
   const [filterOwnerIds, setFilterOwnerIds] = useState([]);
 
-  // Sort state
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
   // --- Hooks ---
