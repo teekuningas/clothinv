@@ -601,7 +601,6 @@ const OwnersView = () => {
                     })}
                   </button>
                 )}
-              {/* Use button-secondary for cancel */}
               <button
                 type="button"
                 onClick={handleCancelEdit}
