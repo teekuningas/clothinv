@@ -5,21 +5,20 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import { defaultLocale } from "../translations/i18n"; // Import default locale
+import { defaultLocale } from "../translations/i18n";
 
 // Define the localStorage key for general app settings
 export const LS_APP_SETTINGS_KEY = "appSettings";
 
 // Define default settings
 const defaultSettings = {
-  locale: defaultLocale, // Default language
-  apiProviderType: "indexedDB", // Default API provider
-  apiSettings: {}, // Default empty API settings
-  imageCompressionEnabled: true, // Default to enabled
+  locale: defaultLocale,
+  apiProviderType: "indexedDB",
+  apiSettings: {},
+  imageCompressionEnabled: true,
   // theme: 'light',
 };
 
-// Create the context
 const SettingsContext = createContext(null);
 
 // Custom hook to use the context
@@ -36,7 +35,7 @@ export const SettingsProvider = ({ children }) => {
   // Initialize state from localStorage or defaults
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem(LS_APP_SETTINGS_KEY);
-    let initialSettings = { ...defaultSettings }; // Start with defaults
+    let initialSettings = { ...defaultSettings };
 
     if (savedSettings) {
       try {
@@ -71,7 +70,7 @@ export const SettingsProvider = ({ children }) => {
 
   // The context value includes the current settings and the update function
   const value = {
-    settings, // Provide the whole settings object
+    settings,
     updateSettings,
   };
 
