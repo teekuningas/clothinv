@@ -677,31 +677,6 @@ const ItemsView = () => {
     setTimeout(() => {
       setImageViewModalUrl(null);
       setImageViewModalAlt("");
-    }, 200); // Match CSS transition duration
-  };
-
-  const handleWebcamCapture = useCallback(
-    async (imageFile) => {
-      if (!(imageFile instanceof File)) return;
-
-      // Process the captured image *before* setting state/URL
-      const processedFile = await processImageFile(imageFile);
-
-      if (webcamTarget === "add") {
-        if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke previous
-        setNewItemImageFile(processedFile); // Use processed file
-        setAddImageUrl(URL.createObjectURL(processedFile)); // Set new blob URL from processed file
-      } else if (webcamTarget === "edit") {
-        if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous
-        setEditItemImageFile(processedFile); // Use processed file
-        setEditImageUrl(URL.createObjectURL(processedFile)); // Set new blob URL from processed file
-        setImageMarkedForRemoval(false); // Captured new image, don't remove
-      }
-
-      setIsWebcamOpen(false); // Close the modal
-    },
-    [webcamTarget, processImageFile, addImageUrl, editImageUrl],
-  );
 
   // --- Render ---
   return (
