@@ -677,6 +677,8 @@ const ItemsView = () => {
     setTimeout(() => {
       setImageViewModalUrl(null);
       setImageViewModalAlt("");
+    }, 200); // Match CSS transition duration (assuming 200ms was intended)
+  }; // Close handleCloseImageViewModal
 
   // --- Render ---
   return (
