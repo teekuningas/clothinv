@@ -45,4 +45,69 @@ export const compressImage = async (file, options, baseErrorMessage) => {
     }
 };
 
-// Add other image helper functions here later (like rotation)
+/**
+ * Rotates an image file 90 degrees clockwise.
+ *
+ * @param {File} file - The image file to rotate.
+ * @returns {Promise<File>} A promise that resolves with the rotated file,
+ *                          or rejects with an error if rotation fails.
+ */
+export const rotateImageFile = (file) => {
+    return new Promise((resolve, reject) => {
+        // Ensure input is a File object
+        if (!(file instanceof File)) {
+            return reject(new Error("Input is not a File object."));
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const image = new Image();
+            image.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Swap width and height for 90-degree rotation
+                canvas.width = image.height;
+                canvas.height = image.width;
+
+                // Translate to the center and rotate
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(Math.PI / 2); // 90 degrees clockwise
+
+                // Draw the image centered on the rotated canvas
+                ctx.drawImage(image, -image.width / 2, -image.height / 2);
+
+                // Get the rotated image as a Blob
+                canvas.toBlob(
+                    (blob) => {
+                        if (!blob) {
+                            return reject(new Error("Canvas toBlob failed."));
+                        }
+                        // Create a new File object from the Blob
+                        const rotatedFile = new File([blob], file.name, {
+                            type: blob.type || file.type || 'image/jpeg', // Use blob's type, fallback
+                            lastModified: Date.now(),
+                        });
+                        resolve(rotatedFile);
+                    },
+                    file.type || 'image/jpeg', // Specify MIME type
+                    0.9 // Specify quality (for JPEG/WEBP)
+                );
+            };
+            image.onerror = (error) => {
+                console.error("Image loading failed:", error);
+                reject(new Error("Failed to load image for rotation."));
+            };
+            image.src = e.target.result; // Set src after defining onload/onerror
+        };
+        reader.onerror = (error) => {
+            console.error("FileReader failed:", error);
+            reject(new Error("Failed to read file for rotation."));
+        };
+
+        reader.readAsDataURL(file); // Start reading the file
+    });
+};
+
+// Add other image helper functions here later

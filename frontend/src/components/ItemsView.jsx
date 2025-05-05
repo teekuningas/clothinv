@@ -5,7 +5,7 @@ import { useIntl } from "react-intl";
 import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
-import { compressImage } from "../helpers/images";
+import { compressImage, rotateImageFile } from "../helpers/images"; // Import rotateImageFile
 import "./ItemsView.css";
 import "./ImageViewModal.css";
 
@@ -45,6 +45,10 @@ const ItemsView = () => {
   const [isImageViewModalOpen, setIsImageViewModalOpen] = useState(false);
   const [imageViewModalUrl, setImageViewModalUrl] = useState(null);
   const [imageViewModalAlt, setImageViewModalAlt] = useState("");
+
+  // State for rotation loading
+  const [isRotatingAdd, setIsRotatingAdd] = useState(false);
+  const [isRotatingEdit, setIsRotatingEdit] = useState(false);
 
   // State for managing temporary Blob URLs for display
   const [itemImageUrls, setItemImageUrls] = useState({}); // Map itemId -> blobUrl
@@ -797,15 +801,31 @@ const ItemsView = () => {
                   defaultMessage: "Choose File",
                 })}
               </label>
-              {/* Show remove button only if there's a preview URL */}
+              {/* Rotate Button */}
+              {addImageUrl && (
+                <button
+                  type="button"
+                  onClick={() => handleRotateImage('add')}
+                  className="button-light rotate-image-button"
+                  disabled={loading || isRotatingAdd}
+                  style={{ marginLeft: '8px' }} // Add some spacing
+                >
+                  {isRotatingAdd
+                    ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." })
+                    : intl.formatMessage({ id: "items.image.rotate", defaultMessage: "Rotate 90°" })}
+                </button>
+              )}
+              {/* Remove Button */}
               {addImageUrl && (
                 <button
                   type="button"
                   onClick={handleRemoveNewImage}
                   className="button-danger-light remove-image-button"
+                  disabled={loading || isRotatingAdd} // Also disable during rotation
+                  style={{ marginLeft: '8px' }} // Add some spacing
                 >
                   {intl.formatMessage({
-                    id: "items.editForm.removeImage",
+                    id: "items.editForm.removeImage", // Re-use existing translation
                     defaultMessage: "Remove Image",
                   })}
                 </button>
@@ -1337,17 +1357,31 @@ const ItemsView = () => {
                         defaultMessage: "Choose File",
                       })}
                     </label>
-                    {/* Show remove button only if there's an image currently displayed */}
-                    {displayImageUrl &&
-                      typeof api.deleteItem === "function" && (
-                        <button
-                          type="button"
-                          onClick={handleRemoveEditImage}
-                          className="button-danger-light remove-image-button" // CHANGED from button-danger
-                          disabled={isUpdating || isDeleting}
-                        >
-                          {intl.formatMessage({
-                            id: "items.editForm.removeImage",
+                    {/* Rotate Button */}
+                    {displayImageUrl && (
+                      <button
+                        type="button"
+                        onClick={() => handleRotateImage('edit')}
+                        className="button-light rotate-image-button"
+                        disabled={isUpdating || isDeleting || isRotatingEdit}
+                        style={{ marginLeft: '8px' }} // Add some spacing
+                      >
+                        {isRotatingEdit
+                          ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." })
+                          : intl.formatMessage({ id: "items.image.rotate", defaultMessage: "Rotate 90°" })}
+                      </button>
+                    )}
+                    {/* Remove Button */}
+                    {displayImageUrl && typeof api.deleteItem === "function" && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveEditImage}
+                        className="button-danger-light remove-image-button"
+                        disabled={isUpdating || isDeleting || isRotatingEdit} // Also disable during rotation
+                        style={{ marginLeft: '8px' }} // Add some spacing
+                      >
+                        {intl.formatMessage({
+                            id: "items.editForm.removeImage", // Re-use existing translation
                             defaultMessage: "Remove Image",
                           })}
                         </button>

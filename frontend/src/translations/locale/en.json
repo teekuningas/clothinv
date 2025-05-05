@@ -235,5 +235,8 @@
     "items.filter.resetButton": "Reset Filters",
     "items.sort.label": "Sort by:",
     "items.sort.newestFirst": "Newest First",
-    "items.sort.oldestFirst": "Oldest First"
+    "items.sort.oldestFirst": "Oldest First",
+    "items.image.rotate": "Rotate 90°",
+    "items.image.rotating": "Rotating...",
+    "items.error.rotate": "Image rotation failed: {error}"
 }

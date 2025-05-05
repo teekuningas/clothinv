@@ -235,5 +235,8 @@
     "items.filter.resetButton": "Nollaa suodattimet",
     "items.sort.label": "Järjestä:",
     "items.sort.newestFirst": "Uusin ensin",
-    "items.sort.oldestFirst": "Vanhin ensin"
+    "items.sort.oldestFirst": "Vanhin ensin",
+    "items.image.rotate": "Kierrä 90°",
+    "items.image.rotating": "Kierretään...",
+    "items.error.rotate": "Kuvan kierto epäonnistui: {error}"
 }
