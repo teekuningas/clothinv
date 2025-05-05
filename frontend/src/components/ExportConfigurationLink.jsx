@@ -1,25 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useIntl } from "react-intl";
-import { useSettings } from "../settings/SettingsContext"; // Import useSettings
-
-// Removed LS key imports
+import { useSettings } from "../settings/SettingsContext";
 
 const ExportConfigurationLink = () => {
-  // Removed useSearchParams hook
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
-  const { settings } = useSettings(); // Get settings from context
+  const { settings } = useSettings();
 
   useEffect(() => {
-    // Get settings directly from context instead of localStorage
     const configParams = new URLSearchParams();
     let foundConfig = false;
 
     // 1. Add Locale from settings context
     try {
       if (settings.locale) {
-        configParams.set("locale", settings.locale); // Use 'locale' key
+        configParams.set("locale", settings.locale);
         foundConfig = true;
         console.log(
           "ExportConfig: Added locale from settings:",
@@ -32,7 +28,6 @@ const ExportConfigurationLink = () => {
 
     // 2. Add API Config from settings context
     try {
-      // Add providerType
       if (settings.apiProviderType) {
         configParams.set("apiProviderType", settings.apiProviderType);
         foundConfig = true;
@@ -41,7 +36,6 @@ const ExportConfigurationLink = () => {
           settings.apiProviderType,
         );
       }
-      // Add apiSettings
       if (settings.apiSettings && typeof settings.apiSettings === "object") {
         for (const [key, value] of Object.entries(settings.apiSettings)) {
           if (value !== null && value !== undefined) {
@@ -72,7 +66,6 @@ const ExportConfigurationLink = () => {
 
     // 3. Add Image Compression setting
     try {
-      // Add imageCompressionEnabled (convert boolean to string)
       if (settings.imageCompressionEnabled !== undefined) {
         configParams.set(
           "imageCompressionEnabled",
@@ -90,7 +83,6 @@ const ExportConfigurationLink = () => {
         e,
       );
     }
-    // 4. Check if any config was found
     if (!foundConfig) {
       setError(
         intl.formatMessage({
@@ -103,7 +95,7 @@ const ExportConfigurationLink = () => {
       return;
     }
 
-    // 4. Generate the URL
+    // 3. Generate the URL
     try {
       const queryString = configParams.toString();
       console.log("ExportConfig: Generated query string:", queryString);
@@ -111,7 +103,7 @@ const ExportConfigurationLink = () => {
       const configureUrl = `${window.location.origin}/configure?values=${base64String}`;
 
       setGeneratedUrl(configureUrl);
-      setError(""); // Clear previous errors
+      setError("");
       console.log("ExportConfig: Generated URL:", configureUrl);
     } catch (e) {
       console.error("ExportConfig: Error encoding query string:", e);
@@ -123,9 +115,7 @@ const ExportConfigurationLink = () => {
       );
       setGeneratedUrl("");
     }
-
-    // End of useEffect body
-  }, [intl, settings]); // Add settings to dependencies
+  }, [intl, settings]);
 
   const handleCopyUrl = () => {
     if (!generatedUrl) return; // Don't copy if URL generation failed
@@ -151,8 +141,6 @@ const ExportConfigurationLink = () => {
         ),
       );
   };
-
-  // Removed handleCopyEncoded function
 
   return (
     // Use settings-view class for consistent padding/styling
@@ -223,8 +211,6 @@ const ExportConfigurationLink = () => {
           })}
         </p>
       )}
-
-      {/* Removed the usage section */}
     </div>
   );
 };
