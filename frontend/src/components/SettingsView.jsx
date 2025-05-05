@@ -478,19 +478,6 @@ const SettingsView = () => {
             })}
           </legend>
           <div className="form-group">
-            {/* Display loading/error specific to language data */}
-            {languageLoading && (
-              <p className="status-loading">
-                {intl.formatMessage({
-                  id: "common.loading",
-                  defaultMessage: "Loading...",
-                })}
-              </p>
-            )}
-            {languageLoadError && (
-              <p className="status-error">{languageLoadError}</p>
-            )}
-
             <label htmlFor="locale">
               {intl.formatMessage({
                 id: "settings.language.label",
@@ -502,7 +489,7 @@ const SettingsView = () => {
               name="locale"
               value={localLocale} // Value from local state
               onChange={handleLocaleChange} // Use dedicated handler
-              disabled={languageLoading || languageSaveStatus === "saving"} // Disable while loading/saving
+              disabled={languageSaveStatus === "saving"} // Disable while saving
             >
               {/* Use availableLocales from translation context */}
               {availableLocales.map((lang) => (
@@ -519,8 +506,7 @@ const SettingsView = () => {
               className="button-primary"
               disabled={
                 languageSaveStatus === "saving" ||
-                languageSaveStatus === "success" ||
-                languageLoading
+                languageSaveStatus === "success"
               }
             >
               {languageSaveStatus === "saving"
