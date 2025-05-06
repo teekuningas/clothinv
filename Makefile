@@ -67,7 +67,6 @@ start-backend-datasette:
 		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
 		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
 		echo "Checking/Initializing database in volume $(DATASETTE_VOLUME_NAME) using Python script..."; \
-		# Run init script as root inside container to handle volume permissions
 		sudo docker run --rm \
 			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
