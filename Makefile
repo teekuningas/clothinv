@@ -160,22 +160,19 @@ start-backend-postgrest:
 
 stop-backend-postgrest:
 	@echo "Stopping PostgREST backend (Postgres + PostgREST) (ENV=$(ENV))..."
-	# Stop PostgREST first
-	@if [ -n "$(call is_running,$(POSTGREST_CONTAINER_NAME))" ]; then \
-		sudo docker stop $(POSTGREST_CONTAINER_NAME); \
-		sudo docker rm $(POSTGREST_CONTAINER_NAME); \
-		echo "Container $(POSTGREST_CONTAINER_NAME) stopped and removed."; \
-	else \
-		echo "Container $(POSTGREST_CONTAINER_NAME) is not running."; \
-	fi
-	# Stop Postgres
-	@if [ -n "$(call is_running,$(POSTGRES_CONTAINER_NAME))" ]; then \
-		sudo docker stop $(POSTGRES_CONTAINER_NAME); \
-		sudo docker rm $(POSTGRES_CONTAINER_NAME); \
-		echo "Container $(POSTGRES_CONTAINER_NAME) stopped and removed."; \
-	else \
-		echo "Container $(POSTGRES_CONTAINER_NAME) is not running."; \
-	fi
+	# Stop and remove PostgREST container
+	@echo "Attempting to stop container $(POSTGREST_CONTAINER_NAME)..."
+	@sudo docker stop $(POSTGREST_CONTAINER_NAME) > /dev/null 2>&1 || true
+	@echo "Attempting to remove container $(POSTGREST_CONTAINER_NAME)..."
+	@sudo docker rm $(POSTGREST_CONTAINER_NAME) > /dev/null 2>&1 || echo "Container $(POSTGREST_CONTAINER_NAME) not found or already removed."
+
+	# Stop and remove Postgres container
+	@echo "Attempting to stop container $(POSTGRES_CONTAINER_NAME)..."
+	@sudo docker stop $(POSTGRES_CONTAINER_NAME) > /dev/null 2>&1 || true
+	@echo "Attempting to remove container $(POSTGRES_CONTAINER_NAME)..."
+	@sudo docker rm $(POSTGRES_CONTAINER_NAME) > /dev/null 2>&1 || echo "Container $(POSTGRES_CONTAINER_NAME) not found or already removed."
+
+	@echo "PostgREST and Postgres containers stop/remove process complete."
 
 clean-backend-postgrest: stop-backend-postgrest
 	@echo "Removing Postgres data volume $(POSTGRES_VOLUME_NAME)..."
