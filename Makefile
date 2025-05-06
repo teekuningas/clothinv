@@ -67,16 +67,16 @@ start-backend-datasette:
 		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
 		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
 		echo "Checking/Initializing database in volume $(DATASETTE_VOLUME_NAME) using Python script..."; \
+		# Run init script as root inside container to handle volume permissions
 		sudo docker run --rm \
-			--user $$(id -u):$$(id -g) \
 			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
 			-v $(shell pwd)/db/init_sqlite.py:/init_sqlite.py:ro \
 			-e DB_PATH="/data/$(DATASETTE_DB_FILENAME)" \
 			-e SCHEMA_PATH="/schema.sql" \
 			$(DATASETTE_IMAGE) \
-			python /init_sqlite.py; \
-		echo "Starting Datasette container $(DATASETTE_CONTAINER_NAME)..."; \
+			python /init_sqlite.py && \
+		echo "Starting Datasette container $(DATASETTE_CONTAINER_NAME)..." && \
 		sudo docker run -d --name $(DATASETTE_CONTAINER_NAME) \
 			-p $(DATASETTE_PORT):$(DATASETTE_PORT) \
 			-v $(DATASETTE_VOLUME_NAME):/data \
