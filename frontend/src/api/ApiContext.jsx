@@ -27,7 +27,9 @@ const checkConfiguration = (providerType, settings) => {
   // Fallback: check if all 'required' fields in the registry have a value
   return (
     provider.configFields?.every(
-      (field) => !field.required || (providerSpecificSettings && providerSpecificSettings[field.key]),
+      (field) =>
+        !field.required ||
+        (providerSpecificSettings && providerSpecificSettings[field.key]),
     ) ?? false
   );
 };
@@ -54,7 +56,8 @@ export const ApiProvider = ({ children }) => {
         provider.methods.forEach((methodName) => {
           const methodImpl = provider.module[methodName];
           if (typeof methodImpl === "function") {
-            const providerSpecificSettingsForMethod = currentApiSettings?.[providerType] || {};
+            const providerSpecificSettingsForMethod =
+              currentApiSettings?.[providerType] || {};
             // Bind the method, passing the current settings object as the first argument
             // Subsequent arguments (like 'data' for addItem) will be passed automatically
             newApiMethods[methodName] = (...args) =>

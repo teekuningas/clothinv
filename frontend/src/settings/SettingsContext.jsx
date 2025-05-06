@@ -101,7 +101,10 @@ export const SettingsProvider = ({ children }) => {
           LS_APP_SETTINGS_KEY,
           JSON.stringify(updatedSettings),
         );
-        console.log("SettingsContext: Settings updated and saved:", updatedSettings);
+        console.log(
+          "SettingsContext: Settings updated and saved:",
+          updatedSettings,
+        );
       } catch (error) {
         console.error("Failed to save app settings to localStorage:", error);
       }

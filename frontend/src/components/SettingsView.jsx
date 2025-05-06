@@ -64,14 +64,16 @@ const SettingsView = () => {
     // Use a deep copy method (structuredClone preferred)
     const currentProviderId = appSettings.apiProviderType || "none";
     // Get the specific settings for the current provider from the global apiSettings object
-    const providerSpecificSettings = appSettings.apiSettings?.[currentProviderId] || {};
+    const providerSpecificSettings =
+      appSettings.apiSettings?.[currentProviderId] || {};
 
     const initialLocalState = {
       providerType: currentProviderId,
       // Use a deep copy of the provider-specific settings
-      settings: typeof structuredClone === "function"
-        ? structuredClone(providerSpecificSettings)
-        : JSON.parse(JSON.stringify(providerSpecificSettings)),
+      settings:
+        typeof structuredClone === "function"
+          ? structuredClone(providerSpecificSettings)
+          : JSON.parse(JSON.stringify(providerSpecificSettings)),
     };
     // Ensure all fields defined in the registry for the current provider exist in local state
     const provider = getProviderById(initialLocalState.providerType);
@@ -121,10 +123,12 @@ const SettingsView = () => {
 
         newApiSettings.providerType = newProviderType;
         // Load persisted settings for the new provider type from global appSettings
-        const persistedSettingsForNewProvider = appSettings.apiSettings?.[newProviderType] || {};
+        const persistedSettingsForNewProvider =
+          appSettings.apiSettings?.[newProviderType] || {};
 
         // Deep copy these persisted settings
-        newApiSettings.settings = typeof structuredClone === "function"
+        newApiSettings.settings =
+          typeof structuredClone === "function"
             ? structuredClone(persistedSettingsForNewProvider)
             : JSON.parse(JSON.stringify(persistedSettingsForNewProvider));
 
@@ -182,8 +186,8 @@ const SettingsView = () => {
         apiProviderType: localApiSettings.providerType,
         apiSettings: {
           ...(appSettings.apiSettings || {}), // Preserve settings for other providers
-          [localApiSettings.providerType]: localApiSettings.settings // Update/add settings for the current provider
-        }
+          [localApiSettings.providerType]: localApiSettings.settings, // Update/add settings for the current provider
+        },
       });
       setApiSaveStatus("success");
       // Optionally reset status after a delay
@@ -485,12 +489,7 @@ const SettingsView = () => {
       );
       setDestroyStatus("error");
     }
-  }, [
-    api,
-    appSettings.apiProviderType,
-    providerDisplayNames,
-    intl,
-  ]); // Removed updateAppSettings
+  }, [api, appSettings.apiProviderType, providerDisplayNames, intl]); // Removed updateAppSettings
 
   // Get the definition for the currently selected provider in the local state
   const selectedProviderId =

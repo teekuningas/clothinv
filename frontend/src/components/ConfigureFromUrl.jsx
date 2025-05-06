@@ -46,7 +46,10 @@ const ConfigureFromUrl = () => {
 
       // 2. Parse the JSON string into an object
       const importedSettings = JSON.parse(decodedJsonString);
-      console.log("ConfigureFromUrl: Imported settings object:", importedSettings);
+      console.log(
+        "ConfigureFromUrl: Imported settings object:",
+        importedSettings,
+      );
 
       if (
         !importedSettings ||
@@ -75,17 +78,26 @@ const ConfigureFromUrl = () => {
       let errorMessageId = "configure.error.generic";
       let defaultMessage = "Error processing configuration: {error}";
 
-      if (error.message.includes("atob") || error.message.toLowerCase().includes("base64")) {
+      if (
+        error.message.includes("atob") ||
+        error.message.toLowerCase().includes("base64")
+      ) {
         errorMessageId = "configure.error.invalidBase64";
         defaultMessage =
           "Error: Could not decode configuration data (Invalid Base64).";
-      } else if (error instanceof SyntaxError || error.message.toLowerCase().includes("json")) {
+      } else if (
+        error instanceof SyntaxError ||
+        error.message.toLowerCase().includes("json")
+      ) {
         errorMessageId = "configure.error.invalidJson"; // New ID
         defaultMessage =
           "Error: Could not parse configuration data (Invalid JSON format).";
-      } else if (error.message.includes("Parsed settings object is empty or invalid.")) {
-         errorMessageId = "configure.error.emptyOrInvalidSettings"; // New ID
-         defaultMessage = "Error: Imported configuration data is empty or invalid.";
+      } else if (
+        error.message.includes("Parsed settings object is empty or invalid.")
+      ) {
+        errorMessageId = "configure.error.emptyOrInvalidSettings"; // New ID
+        defaultMessage =
+          "Error: Imported configuration data is empty or invalid.";
       }
 
       setStatusMessage(
