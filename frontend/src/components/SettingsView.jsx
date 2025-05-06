@@ -63,13 +63,16 @@ const SettingsView = () => {
   // Now depends on appSettings.apiProviderType and appSettings.apiSettings
   useEffect(() => {
     // Use a deep copy method (structuredClone preferred)
+    const currentProviderId = appSettings.apiProviderType || "none";
+    // Get the specific settings for the current provider from the global apiSettings object
+    const providerSpecificSettings = appSettings.apiSettings?.[currentProviderId] || {};
+
     const initialLocalState = {
-      providerType: appSettings.apiProviderType || "none",
-      settings: appSettings.apiSettings // Use apiSettings from context
-        ? typeof structuredClone === "function"
-          ? structuredClone(appSettings.apiSettings)
-          : JSON.parse(JSON.stringify(appSettings.apiSettings))
-        : {},
+      providerType: currentProviderId,
+      // Use a deep copy of the provider-specific settings
+      settings: typeof structuredClone === "function"
+        ? structuredClone(providerSpecificSettings)
+        : JSON.parse(JSON.stringify(providerSpecificSettings)),
     };
     // Ensure all fields defined in the registry for the current provider exist in local state
     const provider = getProviderById(initialLocalState.providerType);
@@ -118,13 +121,21 @@ const SettingsView = () => {
         const newProvider = getProviderById(newProviderType);
 
         newApiSettings.providerType = newProviderType;
-        newApiSettings.settings = {}; // Reset settings object
+        // Load persisted settings for the new provider type from global appSettings
+        // appSettings is from useSettings() at the top of SettingsView
+        const persistedSettingsForNewProvider = appSettings.apiSettings?.[newProviderType] || {};
+
+        // Deep copy these persisted settings
+        newApiSettings.settings = typeof structuredClone === "function"
+            ? structuredClone(persistedSettingsForNewProvider)
+            : JSON.parse(JSON.stringify(persistedSettingsForNewProvider));
 
         // Initialize new provider's fields
         if (newProvider && newProvider.configFields) {
           newProvider.configFields.forEach((field) => {
-            // Initialize with empty string
-            newApiSettings.settings[field.key] = "";
+            if (!(field.key in newApiSettings.settings)) {
+              newApiSettings.settings[field.key] = ""; // Initialize with empty string
+            }
           });
         }
       } else {
@@ -170,8 +181,11 @@ const SettingsView = () => {
     try {
       // Call updateAppSettings with the API provider type and settings
       await updateAppSettings({
-        apiProviderType: localApiSettings.providerType,
-        apiSettings: localApiSettings.settings,
+        apiProviderType: localApiSettings.providerType, // This remains top-level
+        apiSettings: { // This is the new structure for apiSettings
+          ...(appSettings.apiSettings || {}), // Preserve settings for other providers
+          [localApiSettings.providerType]: localApiSettings.settings // Update/add settings for the current provider
+        }
       });
       setApiSaveStatus("success");
       // Optionally reset status after a delay

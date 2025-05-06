@@ -20,13 +20,17 @@ const checkConfiguration = (providerType, settings) => {
     return false;
   }
   // Use the provider's specific check function if available
+  const providerSpecificSettings = settings?.[providerType] || {}; // Extract provider-specific settings
+
   if (provider.isConfiguredCheck) {
-    return provider.isConfiguredCheck(settings);
+    // Pass only the specific settings for this provider
+    return provider.isConfiguredCheck(providerSpecificSettings);
   }
   // Fallback: check if all 'required' fields in the registry have a value
+  // in the provider-specific settings
   return (
     provider.configFields?.every(
-      (field) => !field.required || (settings && settings[field.key]),
+      (field) => !field.required || (providerSpecificSettings && providerSpecificSettings[field.key]),
     ) ?? false
   );
 };
@@ -53,10 +57,12 @@ export const ApiProvider = ({ children }) => {
         provider.methods.forEach((methodName) => {
           const methodImpl = provider.module[methodName];
           if (typeof methodImpl === "function") {
+            // Extract the specific settings for the current providerType
+            const providerSpecificSettingsForMethod = currentApiSettings?.[providerType] || {};
             // Bind the method, passing the current settings object as the first argument
             // Subsequent arguments (like 'data' for addItem) will be passed automatically
             newApiMethods[methodName] = (...args) =>
-              methodImpl(currentApiSettings, ...args); // Pass only apiSettings
+              methodImpl(providerSpecificSettingsForMethod, ...args); // Pass only specific apiSettings for this provider
           } else {
             console.warn(
               `Method '${methodName}' not found or not a function in provider module for '${providerType}'.`,
