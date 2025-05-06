@@ -6,11 +6,11 @@ SCHEMA_SQLITE_FILE := db/schema_sqlite.sql
 SCHEMA_POSTGRES_FILE := db/schema_postgres.sql
 
 # --- Datasette / SQLite Configuration ---
-DATASATTE_CONTAINER_NAME := inventory-datasette-$(ENV)
-DATASATTE_PORT := 8001 # Keep port consistent for simplicity, rely on container name
-DATASATTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
-DATASATTE_DB_FILENAME := inventory.db # Filename *inside* the volume/container
-DATASATTE_IMAGE := datasetteproject/datasette:latest
+DATASETTE_CONTAINER_NAME := inventory-datasette-$(ENV)
+DATASETTE_PORT := 8001 # Keep port consistent for simplicity, rely on container name
+DATASETTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
+DATASETTE_DB_FILENAME := inventory.db # Filename *inside* the volume/container
+DATASETTE_IMAGE := datasetteproject/datasette:latest
 
 # --- PostgreSQL / PostgREST Configuration ---
 POSTGRES_CONTAINER_NAME := inventory-postgres-$(ENV)
@@ -60,39 +60,39 @@ shell:
 
 start-backend-datasette:
 	@echo "Starting Datasette backend (ENV=$(ENV))..."
-	@if [ -n "$(call is_running,$(DATASATTE_CONTAINER_NAME))" ]; then \
-		echo "Container $(DATASATTE_CONTAINER_NAME) is already running."; \
+	@if [ -n "$(call is_running,$(DATASETTE_CONTAINER_NAME))" ]; then \
+		echo "Container $(DATASETTE_CONTAINER_NAME) is already running."; \
 	else \
-		echo "Ensuring volume $(DATASATTE_VOLUME_NAME) exists..."; \
-		sudo docker volume create $(DATASATTE_VOLUME_NAME) > /dev/null; \
-		echo "Checking/Initializing database in volume $(DATASATTE_VOLUME_NAME)..."; \
+		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
+		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
+		echo "Checking/Initializing database in volume $(DATASETTE_VOLUME_NAME)..."; \
 		sudo docker run --rm \
-			-v $(DATASATTE_VOLUME_NAME):/data \
+			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
-			$(DATASATTE_IMAGE) \
-			sh -c 'if [ ! -f /data/$(DATASATTE_DB_FILENAME) ]; then echo "Initializing DB..."; sqlite3 /data/$(DATASATTE_DB_FILENAME) < /schema.sql; else echo "DB already exists."; fi'; \
-		echo "Starting Datasette container $(DATASATTE_CONTAINER_NAME)..."; \
-		sudo docker run -d --name $(DATASATTE_CONTAINER_NAME) \
-			-p $(DATASATTE_PORT):$(DATASATTE_PORT) \
-			-v $(DATASATTE_VOLUME_NAME):/data \
-			$(DATASATTE_IMAGE) \
-			datasette serve /data/$(DATASATTE_DB_FILENAME) --port $(DATASATTE_PORT) --host 0.0.0.0 --cors --root; \
-		echo "Datasette container started on http://127.0.0.1:$(DATASATTE_PORT)"; \
+			$(DATASETTE_IMAGE) \
+			sh -c 'if [ ! -f /data/$(DATASETTE_DB_FILENAME) ]; then echo "Initializing DB..."; sqlite3 /data/$(DATASETTE_DB_FILENAME) < /schema.sql; else echo "DB already exists."; fi'; \
+		echo "Starting Datasette container $(DATASETTE_CONTAINER_NAME)..."; \
+		sudo docker run -d --name $(DATASETTE_CONTAINER_NAME) \
+			-p $(DATASETTE_PORT):$(DATASETTE_PORT) \
+			-v $(DATASETTE_VOLUME_NAME):/data \
+			$(DATASETTE_IMAGE) \
+			datasette serve /data/$(DATASETTE_DB_FILENAME) --port $(DATASETTE_PORT) --host 0.0.0.0 --cors --root; \
+		echo "Datasette container started on http://127.0.0.1:$(DATASETTE_PORT)"; \
 	fi
 
 stop-backend-datasette:
 	@echo "Stopping Datasette backend (ENV=$(ENV))..."
-	@if [ -n "$(call is_running,$(DATASATTE_CONTAINER_NAME))" ]; then \
-		sudo docker stop $(DATASATTE_CONTAINER_NAME); \
-		sudo docker rm $(DATASATTE_CONTAINER_NAME); \
-		echo "Container $(DATASATTE_CONTAINER_NAME) stopped and removed."; \
+	@if [ -n "$(call is_running,$(DATASETTE_CONTAINER_NAME))" ]; then \
+		sudo docker stop $(DATASETTE_CONTAINER_NAME); \
+		sudo docker rm $(DATASETTE_CONTAINER_NAME); \
+		echo "Container $(DATASETTE_CONTAINER_NAME) stopped and removed."; \
 	else \
-		echo "Container $(DATASATTE_CONTAINER_NAME) is not running."; \
+		echo "Container $(DATASETTE_CONTAINER_NAME) is not running."; \
 	fi
 
 clean-backend-datasette: stop-backend-datasette
-	@echo "Removing Datasette data volume $(DATASATTE_VOLUME_NAME)..."
-	@sudo docker volume rm $(DATASATTE_VOLUME_NAME) || echo "Volume already removed or does not exist."
+	@echo "Removing Datasette data volume $(DATASETTE_VOLUME_NAME)..."
+	@sudo docker volume rm $(DATASETTE_VOLUME_NAME) || echo "Volume already removed or does not exist."
 
 # --- PostgREST Backend (Postgres + PostgREST) ---
 
