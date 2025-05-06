@@ -2,15 +2,15 @@
 ENV ?= dev
 
 # Common
-SCHEMA_SQLITE_FILE := db/schema_sqlite.sql
-SCHEMA_POSTGRES_FILE := db/schema_postgres.sql
+SCHEMA_SQLITE_FILE := backend/schema_sqlite.sql
+SCHEMA_POSTGRES_FILE := backend/schema_postgres.sql
 
 # --- Datasette / SQLite Configuration ---
 DATASETTE_CONTAINER_NAME := inventory-datasette-$(ENV)
 DATASETTE_PORT := 8001
 DATASETTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
 DATASETTE_DB_FILENAME := inventory.db
-DATASETTE_IMAGE := datasetteproject/datasette:latest
+DATASETTE_IMAGE := datasetteproject/datasette:v1.0a19
 
 # --- PostgreSQL / PostgREST Configuration ---
 POSTGRES_CONTAINER_NAME := inventory-postgres-$(ENV)
@@ -65,7 +65,7 @@ start-backend-datasette:
 		sudo docker run --rm \
 			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
-			-v $(shell pwd)/db/init_sqlite.py:/init_sqlite.py:ro \
+			-v $(shell pwd)/backend/init_sqlite.py:/init_sqlite.py:ro \
 			-e DB_PATH="/data/$(DATASETTE_DB_FILENAME)" \
 			-e SCHEMA_PATH="/schema.sql" \
 			$(DATASETTE_IMAGE) \
