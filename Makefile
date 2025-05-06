@@ -28,7 +28,7 @@ POSTGREST_IMAGE := postgrest/postgrest:latest
 
 # --- Helper Function ---
 # Check if a docker container is running
-is_running = $(shell sudo docker ps -q -f name=^/$(1)$$)
+is_running = $(shell sudo docker ps -q -f name=^$(1)$$)
 
 .PHONY: help shell \
 	start-backend-datasette stop-backend-datasette clean-backend-datasette \
