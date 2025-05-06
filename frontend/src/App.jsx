@@ -212,19 +212,6 @@ function App() {
               paddingTop: "10px",
             }}
           >
-            {/* Update Datasette token warning */}
-            {settings.apiProviderType === "datasette" &&
-              api.isConfigured &&
-              !settings.apiSettings?.datasetteApiToken && (
-                <p className="status-warning">
-                  {intl.formatMessage({
-                    id: "warning.datasetteTokenMissing",
-                    defaultMessage:
-                      "Warning: Datasette provider is configured but the optional API Token is not set. Operations requiring authentication may fail.",
-                  })}
-                </p>
-              )}
-            {/* General configuration warning */}
             {settings.apiProviderType !== "none" && !api.isConfigured && (
               <p className="status-error">
                 {" "}

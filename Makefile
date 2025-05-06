@@ -10,11 +10,10 @@ DATASETTE_CONTAINER_NAME := inventory-datasette-$(ENV)
 DATASETTE_PORT := 8001
 DATASETTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
 DATASETTE_DB_FILENAME := inventory.db
-# OLD: DATASETTE_IMAGE := datasetteproject/datasette:v1.0a19
-# NEW: Define version and local image name structure
 DATASETTE_VERSION_TAG := 1.0a19
 DATASETTE_LOCAL_IMAGE_NAME := local/inventory-datasette-img
-DATASETTE_IMAGE := $(DATASETTE_LOCAL_IMAGE_NAME):$(DATASETTE_VERSION_TAG)-$(ENV)
+DATASETTE_IMAGE := $(DATASETTE_LOCAL_IMAGE_NAME):$(DATASETTE_VERSION_TAG)
+DATASETTE_SECRET := supersecretpassword
 
 # --- PostgreSQL / PostgREST Configuration ---
 POSTGRES_CONTAINER_NAME := inventory-postgres-$(ENV)
@@ -94,6 +93,7 @@ start-backend-datasette: build-datasette-image
 		sudo docker run -d --name $(DATASETTE_CONTAINER_NAME) \
 			-p $(DATASETTE_PORT):$(DATASETTE_PORT) \
 			-v $(DATASETTE_VOLUME_NAME):/data \
+			-e DATASETTE_SECRET="$(DATASETTE_SECRET)" \
 			$(DATASETTE_IMAGE) \
 			datasette serve /data/$(DATASETTE_DB_FILENAME) --port $(DATASETTE_PORT) --host 0.0.0.0 --cors --root; \
 		echo "Datasette container started on http://127.0.0.1:$(DATASETTE_PORT)"; \
