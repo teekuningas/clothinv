@@ -6,107 +6,38 @@ const ExportConfigurationLink = () => {
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
-  const { settings } = useSettings();
+  const { settings } = useSettings(); // Get the whole settings object
 
   useEffect(() => {
-    const configParams = new URLSearchParams();
-    let foundConfig = false;
+    setError(""); // Clear previous errors
+    setGeneratedUrl(""); // Clear previous URL
 
-    // 1. Add Locale from settings context
-    try {
-      if (settings.locale) {
-        configParams.set("locale", settings.locale);
-        foundConfig = true;
-        console.log(
-          "ExportConfig: Added locale from settings:",
-          settings.locale,
-        );
-      }
-    } catch (e) {
-      console.error("ExportConfig: Error processing locale from settings:", e);
-    }
-
-    // 2. Add API Config from settings context
-    try {
-      if (settings.apiProviderType) {
-        configParams.set("apiProviderType", settings.apiProviderType);
-        foundConfig = true;
-        console.log(
-          "ExportConfig: Added apiProviderType from settings:",
-          settings.apiProviderType,
-        );
-      }
-      if (settings.apiSettings && typeof settings.apiSettings === "object") {
-        for (const [key, value] of Object.entries(settings.apiSettings)) {
-          if (value !== null && value !== undefined) {
-            configParams.set(`apiSettings.${key}`, String(value)); // Prefix with apiSettings.
-            foundConfig = true;
-            console.log(
-              `ExportConfig: Added apiSettings.${key} from settings:`,
-              String(value),
-            );
-          }
-        }
-      }
-    } catch (e) {
-      console.error(
-        "ExportConfig: Error processing API config from settings:",
-        e,
-      );
+    if (!settings || Object.keys(settings).length === 0) {
       setError(
         intl.formatMessage({
-          id: "exportConfig.error.localStorageReadFailed", // New ID
-          defaultMessage:
-            "Error: Failed to read or parse configuration from local storage.",
+          id: "exportConfig.error.noConfigToExport", // New ID
+          defaultMessage: "Error: No configuration available to export.",
         }),
       );
-      setGeneratedUrl("");
-      return; // Stop processing if API config fails critically
-    }
-
-    // 3. Add Image Compression setting
-    try {
-      if (settings.imageCompressionEnabled !== undefined) {
-        configParams.set(
-          "imageCompressionEnabled",
-          String(settings.imageCompressionEnabled),
-        );
-        foundConfig = true;
-        console.log(
-          "ExportConfig: Added imageCompressionEnabled from settings:",
-          settings.imageCompressionEnabled,
-        );
-      }
-    } catch (e) {
-      console.error(
-        "ExportConfig: Error processing imageCompressionEnabled from settings:",
-        e,
-      );
-    }
-    if (!foundConfig) {
-      setError(
-        intl.formatMessage({
-          id: "exportConfig.error.noConfigInLocalStorage", // New ID
-          defaultMessage:
-            "Error: No configuration found in local storage to export.",
-        }),
-      );
-      setGeneratedUrl("");
       return;
     }
 
-    // 3. Generate the URL
     try {
-      const queryString = configParams.toString();
-      console.log("ExportConfig: Generated query string:", queryString);
-      const base64String = btoa(queryString);
-      const configureUrl = `${window.location.origin}/configure?values=${base64String}`;
+      // 1. JSON.stringify the entire settings object
+      const settingsJson = JSON.stringify(settings);
+      console.log("ExportConfig: Settings JSON:", settingsJson);
+
+      // 2. Base64 encode the JSON string
+      const base64String = btoa(settingsJson);
+
+      // 3. Construct the URL
+      // Use a more generic parameter name like 'config' or 'appSettingsPayload'
+      const configureUrl = `${window.location.origin}/configure?settingsPayload=${base64String}`;
 
       setGeneratedUrl(configureUrl);
-      setError("");
       console.log("ExportConfig: Generated URL:", configureUrl);
     } catch (e) {
-      console.error("ExportConfig: Error encoding query string:", e);
+      console.error("ExportConfig: Error generating configuration link:", e);
       setError(
         intl.formatMessage({
           id: "exportConfig.error.encodingFailed", // Keep existing ID
