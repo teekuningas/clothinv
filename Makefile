@@ -1,5 +1,5 @@
 # --- Configuration ---
-ENV ?= dev # Default environment (can be overridden: make start-backends ENV=test)
+ENV ?= dev
 
 # Common
 SCHEMA_SQLITE_FILE := db/schema_sqlite.sql
@@ -7,9 +7,9 @@ SCHEMA_POSTGRES_FILE := db/schema_postgres.sql
 
 # --- Datasette / SQLite Configuration ---
 DATASETTE_CONTAINER_NAME := inventory-datasette-$(ENV)
-DATASETTE_PORT := 8001 # Keep port consistent for simplicity, rely on container name
+DATASETTE_PORT := 8001
 DATASETTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
-DATASETTE_DB_FILENAME := inventory.db # Filename *inside* the volume/container
+DATASETTE_DB_FILENAME := inventory.db
 DATASETTE_IMAGE := datasetteproject/datasette:latest
 
 # --- PostgreSQL / PostgREST Configuration ---
@@ -18,11 +18,11 @@ POSTGRES_PORT := 5432 # Keep port consistent
 POSTGRES_VOLUME_NAME := inventory-postgres-data-$(ENV)
 POSTGRES_DB := inventory_db_$(ENV)
 POSTGRES_USER := inventory_user_$(ENV)
-POSTGRES_PASSWORD := supersecretpassword # Keep simple for local dev/test
+POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_IMAGE := postgres:15
 
 POSTGREST_CONTAINER_NAME := inventory-postgrest-$(ENV)
-POSTGREST_PORT := 4000 # Keep port consistent
+POSTGREST_PORT := 4000
 POSTGREST_IMAGE := postgrest/postgrest:latest
 # JWT Secret will be generated dynamically on start
 
@@ -67,14 +67,12 @@ start-backend-datasette:
 		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
 		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
 		echo "Checking/Initializing database in volume $(DATASETTE_VOLUME_NAME)..."; \
-		@echo "DEBUG: DATASETTE_IMAGE for init is [$(DATASETTE_IMAGE)]"
 		sudo docker run --rm \
 			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
 			$(DATASETTE_IMAGE) \
 			sh -c 'if [ ! -f /data/$(DATASETTE_DB_FILENAME) ]; then echo "Initializing DB..."; sqlite3 /data/$(DATASETTE_DB_FILENAME) < /schema.sql; else echo "DB already exists."; fi'; \
 		echo "Starting Datasette container $(DATASETTE_CONTAINER_NAME)..."; \
-		@echo "DEBUG: DATASETTE_IMAGE for main container is [$(DATASETTE_IMAGE)]"
 		sudo docker run -d --name $(DATASETTE_CONTAINER_NAME) \
 			-p $(DATASETTE_PORT):$(DATASETTE_PORT) \
 			-v $(DATASETTE_VOLUME_NAME):/data \
