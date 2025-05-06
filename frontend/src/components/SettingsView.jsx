@@ -193,7 +193,7 @@ const SettingsView = () => {
       setApiSaveError(error.message || "An unexpected error occurred.");
       setApiSaveStatus("error");
     }
-  }, [localApiSettings, updateAppSettings]);
+  }, [localApiSettings, updateAppSettings, appSettings.apiSettings]);
 
   // Handle changes ONLY for Image settings inputs (e.g., checkbox)
   const handleImageSettingsChange = useCallback((e) => {
@@ -405,7 +405,7 @@ const SettingsView = () => {
       );
       setImportStatus("error");
     }
-  }, [api, importFile, intl, updateAppSettings]); // Added updateAppSettings dependency
+  }, [api, importFile, intl]); // Removed updateAppSettings
 
   const handleDestroy = useCallback(async () => {
     if (typeof api.destroyData !== "function") {
@@ -490,8 +490,7 @@ const SettingsView = () => {
     appSettings.apiProviderType,
     providerDisplayNames,
     intl,
-    updateAppSettings,
-  ]); // Added updateAppSettings dependency
+  ]); // Removed updateAppSettings
 
   // Get the definition for the currently selected provider in the local state
   const selectedProviderId =
