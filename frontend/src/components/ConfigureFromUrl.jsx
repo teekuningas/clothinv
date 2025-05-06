@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
@@ -98,56 +97,6 @@ const ConfigureFromUrl = () => {
       setIsError(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, intl, updateSettings]); // Add updateSettings to dependencies
-  return (
-    // Use settings-view class for consistent padding/styling
-    <div className="settings-view" style={{ textAlign: "center" }}>
-      <h2>
-        {intl.formatMessage({
-          id: "configure.title",
-          defaultMessage: "Applying Configuration",
-        })}
-      </h2>
-      {/* Use status classes */}
-      <p className={isError ? "status-error" : "status-loading"}>
-        {statusMessage}
-      </p>
-      {!isError && (
-        <p>
-          {intl.formatMessage({
-            id: "configure.status.wait",
-            defaultMessage: "Please wait...",
-          })}
-        </p>
-      )}
-      {/* Use text-link color (implicitly via 'a' tag) */}
-      {isError && (
-        <p>
-          <a href="/">
-            {intl.formatMessage({
-              id: "configure.link.home",
-              defaultMessage: "Go to Home Page",
-            })}
-          </a>
-        </p>
-      )}
-    </div>
-  );
-};
-
-export default ConfigureFromUrl;
-        errorMessageId = "configure.error.invalidBase64";
-        defaultMessage =
-          "Error: Could not decode configuration data (Invalid Base64).";
-      }
-      setStatusMessage(
-        intl.formatMessage(
-          { id: errorMessageId, defaultMessage: defaultMessage },
-          { error: error.message },
-        ),
-      );
-      setIsError(true);
-    } // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, intl, updateSettings]); // Add updateSettings to dependencies
   return (
     // Use settings-view class for consistent padding/styling
