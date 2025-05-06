@@ -14,21 +14,16 @@ DATASETTE_IMAGE := datasetteproject/datasette:latest
 
 # --- PostgreSQL / PostgREST Configuration ---
 POSTGRES_CONTAINER_NAME := inventory-postgres-$(ENV)
-POSTGRES_PORT := 5432 # Keep port consistent
+POSTGRES_PORT := 5432
 POSTGRES_VOLUME_NAME := inventory-postgres-data-$(ENV)
 POSTGRES_DB := inventory_db_$(ENV)
 POSTGRES_USER := inventory_user_$(ENV)
 POSTGRES_PASSWORD := supersecretpassword
 POSTGRES_IMAGE := postgres:15
-
 POSTGREST_CONTAINER_NAME := inventory-postgrest-$(ENV)
 POSTGREST_PORT := 4000
 POSTGREST_IMAGE := postgrest/postgrest:latest
-# JWT Secret will be generated dynamically on start
 
-# --- Helper Function ---
-# Check if a docker container is running
-# Note: Using exact name match (^name$) is more robust
 is_running = $(shell sudo docker ps -q -f name=^$(1)$$)
 
 .PHONY: help shell \
@@ -100,7 +95,6 @@ clean-backend-datasette: stop-backend-datasette
 
 start-backend-postgrest:
 	@echo "Starting PostgREST backend (Postgres + PostgREST) (ENV=$(ENV))..."
-	# --- Start Postgres ---
 	@echo "Starting Postgres container $(POSTGRES_CONTAINER_NAME)..."
 	@if [ -n "$(call is_running,$(POSTGRES_CONTAINER_NAME))" ]; then \
 		echo "Postgres container $(POSTGRES_CONTAINER_NAME) is already running."; \
@@ -193,6 +187,3 @@ watch-frontend:
 format:
 	@cd frontend && npm run format:jsx
 	@cd frontend && npm run format:css
-
-# --- Remove Old Targets ---
-# Remove init-db-datasette, start-backend-datasette (old), init-db-postgres, start-backend-postgres, start-backend-postgres-api
