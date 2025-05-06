@@ -124,13 +124,27 @@ start-backend-postgrest:
 	else \
 		JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
 		JWT_PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
-		JWT_TOKEN=$$(echo -n $$JWT_PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
 		echo ""; \
-		echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS (ENV=$(ENV)) <<<"; \
+		echo ">>> POSTGREST JWT CONFIGURATION (ENV=$(ENV)) <<<"; \
 		echo ""; \
-		echo "$$JWT_TOKEN"; \
+		echo "Generated JWT Secret (used by PostgREST container):"; \
+		echo "$$JWT_SECRET"; \
 		echo ""; \
-		echo ">>> END OF JWT TOKEN <<<"; \
+		if command -v jwt >/dev/null 2>&1; then \
+			JWT_TOKEN=$$(echo -n $$JWT_PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
+			echo "JWT Token (for UI settings - generated using jwt-cli):"; \
+			echo "$$JWT_TOKEN"; \
+		else \
+			echo "WARNING: 'jwt-cli' not found in PATH."; \
+			echo "To generate the JWT Token for the UI, you can:"; \
+			echo "  1. Install jwt-cli (e.g., 'npm install -g @tsndr/jwt-cli' or via Nix shell)"; \
+			echo "  2. Use an online tool like https://jwt.io with:"; \
+			echo "     - Algorithm: HS256"; \
+			echo "     - Payload:   $$JWT_PAYLOAD"; \
+			echo "     - Secret:    (copy the secret printed above)"; \
+		fi; \
+		echo ""; \
+		echo ">>> END OF JWT CONFIGURATION <<<"; \
 		echo ""; \
 		sudo docker run -d --name $(POSTGREST_CONTAINER_NAME) \
 			-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
