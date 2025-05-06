@@ -10,7 +10,11 @@ DATASETTE_CONTAINER_NAME := inventory-datasette-$(ENV)
 DATASETTE_PORT := 8001
 DATASETTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
 DATASETTE_DB_FILENAME := inventory.db
-DATASETTE_IMAGE := datasetteproject/datasette:v1.0a19
+# OLD: DATASETTE_IMAGE := datasetteproject/datasette:v1.0a19
+# NEW: Define version and local image name structure
+DATASETTE_VERSION_TAG := 1.0a19
+DATASETTE_LOCAL_IMAGE_NAME := local/inventory-datasette-img
+DATASETTE_IMAGE := $(DATASETTE_LOCAL_IMAGE_NAME):$(DATASETTE_VERSION_TAG)-$(ENV)
 
 # --- PostgreSQL / PostgREST Configuration ---
 POSTGRES_CONTAINER_NAME := inventory-postgres-$(ENV)
@@ -25,9 +29,11 @@ POSTGREST_PORT := 4000
 POSTGREST_IMAGE := postgrest/postgrest:latest
 
 is_running = $(shell sudo docker ps -q -f name=^$(1)$$)
+image_exists = $(shell sudo docker images -q $(1))
 
 .PHONY: help shell \
 	start-backend-datasette stop-backend-datasette clean-backend-datasette \
+	build-datasette-image \
 	start-backend-postgrest stop-backend-postgrest clean-backend-postgrest \
 	start-backends stop-backends clean-backends \
 	watch-frontend format
@@ -52,9 +58,23 @@ help:
 shell:
 	nix develop
 
+# --- Build local Datasette image ---
+build-datasette-image:
+	@echo "Checking for Datasette image $(DATASETTE_IMAGE)..."
+	@if [ -n "$(call image_exists,$(DATASETTE_IMAGE))" ]; then \
+		echo "Datasette image $(DATASETTE_IMAGE) already exists."; \
+	else \
+		echo "Building Datasette image $(DATASETTE_IMAGE) from backend/Containerfile.datasette..."; \
+		sudo docker build -f backend/Containerfile.datasette \
+			-t $(DATASETTE_IMAGE) \
+			--build-arg VERSION=$(DATASETTE_VERSION_TAG) \
+			backend/; \
+		echo "Datasette image $(DATASETTE_IMAGE) built successfully."; \
+	fi
+
 # --- Datasette Backend ---
 
-start-backend-datasette:
+start-backend-datasette: build-datasette-image
 	@echo "Starting Datasette backend (ENV=$(ENV))..."
 	@if [ -n "$(call is_running,$(DATASETTE_CONTAINER_NAME))" ]; then \
 		echo "Container $(DATASETTE_CONTAINER_NAME) is already running."; \
