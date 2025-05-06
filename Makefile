@@ -86,13 +86,11 @@ start-backend-datasette:
 
 stop-backend-datasette:
 	@echo "Stopping Datasette backend (ENV=$(ENV))..."
-	@if [ -n "$(call is_running,$(DATASETTE_CONTAINER_NAME))" ]; then \
-		sudo docker stop $(DATASETTE_CONTAINER_NAME); \
-		sudo docker rm $(DATASETTE_CONTAINER_NAME); \
-		echo "Container $(DATASETTE_CONTAINER_NAME) stopped and removed."; \
-	else \
-		echo "Container $(DATASETTE_CONTAINER_NAME) is not running."; \
-	fi
+	@echo "Attempting to stop container $(DATASETTE_CONTAINER_NAME)..."
+	@sudo docker stop $(DATASETTE_CONTAINER_NAME) > /dev/null 2>&1 || true
+	@echo "Attempting to remove container $(DATASETTE_CONTAINER_NAME)..."
+	@sudo docker rm $(DATASETTE_CONTAINER_NAME) > /dev/null 2>&1 || echo "Container $(DATASETTE_CONTAINER_NAME) not found or already removed."
+	@echo "Datasette container stop/remove process complete."
 
 clean-backend-datasette: stop-backend-datasette
 	@echo "Removing Datasette data volume $(DATASETTE_VOLUME_NAME)..."
