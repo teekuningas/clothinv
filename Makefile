@@ -77,6 +77,7 @@ start-backend-datasette: build-datasette-image
 	@echo "Starting Datasette backend (ENV=$(ENV))..."
 	@if [ -n "$(call is_running,$(DATASETTE_CONTAINER_NAME))" ]; then \
 		echo "Container $(DATASETTE_CONTAINER_NAME) is already running."; \
+		echo "NOTE: If you need a new Datasette API token, stop and restart this backend."; \
 	else \
 		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
 		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
@@ -97,6 +98,24 @@ start-backend-datasette: build-datasette-image
 			$(DATASETTE_IMAGE) \
 			datasette serve /data/$(DATASETTE_DB_FILENAME) --port $(DATASETTE_PORT) --host 0.0.0.0 --cors --root; \
 		echo "Datasette container started on http://127.0.0.1:$(DATASETTE_PORT)"; \
+		echo "Waiting a few seconds for Datasette to initialize before generating API token..."; \
+		sleep 3; \
+		DATASETTE_API_TOKEN=$$(sudo docker exec $(DATASETTE_CONTAINER_NAME) datasette create-token root --expires-after 864000 2>/dev/null); \
+		echo ""; \
+		echo ">>> DATASETTE API TOKEN CONFIGURATION (ENV=$(ENV)) <<<"; \
+		echo ""; \
+		if [ -n "$$DATASETTE_API_TOKEN" ]; then \
+			echo "Datasette API Token (dstok_ format, for actor 'root', expires in 10 days):"; \
+			echo "$$DATASETTE_API_TOKEN"; \
+		else \
+			echo "WARNING: Failed to generate Datasette API Token."; \
+			echo "The container might still be starting, or an error occurred."; \
+			echo "You can try to generate one manually after the container is fully up by running:"; \
+			echo "  sudo docker exec $(DATASETTE_CONTAINER_NAME) datasette create-token root --expires-after 864000"; \
+		fi; \
+		echo ""; \
+		echo ">>> END OF DATASETTE API TOKEN CONFIGURATION <<<"; \
+		echo ""; \
 	fi
 
 stop-backend-datasette:
