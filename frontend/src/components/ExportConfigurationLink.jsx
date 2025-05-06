@@ -9,13 +9,13 @@ const ExportConfigurationLink = () => {
   const { settings } = useSettings(); // Get the whole settings object
 
   useEffect(() => {
-    setError(""); 
-    setGeneratedUrl(""); 
+    setError("");
+    setGeneratedUrl("");
 
     if (!settings || Object.keys(settings).length === 0) {
       setError(
         intl.formatMessage({
-          id: "exportConfig.error.noConfigToExport", 
+          id: "exportConfig.error.noConfigToExport",
           defaultMessage: "Error: No configuration available to export.",
         }),
       );
@@ -36,7 +36,7 @@ const ExportConfigurationLink = () => {
       console.error("ExportConfig: Error generating configuration link:", e);
       setError(
         intl.formatMessage({
-          id: "exportConfig.error.encodingFailed", 
+          id: "exportConfig.error.encodingFailed",
           defaultMessage: "Error: Failed to generate configuration link.",
         }),
       );
@@ -45,7 +45,7 @@ const ExportConfigurationLink = () => {
   }, [intl, settings]);
 
   const handleCopyUrl = () => {
-    if (!generatedUrl) return; 
+    if (!generatedUrl) return;
     navigator.clipboard
       .writeText(generatedUrl)
       .then(() =>

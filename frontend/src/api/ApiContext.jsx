@@ -18,7 +18,7 @@ const checkConfiguration = (providerType, settings) => {
   if (!provider || providerType === "none") {
     return false;
   }
-  const providerSpecificSettings = settings?.[providerType] || {}; 
+  const providerSpecificSettings = settings?.[providerType] || {};
 
   if (provider.isConfiguredCheck) {
     return provider.isConfiguredCheck(providerSpecificSettings);
@@ -38,7 +38,7 @@ export const ApiProvider = ({ children }) => {
 
   const isConfigured = checkConfiguration(apiProviderType, apiSettings);
 
-  const [apiMethods, setApiMethods] = useState({}); 
+  const [apiMethods, setApiMethods] = useState({});
 
   // --- Helper: Bind API Methods ---
   const bindApiMethods = useCallback(
@@ -69,14 +69,14 @@ export const ApiProvider = ({ children }) => {
   // --- Effect: Bind API Methods on Config Change ---
   useEffect(() => {
     bindApiMethods(apiProviderType, apiSettings, isConfigured);
-  }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]); 
+  }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]);
 
   // --- Context Value ---
   const value = {
     apiProviderType: apiProviderType,
     apiSettings: apiSettings,
     isConfigured: isConfigured,
-    ...apiMethods, 
+    ...apiMethods,
   };
 
   return <ApiContext.Provider value={value}>{children}</ApiContext.Provider>;

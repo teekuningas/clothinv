@@ -61,7 +61,7 @@ const ConfigureFromUrl = () => {
       );
       // Use replace: true so the /configure URL isn't in the browser history
       setTimeout(() => {
-        window.location.replace("/items"); 
+        window.location.replace("/items");
       }, 50);
     } catch (error) {
       console.error("Error processing configuration from URL:", error);
@@ -79,13 +79,13 @@ const ConfigureFromUrl = () => {
         error instanceof SyntaxError ||
         error.message.toLowerCase().includes("json")
       ) {
-        errorMessageId = "configure.error.invalidJson"; 
+        errorMessageId = "configure.error.invalidJson";
         defaultMessage =
           "Error: Could not parse configuration data (Invalid JSON format).";
       } else if (
         error.message.includes("Parsed settings object is empty or invalid.")
       ) {
-        errorMessageId = "configure.error.emptyOrInvalidSettings"; 
+        errorMessageId = "configure.error.emptyOrInvalidSettings";
         defaultMessage =
           "Error: Imported configuration data is empty or invalid.";
       }

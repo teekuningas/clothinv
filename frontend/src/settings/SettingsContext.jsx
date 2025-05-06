@@ -8,7 +8,7 @@ import React, {
 import { defaultLocale } from "../translations/i18n";
 
 // Define the localStorage key for general app settings
-export const LS_APP_SETTINGS_KEY = "appSettings";
+export const LS_APP_SETTINGS_KEY = "clothinvAppSettings";
 
 // Define default settings
 const defaultSettings = {
@@ -66,7 +66,7 @@ export const SettingsProvider = ({ children }) => {
   // Initialize state from localStorage or defaults
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem(LS_APP_SETTINGS_KEY);
-    let initialSettings = { ...defaultSettings }; 
+    let initialSettings = { ...defaultSettings };
 
     if (savedSettings) {
       try {
