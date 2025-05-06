@@ -28,6 +28,7 @@ POSTGREST_IMAGE := postgrest/postgrest:latest
 
 # --- Helper Function ---
 # Check if a docker container is running
+# Note: Using exact name match (^name$) is more robust
 is_running = $(shell sudo docker ps -q -f name=^$(1)$$)
 
 .PHONY: help shell \
@@ -66,12 +67,14 @@ start-backend-datasette:
 		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
 		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
 		echo "Checking/Initializing database in volume $(DATASETTE_VOLUME_NAME)..."; \
+		@echo "DEBUG: DATASETTE_IMAGE for init is [$(DATASETTE_IMAGE)]"
 		sudo docker run --rm \
 			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
 			$(DATASETTE_IMAGE) \
 			sh -c 'if [ ! -f /data/$(DATASETTE_DB_FILENAME) ]; then echo "Initializing DB..."; sqlite3 /data/$(DATASETTE_DB_FILENAME) < /schema.sql; else echo "DB already exists."; fi'; \
 		echo "Starting Datasette container $(DATASETTE_CONTAINER_NAME)..."; \
+		@echo "DEBUG: DATASETTE_IMAGE for main container is [$(DATASETTE_IMAGE)]"
 		sudo docker run -d --name $(DATASETTE_CONTAINER_NAME) \
 			-p $(DATASETTE_PORT):$(DATASETTE_PORT) \
 			-v $(DATASETTE_VOLUME_NAME):/data \
