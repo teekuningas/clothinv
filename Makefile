@@ -1,82 +1,188 @@
-.PHONY: help shell init-db-datasette start-backend-datasette init-db-postgres start-backend-postgres watch-frontend start-backend-postgres-api
-
 # --- Configuration ---
+ENV ?= dev # Default environment (can be overridden: make start-backends ENV=test)
+
+# Common
 SCHEMA_SQLITE_FILE := db/schema_sqlite.sql
 SCHEMA_POSTGRES_FILE := db/schema_postgres.sql
 
-# Datasette / SQLite
-DATASATTE_DB_DIR := db/datasette
-DATASATTE_DB_FILE := $(DATASATTE_DB_DIR)/inventory.db
+# --- Datasette / SQLite Configuration ---
+DATASATTE_CONTAINER_NAME := inventory-datasette-$(ENV)
+DATASATTE_PORT := 8001 # Keep port consistent for simplicity, rely on container name
+DATASATTE_VOLUME_NAME := inventory-datasette-data-$(ENV)
+DATASATTE_DB_FILENAME := inventory.db # Filename *inside* the volume/container
+DATASATTE_IMAGE := datasetteproject/datasette:latest
 
-# PostgreSQL / Docker
-POSTGRES_DB := inventory_db
-POSTGRES_USER := inventory_user
-POSTGRES_PASSWORD := supersecretpassword
-POSTGRES_CONTAINER_NAME := inventory-postgres-dev
-POSTGRES_PORT := 5432
+# --- PostgreSQL / PostgREST Configuration ---
+POSTGRES_CONTAINER_NAME := inventory-postgres-$(ENV)
+POSTGRES_PORT := 5432 # Keep port consistent
+POSTGRES_VOLUME_NAME := inventory-postgres-data-$(ENV)
+POSTGRES_DB := inventory_db_$(ENV)
+POSTGRES_USER := inventory_user_$(ENV)
+POSTGRES_PASSWORD := supersecretpassword # Keep simple for local dev/test
+POSTGRES_IMAGE := postgres:15
 
-JWT_SECRET := $(shell head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64)
-JWT_PAYLOAD := '{"role":"$(POSTGRES_USER)"}'
-JWT_TOKEN := $(shell echo -n $(JWT_PAYLOAD) | jwt encode --secret $(JWT_SECRET) --alg HS256 -)
+POSTGREST_CONTAINER_NAME := inventory-postgrest-$(ENV)
+POSTGREST_PORT := 4000 # Keep port consistent
+POSTGREST_IMAGE := postgrest/postgrest:latest
+# JWT Secret will be generated dynamically on start
+
+# --- Helper Function ---
+# Check if a docker container is running
+is_running = $(shell sudo docker ps -q -f name=^/$(1)$$)
+
+.PHONY: help shell \
+	start-backend-datasette stop-backend-datasette clean-backend-datasette \
+	start-backend-postgrest stop-backend-postgrest clean-backend-postgrest \
+	start-backends stop-backends clean-backends \
+	watch-frontend format
+
+help:
+	@echo "Available commands:"
+	@echo "  make shell                   - Enter the Nix development shell"
+	@echo "  make start-backends [ENV=X]  - Start Datasette & PostgREST backends (default ENV=dev)"
+	@echo "  make stop-backends [ENV=X]   - Stop Datasette & PostgREST backends"
+	@echo "  make clean-backends [ENV=X]  - Stop backends AND remove data volumes"
+	@echo "  --- Individual Backends ---"
+	@echo "  make start-backend-datasette [ENV=X]"
+	@echo "  make stop-backend-datasette [ENV=X]"
+	@echo "  make clean-backend-datasette [ENV=X]"
+	@echo "  make start-backend-postgrest [ENV=X] - Starts Postgres & PostgREST, outputs JWT"
+	@echo "  make stop-backend-postgrest [ENV=X]  - Stops Postgres & PostgREST"
+	@echo "  make clean-backend-postgrest [ENV=X] - Stops Postgres & removes data volume"
+	@echo "  --- Frontend ---"
+	@echo "  make watch-frontend          - Start frontend dev server"
+	@echo "  make format                  - Format frontend code"
 
 shell:
 	nix develop
 
-init-db-datasette:
-	@echo "Initializing Datasette database $(DATASATTE_DB_FILE) from $(SCHEMA_SQLITE_FILE)..."
-	@mkdir -p $(DATASATTE_DB_DIR)
-	@sqlite3 $(DATASATTE_DB_FILE) < $(SCHEMA_SQLITE_FILE)
-	@echo "Database initialized."
+# --- Datasette Backend ---
 
 start-backend-datasette:
-	@echo "Starting Datasette server on http://127.0.0.1:8001 for $(DATASATTE_DB_FILE)..."
-	@datasette serve $(DATASATTE_DB_FILE) --port 8001 --cors --root
+	@echo "Starting Datasette backend (ENV=$(ENV))..."
+	@if [ -n "$(call is_running,$(DATASATTE_CONTAINER_NAME))" ]; then \
+		echo "Container $(DATASATTE_CONTAINER_NAME) is already running."; \
+	else \
+		echo "Ensuring volume $(DATASATTE_VOLUME_NAME) exists..."; \
+		sudo docker volume create $(DATASATTE_VOLUME_NAME) > /dev/null; \
+		echo "Checking/Initializing database in volume $(DATASATTE_VOLUME_NAME)..."; \
+		sudo docker run --rm \
+			-v $(DATASATTE_VOLUME_NAME):/data \
+			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
+			$(DATASATTE_IMAGE) \
+			sh -c 'if [ ! -f /data/$(DATASATTE_DB_FILENAME) ]; then echo "Initializing DB..."; sqlite3 /data/$(DATASATTE_DB_FILENAME) < /schema.sql; else echo "DB already exists."; fi'; \
+		echo "Starting Datasette container $(DATASATTE_CONTAINER_NAME)..."; \
+		sudo docker run -d --name $(DATASATTE_CONTAINER_NAME) \
+			-p $(DATASATTE_PORT):$(DATASATTE_PORT) \
+			-v $(DATASATTE_VOLUME_NAME):/data \
+			$(DATASATTE_IMAGE) \
+			datasette serve /data/$(DATASATTE_DB_FILENAME) --port $(DATASATTE_PORT) --host 0.0.0.0 --cors --root; \
+		echo "Datasette container started on http://127.0.0.1:$(DATASATTE_PORT)"; \
+	fi
 
-init-db-postgres:
-	@echo "Initializing PostgreSQL database '$(POSTGRES_DB)' using schema $(SCHEMA_POSTGRES_FILE)..."
-	@echo "NOTE: Requires the PostgreSQL container to be running (make start-backend-postgres)."
-	@cat $(SCHEMA_POSTGRES_FILE) | sudo docker exec -i $(POSTGRES_CONTAINER_NAME) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB)
-	@echo "PostgreSQL database schema applied."
-	@echo "Connection URL: postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)"
+stop-backend-datasette:
+	@echo "Stopping Datasette backend (ENV=$(ENV))..."
+	@if [ -n "$(call is_running,$(DATASATTE_CONTAINER_NAME))" ]; then \
+		sudo docker stop $(DATASATTE_CONTAINER_NAME); \
+		sudo docker rm $(DATASATTE_CONTAINER_NAME); \
+		echo "Container $(DATASATTE_CONTAINER_NAME) stopped and removed."; \
+	else \
+		echo "Container $(DATASATTE_CONTAINER_NAME) is not running."; \
+	fi
 
-start-backend-postgres:
-	@echo "Starting PostgreSQL container '$(POSTGRES_CONTAINER_NAME)' in the foreground on port $(POSTGRES_PORT)... (Press Ctrl+C to stop)"
-	@echo "Using bind mount './db/postgres' for data persistence."
-	@echo "DB: $(POSTGRES_DB), User: $(POSTGRES_USER)"
-	@mkdir -p db/postgres # Ensure the host directory exists
-	@sudo docker run --name $(POSTGRES_CONTAINER_NAME) \
-		-e POSTGRES_DB=$(POSTGRES_DB) \
-		-e POSTGRES_USER=$(POSTGRES_USER) \
-		-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
-		-p $(POSTGRES_PORT):5432 \
-		-v $(shell pwd)/db/postgres:/var/lib/postgresql/data \
-		--rm \
-		postgres:15
-	@echo "Use 'make init-db-postgres' to apply the schema if this is the first run."
+clean-backend-datasette: stop-backend-datasette
+	@echo "Removing Datasette data volume $(DATASATTE_VOLUME_NAME)..."
+	@sudo docker volume rm $(DATASATTE_VOLUME_NAME) || echo "Volume already removed or does not exist."
 
-start-backend-postgres-api:
-	@echo ""
-	@echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS <<<"
-	@echo ""
-	@echo "$(JWT_TOKEN)"
-	@echo ""
-	@echo ">>> END OF JWT TOKEN <<<"
-	@echo ""
-	@echo "Starting PostgREST container 'inventory-postgrest-dev' on port 4000..."
-	@echo "Connecting to PostgreSQL at localhost:$(POSTGRES_PORT) as user $(POSTGRES_USER)"
-	@echo ">>> JWT Authentication Required (using generated token above) <<<"
-	@echo "Using JWT Secret (internal to container): $(JWT_SECRET)"
-	@sudo docker run --name inventory-postgrest-dev \
-		-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
-		-e PGRST_DB_SCHEMA="public" \
-		-e PGRST_DB_ANON_ROLE="anon_role" \
-		-e PGRST_JWT_SECRET="$(JWT_SECRET)" \
-		-e PGRST_SERVER_PORT="4000" \
-		-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:4000" \
-		--rm \
-		--network host \
-		postgrest/postgrest
-	@echo "PostgREST container stopped."
+# --- PostgREST Backend (Postgres + PostgREST) ---
+
+start-backend-postgrest:
+	@echo "Starting PostgREST backend (Postgres + PostgREST) (ENV=$(ENV))..."
+	# --- Start Postgres ---
+	@echo "Starting Postgres container $(POSTGRES_CONTAINER_NAME)..."
+	@if [ -n "$(call is_running,$(POSTGRES_CONTAINER_NAME))" ]; then \
+		echo "Postgres container $(POSTGRES_CONTAINER_NAME) is already running."; \
+	else \
+		echo "Ensuring volume $(POSTGRES_VOLUME_NAME) exists..."; \
+		sudo docker volume create $(POSTGRES_VOLUME_NAME) > /dev/null; \
+		echo "Starting Postgres container $(POSTGRES_CONTAINER_NAME)..."; \
+		sudo docker run -d --name $(POSTGRES_CONTAINER_NAME) \
+			-e POSTGRES_DB=$(POSTGRES_DB) \
+			-e POSTGRES_USER=$(POSTGRES_USER) \
+			-e POSTGRES_PASSWORD=$(POSTGRES_PASSWORD) \
+			-p $(POSTGRES_PORT):5432 \
+			-v $(POSTGRES_VOLUME_NAME):/var/lib/postgresql/data \
+			-v $(shell pwd)/$(SCHEMA_POSTGRES_FILE):/docker-entrypoint-initdb.d/init.sql:ro \
+			$(POSTGRES_IMAGE); \
+		echo "Waiting for Postgres to be ready..."; \
+		until sudo docker exec $(POSTGRES_CONTAINER_NAME) pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) -q; do \
+			sleep 1; \
+		done; \
+		echo "Postgres container started and initialized (if volume was empty)."; \
+	fi
+	# --- Start PostgREST ---
+	@echo "Starting PostgREST container $(POSTGREST_CONTAINER_NAME)..."
+	@if [ -n "$(call is_running,$(POSTGREST_CONTAINER_NAME))" ]; then \
+		echo "PostgREST container $(POSTGREST_CONTAINER_NAME) is already running."; \
+		echo "NOTE: If you need a new JWT token, stop and restart."; \
+	else \
+		JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
+		JWT_PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
+		JWT_TOKEN=$$(echo -n $$JWT_PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
+		echo ""; \
+		echo ">>> COPY THIS JWT TOKEN INTO THE UI SETTINGS (ENV=$(ENV)) <<<"; \
+		echo ""; \
+		echo "$$JWT_TOKEN"; \
+		echo ""; \
+		echo ">>> END OF JWT TOKEN <<<"; \
+		echo ""; \
+		sudo docker run -d --name $(POSTGREST_CONTAINER_NAME) \
+			-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
+			-e PGRST_DB_SCHEMA="public" \
+			-e PGRST_DB_ANON_ROLE="anon_role" \
+			-e PGRST_JWT_SECRET="$$JWT_SECRET" \
+			-e PGRST_SERVER_PORT="$(POSTGREST_PORT)" \
+			-e PGRST_OPENAPI_SERVER_PROXY_URI="http://localhost:$(POSTGREST_PORT)" \
+			--network host \
+			$(POSTGREST_IMAGE); \
+		echo "PostgREST container started on http://localhost:$(POSTGREST_PORT)"; \
+	fi
+
+stop-backend-postgrest:
+	@echo "Stopping PostgREST backend (Postgres + PostgREST) (ENV=$(ENV))..."
+	# Stop PostgREST first
+	@if [ -n "$(call is_running,$(POSTGREST_CONTAINER_NAME))" ]; then \
+		sudo docker stop $(POSTGREST_CONTAINER_NAME); \
+		sudo docker rm $(POSTGREST_CONTAINER_NAME); \
+		echo "Container $(POSTGREST_CONTAINER_NAME) stopped and removed."; \
+	else \
+		echo "Container $(POSTGREST_CONTAINER_NAME) is not running."; \
+	fi
+	# Stop Postgres
+	@if [ -n "$(call is_running,$(POSTGRES_CONTAINER_NAME))" ]; then \
+		sudo docker stop $(POSTGRES_CONTAINER_NAME); \
+		sudo docker rm $(POSTGRES_CONTAINER_NAME); \
+		echo "Container $(POSTGRES_CONTAINER_NAME) stopped and removed."; \
+	else \
+		echo "Container $(POSTGRES_CONTAINER_NAME) is not running."; \
+	fi
+
+clean-backend-postgrest: stop-backend-postgrest
+	@echo "Removing Postgres data volume $(POSTGRES_VOLUME_NAME)..."
+	@sudo docker volume rm $(POSTGRES_VOLUME_NAME) || echo "Volume already removed or does not exist."
+
+# --- Combined Backend Management ---
+
+start-backends: start-backend-datasette start-backend-postgrest
+	@echo "All backends (ENV=$(ENV)) started."
+
+stop-backends: stop-backend-datasette stop-backend-postgrest
+	@echo "All backends (ENV=$(ENV)) stopped."
+
+clean-backends: clean-backend-datasette clean-backend-postgrest
+	@echo "All backends (ENV=$(ENV)) stopped and data volumes removed."
+
+# --- Frontend ---
 
 watch-frontend:
 	@echo "Starting frontend development server..."
@@ -85,3 +191,6 @@ watch-frontend:
 format:
 	@cd frontend && npm run format:jsx
 	@cd frontend && npm run format:css
+
+# --- Remove Old Targets ---
+# Remove init-db-datasette, start-backend-datasette (old), init-db-postgres, start-backend-postgres, start-backend-postgres-api
