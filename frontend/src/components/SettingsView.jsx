@@ -60,7 +60,6 @@ const SettingsView = () => {
   }, []);
 
   // Initialize local state for API settings when apiConfig changes
-  // Now depends on appSettings.apiProviderType and appSettings.apiSettings
   useEffect(() => {
     // Use a deep copy method (structuredClone preferred)
     const currentProviderId = appSettings.apiProviderType || "none";
@@ -122,7 +121,6 @@ const SettingsView = () => {
 
         newApiSettings.providerType = newProviderType;
         // Load persisted settings for the new provider type from global appSettings
-        // appSettings is from useSettings() at the top of SettingsView
         const persistedSettingsForNewProvider = appSettings.apiSettings?.[newProviderType] || {};
 
         // Deep copy these persisted settings
@@ -181,8 +179,8 @@ const SettingsView = () => {
     try {
       // Call updateAppSettings with the API provider type and settings
       await updateAppSettings({
-        apiProviderType: localApiSettings.providerType, // This remains top-level
-        apiSettings: { // This is the new structure for apiSettings
+        apiProviderType: localApiSettings.providerType,
+        apiSettings: {
           ...(appSettings.apiSettings || {}), // Preserve settings for other providers
           [localApiSettings.providerType]: localApiSettings.settings // Update/add settings for the current provider
         }
