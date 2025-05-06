@@ -6,8 +6,6 @@ import { useSettings } from "../settings/SettingsContext";
 // or if locale validation happens within SettingsContext or TranslationContext upon update.
 // For now, let's assume the imported locale will be validated by TranslationContext.
 
-// The updateNestedObject helper function can be removed from this file if not used elsewhere.
-
 const ConfigureFromUrl = () => {
   const [searchParams] = useSearchParams();
   const intl = useIntl();
@@ -25,10 +23,6 @@ const ConfigureFromUrl = () => {
     const encodedSettingsPayload = searchParams.get("settingsPayload");
 
     if (!encodedSettingsPayload) {
-      // Fallback to old 'values' param for a brief period of backward compatibility if desired,
-      // or remove this fallback if starting fresh. For this refactor, let's assume new param.
-      // const oldEncodedValues = searchParams.get("values");
-      // if (!oldEncodedValues) { ... }
       setStatusMessage(
         intl.formatMessage({
           id: "configure.error.missingParam",
@@ -40,11 +34,9 @@ const ConfigureFromUrl = () => {
     }
 
     try {
-      // 1. Decode the base64 string
       const decodedJsonString = atob(encodedSettingsPayload);
       console.log("ConfigureFromUrl: Decoded JSON string:", decodedJsonString);
 
-      // 2. Parse the JSON string into an object
       const importedSettings = JSON.parse(decodedJsonString);
       console.log(
         "ConfigureFromUrl: Imported settings object:",
@@ -59,8 +51,6 @@ const ConfigureFromUrl = () => {
         throw new Error("Parsed settings object is empty or invalid.");
       }
 
-      // 3. Update settings using the entire imported object.
-      // The deepMerge in SettingsContext will handle combining it with existing settings.
       updateSettings(importedSettings);
 
       setStatusMessage(
@@ -71,7 +61,7 @@ const ConfigureFromUrl = () => {
       );
       // Use replace: true so the /configure URL isn't in the browser history
       setTimeout(() => {
-        window.location.replace("/items"); // Or settings page, or home
+        window.location.replace("/items"); 
       }, 50);
     } catch (error) {
       console.error("Error processing configuration from URL:", error);
@@ -89,13 +79,13 @@ const ConfigureFromUrl = () => {
         error instanceof SyntaxError ||
         error.message.toLowerCase().includes("json")
       ) {
-        errorMessageId = "configure.error.invalidJson"; // New ID
+        errorMessageId = "configure.error.invalidJson"; 
         defaultMessage =
           "Error: Could not parse configuration data (Invalid JSON format).";
       } else if (
         error.message.includes("Parsed settings object is empty or invalid.")
       ) {
-        errorMessageId = "configure.error.emptyOrInvalidSettings"; // New ID
+        errorMessageId = "configure.error.emptyOrInvalidSettings"; 
         defaultMessage =
           "Error: Imported configuration data is empty or invalid.";
       }
@@ -111,7 +101,6 @@ const ConfigureFromUrl = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, intl, updateSettings]); // Add updateSettings to dependencies
   return (
-    // Use settings-view class for consistent padding/styling
     <div className="settings-view" style={{ textAlign: "center" }}>
       <h2>
         {intl.formatMessage({
@@ -119,7 +108,6 @@ const ConfigureFromUrl = () => {
           defaultMessage: "Applying Configuration",
         })}
       </h2>
-      {/* Use status classes */}
       <p className={isError ? "status-error" : "status-loading"}>
         {statusMessage}
       </p>
@@ -131,7 +119,6 @@ const ConfigureFromUrl = () => {
           })}
         </p>
       )}
-      {/* Use text-link color (implicitly via 'a' tag) */}
       {isError && (
         <p>
           <a href="/">

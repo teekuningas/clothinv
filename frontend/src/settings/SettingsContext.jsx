@@ -16,7 +16,6 @@ const defaultSettings = {
   apiProviderType: "indexedDB", // Default provider
   apiSettings: {}, // Will be populated per provider, e.g., { datasette: {...}, postgrest: {...} }
   imageCompressionEnabled: true,
-  // theme: 'light', // Example of another potential setting
 };
 
 // Helper function to determine if a value is an object (and not an array or null)
@@ -36,26 +35,18 @@ const deepMerge = (target, source) => {
   if (isObject(target) && isObject(source)) {
     Object.keys(source).forEach((key) => {
       if (isObject(source[key])) {
-        // If the key exists in target and is also an object, recurse
         if (key in target && isObject(target[key])) {
           output[key] = deepMerge(target[key], source[key]);
         } else {
-          // Otherwise, assign the source object (or a deep copy of it if preferred)
-          // For this context, a direct assignment of the source's nested object is fine
-          // as we are building up a new settings state.
           output[key] = deepMerge({}, source[key]); // Ensure nested objects are also new
         }
       } else {
-        // For non-object properties (or arrays), source overwrites target
         output[key] = source[key];
       }
     });
   } else if (isObject(source)) {
-    // If target is not an object but source is, return a deep copy of source
     return deepMerge({}, source);
   }
-  // if source is not an object, the initial spread of target or target itself is returned
-  // or if target is not an object, source value (if not object) would have been assigned or ignored.
   return output;
 };
 
@@ -75,17 +66,14 @@ export const SettingsProvider = ({ children }) => {
   // Initialize state from localStorage or defaults
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem(LS_APP_SETTINGS_KEY);
-    let initialSettings = { ...defaultSettings }; // Start with a copy of defaults
+    let initialSettings = { ...defaultSettings }; 
 
     if (savedSettings) {
       try {
         const parsedSettings = JSON.parse(savedSettings);
-        // Deep merge saved settings into defaults to ensure all keys from defaultSettings
-        // are present and to properly merge nested structures like apiSettings.
         initialSettings = deepMerge(defaultSettings, parsedSettings);
       } catch (e) {
         console.error("Failed to parse saved app settings, using defaults.", e);
-        // initialSettings remains a copy of defaultSettings
       }
     }
     return initialSettings;
@@ -93,7 +81,6 @@ export const SettingsProvider = ({ children }) => {
 
   const updateSettings = useCallback((newSettingsPartial) => {
     setSettings((prevSettings) => {
-      // Perform a deep merge of the new partial settings into the previous settings
       const updatedSettings = deepMerge(prevSettings, newSettingsPartial);
 
       try {
@@ -112,7 +99,6 @@ export const SettingsProvider = ({ children }) => {
     });
   }, []);
 
-  // The context value includes the current settings and the update function
   const value = {
     settings,
     updateSettings,
