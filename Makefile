@@ -76,12 +76,12 @@ build-datasette-image:
 start-backend-datasette: build-datasette-image
 	@echo "Starting Datasette backend (ENV=$(ENV))..."
 	@if [ -n "$(call is_running,$(DATASETTE_CONTAINER_NAME))" ]; then \
-		echo "Container $(DATASETTE_CONTAINER_NAME) is already running."; \
-		echo "NOTE: If you need a new Datasette API token, stop and restart this backend."; \
+		echo "Datasette container $(DATASETTE_CONTAINER_NAME) is already running."; \
+		echo "To regenerate API token, restart this backend."; \
 	else \
-		echo "Ensuring volume $(DATASETTE_VOLUME_NAME) exists..."; \
+		echo "Ensuring volume $(DATASETTE_VOLUME_NAME)..."; \
 		sudo docker volume create $(DATASETTE_VOLUME_NAME) > /dev/null; \
-		echo "Checking/Initializing database in volume $(DATASETTE_VOLUME_NAME) using Python script..."; \
+		echo "Initializing database in $(DATASETTE_VOLUME_NAME) via Python script..."; \
 		sudo docker run --rm \
 			-v $(DATASETTE_VOLUME_NAME):/data \
 			-v $(shell pwd)/$(SCHEMA_SQLITE_FILE):/schema.sql:ro \
@@ -98,47 +98,42 @@ start-backend-datasette: build-datasette-image
 			$(DATASETTE_IMAGE) \
 			datasette serve /data/$(DATASETTE_DB_FILENAME) --port $(DATASETTE_PORT) --host 0.0.0.0 --cors --root; \
 		echo "Datasette container started on http://127.0.0.1:$(DATASETTE_PORT)"; \
-		echo "Waiting a few seconds for Datasette to initialize before generating API token..."; \
+		echo "Waiting for Datasette to initialize..."; \
 		sleep 1; \
 		DATASETTE_API_TOKEN=$$(sudo docker exec $(DATASETTE_CONTAINER_NAME) datasette create-token root --expires-after 864000 2>/dev/null); \
 		echo ""; \
-		echo ">>> DATASETTE API TOKEN CONFIGURATION (ENV=$(ENV)) <<<"; \
-		echo ""; \
+		echo "Datasette API Token (ENV=$(ENV)):"; \
 		if [ -n "$$DATASETTE_API_TOKEN" ]; then \
-			echo "Datasette API Token (dstok_ format, for actor 'root', expires in 10 days):"; \
 			echo "$$DATASETTE_API_TOKEN"; \
+			echo "(Actor: root, Expires: 10 days)"; \
 		else \
-			echo "WARNING: Failed to generate Datasette API Token."; \
-			echo "The container might still be starting, or an error occurred."; \
-			echo "You can try to generate one manually after the container is fully up by running:"; \
-			echo "  sudo docker exec $(DATASETTE_CONTAINER_NAME) datasette create-token root --expires-after 864000"; \
+			echo "  WARNING: Failed to generate Datasette API Token."; \
+			echo "  Manual generation: sudo docker exec $(DATASETTE_CONTAINER_NAME) datasette create-token root --expires-after 864000"; \
 		fi; \
-		echo ""; \
-		echo ">>> END OF DATASETTE API TOKEN CONFIGURATION <<<"; \
 		echo ""; \
 	fi
 
 stop-backend-datasette:
 	@echo "Stopping Datasette backend (ENV=$(ENV))..."
-	@echo "Attempting to stop container $(DATASETTE_CONTAINER_NAME)..."
+	@echo "Stopping container $(DATASETTE_CONTAINER_NAME)..."
 	@sudo docker stop $(DATASETTE_CONTAINER_NAME) > /dev/null 2>&1 || true
-	@echo "Attempting to remove container $(DATASETTE_CONTAINER_NAME)..."
+	@echo "Removing container $(DATASETTE_CONTAINER_NAME)..."
 	@sudo docker rm $(DATASETTE_CONTAINER_NAME) > /dev/null 2>&1 || echo "Container $(DATASETTE_CONTAINER_NAME) not found or already removed."
-	@echo "Datasette container stop/remove process complete."
+	@echo "Datasette backend stopped."
 
 clean-backend-datasette: stop-backend-datasette
-	@echo "Removing Datasette data volume $(DATASETTE_VOLUME_NAME)..."
+	@echo "Removing volume $(DATASETTE_VOLUME_NAME)..."
 	@sudo docker volume rm $(DATASETTE_VOLUME_NAME) || echo "Volume already removed or does not exist."
 
 # --- PostgREST Backend (Postgres + PostgREST) ---
 
 start-backend-postgrest:
-	@echo "Starting PostgREST backend (Postgres + PostgREST) (ENV=$(ENV))..."
+	@echo "Starting PostgREST backend (ENV=$(ENV))..."
 	@echo "Starting Postgres container $(POSTGRES_CONTAINER_NAME)..."
 	@if [ -n "$(call is_running,$(POSTGRES_CONTAINER_NAME))" ]; then \
 		echo "Postgres container $(POSTGRES_CONTAINER_NAME) is already running."; \
 	else \
-		echo "Ensuring volume $(POSTGRES_VOLUME_NAME) exists..."; \
+		echo "Ensuring volume $(POSTGRES_VOLUME_NAME)..."; \
 		sudo docker volume create $(POSTGRES_VOLUME_NAME) > /dev/null; \
 		echo "Starting Postgres container $(POSTGRES_CONTAINER_NAME)..."; \
 		sudo docker run -d --name $(POSTGRES_CONTAINER_NAME) \
@@ -153,37 +148,28 @@ start-backend-postgrest:
 		until sudo docker exec $(POSTGRES_CONTAINER_NAME) pg_isready -U $(POSTGRES_USER) -d $(POSTGRES_DB) -q; do \
 			sleep 1; \
 		done; \
-		echo "Postgres container started and initialized (if volume was empty)."; \
+		echo "Postgres container $(POSTGRES_CONTAINER_NAME) ready."; \
 	fi
 	# --- Start PostgREST ---
 	@echo "Starting PostgREST container $(POSTGREST_CONTAINER_NAME)..."
 	@if [ -n "$(call is_running,$(POSTGREST_CONTAINER_NAME))" ]; then \
 		echo "PostgREST container $(POSTGREST_CONTAINER_NAME) is already running."; \
-		echo "NOTE: If you need a new JWT token, stop and restart."; \
+		echo "To regenerate JWT, restart this backend."; \
 	else \
 		JWT_SECRET=$$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 64); \
 		JWT_PAYLOAD='{"role":"$(POSTGRES_USER)"}'; \
 		echo ""; \
-		echo ">>> POSTGREST JWT CONFIGURATION (ENV=$(ENV)) <<<"; \
-		echo ""; \
-		echo "Generated JWT Secret (used by PostgREST container):"; \
-		echo "$$JWT_SECRET"; \
+		echo "PostgREST JWT Configuration (ENV=$(ENV)):"; \
+		echo "  Secret: $$JWT_SECRET"; \
 		echo ""; \
 		if command -v jwt >/dev/null 2>&1; then \
 			JWT_TOKEN=$$(echo -n $$JWT_PAYLOAD | jwt encode --secret $$JWT_SECRET --alg HS256 -); \
-			echo "JWT Token (for UI settings - generated using jwt-cli):"; \
-			echo "$$JWT_TOKEN"; \
+			echo "  Token:  $$JWT_TOKEN"; \
 		else \
-			echo "WARNING: 'jwt-cli' not found in PATH."; \
-			echo "To generate the JWT Token for the UI, you can:"; \
-			echo "  1. Install jwt-cli (e.g., 'npm install -g @tsndr/jwt-cli' or via Nix shell)"; \
-			echo "  2. Use an online tool like https://jwt.io with:"; \
-			echo "     - Algorithm: HS256"; \
-			echo "     - Payload:   $$JWT_PAYLOAD"; \
-			echo "     - Secret:    (copy the secret printed above)"; \
+			echo "  WARNING: 'jwt-cli' not found. Cannot generate JWT Token automatically."; \
+			echo "  To generate manually, use HS256, Payload: $$JWT_PAYLOAD, and the Secret above."; \
+			echo "  Consider installing 'jwt-cli'."; \
 		fi; \
-		echo ""; \
-		echo ">>> END OF JWT CONFIGURATION <<<"; \
 		echo ""; \
 		sudo docker run -d --name $(POSTGREST_CONTAINER_NAME) \
 			-e PGRST_DB_URI="postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@127.0.0.1:$(POSTGRES_PORT)/$(POSTGRES_DB)" \
@@ -198,35 +184,35 @@ start-backend-postgrest:
 	fi
 
 stop-backend-postgrest:
-	@echo "Stopping PostgREST backend (Postgres + PostgREST) (ENV=$(ENV))..."
+	@echo "Stopping PostgREST backend (ENV=$(ENV))..."
 	# Stop and remove PostgREST container
-	@echo "Attempting to stop container $(POSTGREST_CONTAINER_NAME)..."
+	@echo "Stopping PostgREST container $(POSTGREST_CONTAINER_NAME)..."
 	@sudo docker stop $(POSTGREST_CONTAINER_NAME) > /dev/null 2>&1 || true
-	@echo "Attempting to remove container $(POSTGREST_CONTAINER_NAME)..."
+	@echo "Removing PostgREST container $(POSTGREST_CONTAINER_NAME)..."
 	@sudo docker rm $(POSTGREST_CONTAINER_NAME) > /dev/null 2>&1 || echo "Container $(POSTGREST_CONTAINER_NAME) not found or already removed."
 
 	# Stop and remove Postgres container
-	@echo "Attempting to stop container $(POSTGRES_CONTAINER_NAME)..."
+	@echo "Stopping Postgres container $(POSTGRES_CONTAINER_NAME)..."
 	@sudo docker stop $(POSTGRES_CONTAINER_NAME) > /dev/null 2>&1 || true
-	@echo "Attempting to remove container $(POSTGRES_CONTAINER_NAME)..."
+	@echo "Removing Postgres container $(POSTGRES_CONTAINER_NAME)..."
 	@sudo docker rm $(POSTGRES_CONTAINER_NAME) > /dev/null 2>&1 || echo "Container $(POSTGRES_CONTAINER_NAME) not found or already removed."
 
-	@echo "PostgREST and Postgres containers stop/remove process complete."
+	@echo "PostgREST backend stopped."
 
 clean-backend-postgrest: stop-backend-postgrest
-	@echo "Removing Postgres data volume $(POSTGRES_VOLUME_NAME)..."
+	@echo "Removing volume $(POSTGRES_VOLUME_NAME)..."
 	@sudo docker volume rm $(POSTGRES_VOLUME_NAME) || echo "Volume already removed or does not exist."
 
 # --- Combined Backend Management ---
 
 start-backends: start-backend-datasette start-backend-postgrest
-	@echo "All backends (ENV=$(ENV)) started."
+	@echo "All backends started (ENV=$(ENV))."
 
 stop-backends: stop-backend-datasette stop-backend-postgrest
-	@echo "All backends (ENV=$(ENV)) stopped."
+	@echo "All backends stopped (ENV=$(ENV))."
 
 clean-backends: clean-backend-datasette clean-backend-postgrest
-	@echo "All backends (ENV=$(ENV)) stopped and data volumes removed."
+	@echo "All backends cleaned (ENV=$(ENV))."
 
 # --- Frontend ---
 
