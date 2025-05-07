@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import { useApi } from "../api/ApiContext";
 import { useSettings } from "../settings/SettingsContext";
 import { useIntl } from "react-intl";
@@ -89,113 +95,151 @@ const ItemsView = () => {
     return { sortBy: "created_at", sortOrder: "desc" }; // Default
   };
 
-  const fetchPageOfItems = useCallback(async (pageToFetch, isNewQuery = false) => {
-    if (!api.isConfigured || typeof api.listItems !== "function") {
-      setError(
-        api.isConfigured
-          ? intl.formatMessage({ id: "items.list.notSupported", defaultMessage: "Listing items is not supported by the current API Provider." })
-          : intl.formatMessage({ id: "common.status.apiNotConfigured" })
-      );
-      setItems([]);
-      setTotalItemsCount(0);
-      setHasMoreItems(false);
-      if (isNewQuery) setLoading(false); else setLoadingMore(false);
-      return;
-    }
-
-    if (isNewQuery) {
-      setLoading(true);
-      // setItems([]); // Clearing items here causes a flicker if the new data is similar. Better to clear on success/error of new query.
-      // setCurrentPage(0); // Reset page for new query, will be incremented by success handler
-    } else {
-      setLoadingMore(true);
-    }
-    setError(null);
-    // Success messages are intentionally not cleared here to let them persist.
-
-    const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
-    const fetchOptions = {
-      page: pageToFetch,
-      pageSize: pageSize,
-      sortBy: sortBy,
-      sortOrder: sortOrder,
-      filters: {
-        name: filterName.trim() || undefined,
-        locationIds: filterLocationIds.length > 0 ? filterLocationIds : undefined,
-        categoryIds: filterCategoryIds.length > 0 ? filterCategoryIds : undefined,
-        ownerIds: filterOwnerIds.length > 0 ? filterOwnerIds : undefined,
-      },
-    };
-
-    try {
-      const result = await api.listItems(fetchOptions);
-
-      setItems(prevItems => {
-        const newItems = isNewQuery ? result.items : [...prevItems, ...result.items];
-        // Calculate hasMoreItems based on the actual new items list length
-        setHasMoreItems(newItems.length < result.totalCount);
-        return newItems;
-      });
-      setTotalItemsCount(result.totalCount);
-      setCurrentPage(pageToFetch); // Update current page upon successful fetch
-    } catch (err) {
-      console.error("Failed to fetch items:", err);
-      setError(intl.formatMessage({ id: "items.error.fetch", defaultMessage: "Failed to fetch items: {error}" }, { error: err.message }));
-      if (isNewQuery) {
-        setItems([]); // Clear items on error for a new query
+  const fetchPageOfItems = useCallback(
+    async (pageToFetch, isNewQuery = false) => {
+      if (!api.isConfigured || typeof api.listItems !== "function") {
+        setError(
+          api.isConfigured
+            ? intl.formatMessage({
+                id: "items.list.notSupported",
+                defaultMessage:
+                  "Listing items is not supported by the current API Provider.",
+              })
+            : intl.formatMessage({ id: "common.status.apiNotConfigured" }),
+        );
+        setItems([]);
         setTotalItemsCount(0);
         setHasMoreItems(false);
-        // setCurrentPage(0); // Consider if page should be reset on new query error
+        if (isNewQuery) setLoading(false);
+        else setLoadingMore(false);
+        return;
       }
-      // For "load more" errors, existing items are kept, and hasMoreItems might still be true, allowing retry on next scroll.
-    } finally {
-      if (isNewQuery) setLoading(false);
-      else setLoadingMore(false);
-    }
-  }, [api, sortCriteria, pageSize, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, intl]);
+
+      if (isNewQuery) {
+        setLoading(true);
+        // setItems([]); // Clearing items here causes a flicker if the new data is similar. Better to clear on success/error of new query.
+        // setCurrentPage(0); // Reset page for new query, will be incremented by success handler
+      } else {
+        setLoadingMore(true);
+      }
+      setError(null);
+      // Success messages are intentionally not cleared here to let them persist.
+
+      const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
+      const fetchOptions = {
+        page: pageToFetch,
+        pageSize: pageSize,
+        sortBy: sortBy,
+        sortOrder: sortOrder,
+        filters: {
+          name: filterName.trim() || undefined,
+          locationIds:
+            filterLocationIds.length > 0 ? filterLocationIds : undefined,
+          categoryIds:
+            filterCategoryIds.length > 0 ? filterCategoryIds : undefined,
+          ownerIds: filterOwnerIds.length > 0 ? filterOwnerIds : undefined,
+        },
+      };
+
+      try {
+        const result = await api.listItems(fetchOptions);
+
+        setItems((prevItems) => {
+          const newItems = isNewQuery
+            ? result.items
+            : [...prevItems, ...result.items];
+          // Calculate hasMoreItems based on the actual new items list length
+          setHasMoreItems(newItems.length < result.totalCount);
+          return newItems;
+        });
+        setTotalItemsCount(result.totalCount);
+        setCurrentPage(pageToFetch); // Update current page upon successful fetch
+      } catch (err) {
+        console.error("Failed to fetch items:", err);
+        setError(
+          intl.formatMessage(
+            {
+              id: "items.error.fetch",
+              defaultMessage: "Failed to fetch items: {error}",
+            },
+            { error: err.message },
+          ),
+        );
+        if (isNewQuery) {
+          setItems([]); // Clear items on error for a new query
+          setTotalItemsCount(0);
+          setHasMoreItems(false);
+          // setCurrentPage(0); // Consider if page should be reset on new query error
+        }
+        // For "load more" errors, existing items are kept, and hasMoreItems might still be true, allowing retry on next scroll.
+      } finally {
+        if (isNewQuery) setLoading(false);
+        else setLoadingMore(false);
+      }
+    },
+    [
+      api,
+      sortCriteria,
+      pageSize,
+      filterName,
+      filterLocationIds,
+      filterCategoryIds,
+      filterOwnerIds,
+      intl,
+    ],
+  );
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
     if (!api.isConfigured) {
-        setLocations([]); setCategories([]); setOwners([]);
-        return;
+      setLocations([]);
+      setCategories([]);
+      setOwners([]);
+      return;
     }
     try {
-        const canFetchLocations = typeof api.listLocations === "function";
-        const canFetchCategories = typeof api.listCategories === "function";
-        const canFetchOwners = typeof api.listOwners === "function";
+      const canFetchLocations = typeof api.listLocations === "function";
+      const canFetchCategories = typeof api.listCategories === "function";
+      const canFetchOwners = typeof api.listOwners === "function";
 
-        const [locationsData, categoriesData, ownersData] = await Promise.all([
-            canFetchLocations ? api.listLocations() : Promise.resolve([]),
-            canFetchCategories ? api.listCategories() : Promise.resolve([]),
-            canFetchOwners ? api.listOwners() : Promise.resolve([]),
-        ]);
-        setLocations(locationsData || []);
-        setCategories(categoriesData || []);
-        setOwners(ownersData || []);
+      const [locationsData, categoriesData, ownersData] = await Promise.all([
+        canFetchLocations ? api.listLocations() : Promise.resolve([]),
+        canFetchCategories ? api.listCategories() : Promise.resolve([]),
+        canFetchOwners ? api.listOwners() : Promise.resolve([]),
+      ]);
+      setLocations(locationsData || []);
+      setCategories(categoriesData || []);
+      setOwners(ownersData || []);
     } catch (err) {
-        console.error("Failed to fetch ancillary data (locations, categories, owners):", err);
-        // Optionally set an error state specific to ancillary data or a general one
-        setError(prev => `${prev ? prev + '; ' : ''}Failed to load L/C/O: ${err.message}`);
-        setLocations([]); setCategories([]); setOwners([]);
+      console.error(
+        "Failed to fetch ancillary data (locations, categories, owners):",
+        err,
+      );
+      // Optionally set an error state specific to ancillary data or a general one
+      setError(
+        (prev) =>
+          `${prev ? prev + "; " : ""}Failed to load L/C/O: ${err.message}`,
+      );
+      setLocations([]);
+      setCategories([]);
+      setOwners([]);
     }
   }, [api, intl]);
-
 
   // Effect for initial data load (items and ancillary) and when API provider changes
   useEffect(() => {
     if (api.isConfigured && api.listItems) {
-        fetchAncillaryData(); // Fetch locations, categories, owners
-        fetchPageOfItems(1, true); // Fetch first page of items
+      fetchAncillaryData(); // Fetch locations, categories, owners
+      fetchPageOfItems(1, true); // Fetch first page of items
     } else {
-        // Clear data if API is not configured or listItems is not available
-        setItems([]);
-        setTotalItemsCount(0);
-        setHasMoreItems(false);
-        setLocations([]);
-        setCategories([]);
-        setOwners([]);
-        setCurrentPage(0);
+      // Clear data if API is not configured or listItems is not available
+      setItems([]);
+      setTotalItemsCount(0);
+      setHasMoreItems(false);
+      setLocations([]);
+      setCategories([]);
+      setOwners([]);
+      setCurrentPage(0);
     }
   }, [api.isConfigured, api.listItems]); // Removed fetchPageOfItems from deps to avoid loop, it's called internally. Added fetchAncillaryData
 
@@ -204,11 +248,17 @@ const ItemsView = () => {
     // Only run if api.listItems is available, otherwise initial load handles it.
     // And only if currentPage is not 0 (meaning initial load has happened or tried)
     if (api.listItems && currentPage !== 0) {
-        fetchPageOfItems(1, true);
+      fetchPageOfItems(1, true);
     }
     // This effect should run when sortCriteria or any filter state changes.
     // The initial load is handled by the previous useEffect.
-  }, [sortCriteria, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]); // Removed api.listItems, fetchPageOfItems from deps
+  }, [
+    sortCriteria,
+    filterName,
+    filterLocationIds,
+    filterCategoryIds,
+    filterOwnerIds,
+  ]); // Removed api.listItems, fetchPageOfItems from deps
 
   // Infinite Scroll Intersection Observer
   useEffect(() => {
@@ -220,7 +270,7 @@ const ItemsView = () => {
           fetchPageOfItems(currentPage + 1, false);
         }
       },
-      { threshold: 1.0 } // Trigger when 100% of the loader is visible
+      { threshold: 1.0 }, // Trigger when 100% of the loader is visible
     );
 
     const currentLoaderRef = loaderRef.current;
@@ -238,34 +288,35 @@ const ItemsView = () => {
   // Effect to create/revoke Blob URLs for item list display
   useEffect(() => {
     const newItemImageUrls = {};
-    items.forEach((item) => { // `items` is the cumulative list of all fetched items
+    items.forEach((item) => {
+      // `items` is the cumulative list of all fetched items
       if (item.imageFile instanceof File) {
         newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
       }
     });
-    setItemImageUrls(prevUrls => {
-        // Create a mutable copy of previous URLs to track what to revoke
-        const urlsToRevokeMap = { ...prevUrls };
+    setItemImageUrls((prevUrls) => {
+      // Create a mutable copy of previous URLs to track what to revoke
+      const urlsToRevokeMap = { ...prevUrls };
 
-        // Iterate over newly generated URLs
-        Object.keys(newItemImageUrls).forEach(itemId => {
-            // If a previous URL exists for this item and it's different from the new one,
-            // the old one (prevUrls[itemId]) is already in urlsToRevokeMap and will be revoked.
-            // Remove this item's new URL from the map of URLs to revoke,
-            // as this new URL is now the active one (or it's the same as before).
-            delete urlsToRevokeMap[itemId];
-        });
+      // Iterate over newly generated URLs
+      Object.keys(newItemImageUrls).forEach((itemId) => {
+        // If a previous URL exists for this item and it's different from the new one,
+        // the old one (prevUrls[itemId]) is already in urlsToRevokeMap and will be revoked.
+        // Remove this item's new URL from the map of URLs to revoke,
+        // as this new URL is now the active one (or it's the same as before).
+        delete urlsToRevokeMap[itemId];
+      });
 
-        // Anything remaining in urlsToRevokeMap needs to be revoked
-        Object.values(urlsToRevokeMap).forEach(url => URL.revokeObjectURL(url));
+      // Anything remaining in urlsToRevokeMap needs to be revoked
+      Object.values(urlsToRevokeMap).forEach((url) => URL.revokeObjectURL(url));
 
-        // The new state is simply the fresh set of URLs for the current items
-        return newItemImageUrls;
+      // The new state is simply the fresh set of URLs for the current items
+      return newItemImageUrls;
     });
 
     return () => {
-      setItemImageUrls(currentUrls => {
-        Object.values(currentUrls).forEach(url => URL.revokeObjectURL(url));
+      setItemImageUrls((currentUrls) => {
+        Object.values(currentUrls).forEach((url) => URL.revokeObjectURL(url));
         return {};
       });
     };
@@ -500,7 +551,8 @@ const ItemsView = () => {
       if (result.success) {
         // Fetch data, then close modal and show global success message
         handleCloseAddItemModal(); // Close modal first
-        fetchPageOfItems(1, true).then(() => { // Refresh list from page 1
+        fetchPageOfItems(1, true).then(() => {
+          // Refresh list from page 1
           setSuccess(
             intl.formatMessage(
               {
@@ -512,7 +564,8 @@ const ItemsView = () => {
           );
         });
       } else {
-        setAddItemError( // Set modal-specific error
+        setAddItemError(
+          // Set modal-specific error
           intl.formatMessage(
             {
               id: "items.error.add",
@@ -841,7 +894,6 @@ const ItemsView = () => {
   // --- Render ---
   return (
     <div className="items-view">
-
       {/* Status Messages */}
       {loading && !loadingMore && (
         <p className="status-loading">
@@ -853,199 +905,222 @@ const ItemsView = () => {
       )}
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
-      
+
       {!api.isConfigured && !loading && items.length === 0 && (
-         <p className="status-warning">
-           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
-         </p>
-      )}
-      {api.isConfigured && typeof api.listItems !== "function" && !loading && items.length === 0 && (
         <p className="status-warning">
-          {intl.formatMessage({ id: "items.list.notSupported", defaultMessage: "Listing items is not supported by the current API Provider."})}
+          {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
       )}
-
+      {api.isConfigured &&
+        typeof api.listItems !== "function" &&
+        !loading &&
+        items.length === 0 && (
+          <p className="status-warning">
+            {intl.formatMessage({
+              id: "items.list.notSupported",
+              defaultMessage:
+                "Listing items is not supported by the current API Provider.",
+            })}
+          </p>
+        )}
 
       {/* Items List */}
 
       {api.isConfigured && typeof api.listItems === "function" && (
-          <div className="list-controls-container">
-            <button
-              onClick={handleFilterToggle}
-              className="button-light filter-toggle-button"
-              aria-controls="filters-container"
-              aria-expanded={isFilterVisible}
-              disabled={loading || loadingMore}
-            >
-              {intl.formatMessage({
-                id: "items.filter.toggleButton",
-                defaultMessage: "Filters",
-              })}{" "}
-              ({items.length}{totalItemsCount > 0 ? ` / ${totalItemsCount}` : ''})
-            </button>
-          </div>
-        )}
-
-      {/* Collapsible Filter Container */}
-      {isFilterVisible && api.isConfigured && typeof api.listItems === "function" && (
-        <div id="filters-container" className="filters-container">
-          <h4>
-            {intl.formatMessage({
-              id: "items.filter.title",
-              defaultMessage: "Filter Items",
-            })}
-          </h4>
-          <div className="filter-group">
-            {" "}
-            <label htmlFor="sort-criteria">
-              {intl.formatMessage({
-                id: "items.sort.label",
-                defaultMessage: "Sort by:",
-              })}
-            </label>
-            <select
-              id="sort-criteria"
-              value={sortCriteria}
-              onChange={(e) => setSortCriteria(e.target.value)}
-              disabled={loading}
-            >
-              <option value="created_at_desc">
-                {intl.formatMessage({
-                  id: "items.sort.newestFirst",
-                  defaultMessage: "Newest First",
-                })}
-              </option>
-              <option value="created_at_asc">
-                {intl.formatMessage({
-                  id: "items.sort.oldestFirst",
-                  defaultMessage: "Oldest First",
-                })}
-              </option>
-            </select>
-          </div>
-          {/* Text Filter */}
-          <div className="filter-group">
-            <label htmlFor="filter-text">
-              {intl.formatMessage({
-                id: "items.filter.textLabel",
-                defaultMessage: "Text contains:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="filter-text"
-              value={filterName}
-              onChange={(e) => setFilterName(e.target.value)}
-              placeholder={intl.formatMessage({
-                id: "items.filter.textPlaceholder",
-                defaultMessage: "e.g., Blue Shirt",
-              })}
-            />
-          </div>
-
-          {/* Location Filter */}
-          <fieldset className="filter-group checkbox-group">
-            <legend>
-              {intl.formatMessage({
-                id: "items.filter.locationLabel",
-                defaultMessage: "Location:",
-              })}
-            </legend>
-            {locations.map((loc) => (
-              <div key={loc.location_id} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`loc-${loc.location_id}`}
-                  value={loc.location_id}
-                  checked={filterLocationIds.includes(loc.location_id)}
-                  onChange={(e) =>
-                    handleCheckboxFilterChange("location", e.target.value)
-                  }
-                />
-                <label htmlFor={`loc-${loc.location_id}`}>{loc.name}</label>
-              </div>
-            ))}
-          </fieldset>
-
-          {/* Category Filter */}
-          <fieldset className="filter-group checkbox-group">
-            <legend>
-              {intl.formatMessage({
-                id: "items.filter.categoryLabel",
-                defaultMessage: "Category:",
-              })}
-            </legend>
-            {categories.map((cat) => (
-              <div key={cat.category_id} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`cat-${cat.category_id}`}
-                  value={cat.category_id}
-                  checked={filterCategoryIds.includes(cat.category_id)}
-                  onChange={(e) =>
-                    handleCheckboxFilterChange("category", e.target.value)
-                  }
-                />
-                <label htmlFor={`cat-${cat.category_id}`}>{cat.name}</label>
-              </div>
-            ))}
-          </fieldset>
-
-          {/* Owner Filter */}
-          <fieldset className="filter-group checkbox-group">
-            <legend>
-              {intl.formatMessage({
-                id: "items.filter.ownerLabel",
-                defaultMessage: "Owner:",
-              })}
-            </legend>
-            {owners.map((owner) => (
-              <div key={owner.owner_id} className="checkbox-item">
-                <input
-                  type="checkbox"
-                  id={`owner-${owner.owner_id}`}
-                  value={owner.owner_id}
-                  checked={filterOwnerIds.includes(owner.owner_id)}
-                  onChange={(e) =>
-                    handleCheckboxFilterChange("owner", e.target.value)
-                  }
-                />
-                <label htmlFor={`owner-${owner.owner_id}`}>{owner.name}</label>
-              </div>
-            ))}
-          </fieldset>
-
-          {/* Use button-light for reset */}
+        <div className="list-controls-container">
           <button
-            onClick={handleResetFilters}
-            className="button-light reset-filters-button"
+            onClick={handleFilterToggle}
+            className="button-light filter-toggle-button"
+            aria-controls="filters-container"
+            aria-expanded={isFilterVisible}
+            disabled={loading || loadingMore}
           >
             {intl.formatMessage({
-              id: "items.filter.resetButton",
-              defaultMessage: "Reset Filters",
-            })}
+              id: "items.filter.toggleButton",
+              defaultMessage: "Filters",
+            })}{" "}
+            ({items.length}
+            {totalItemsCount > 0 ? ` / ${totalItemsCount}` : ""})
           </button>
         </div>
       )}
 
+      {/* Collapsible Filter Container */}
+      {isFilterVisible &&
+        api.isConfigured &&
+        typeof api.listItems === "function" && (
+          <div id="filters-container" className="filters-container">
+            <h4>
+              {intl.formatMessage({
+                id: "items.filter.title",
+                defaultMessage: "Filter Items",
+              })}
+            </h4>
+            <div className="filter-group">
+              {" "}
+              <label htmlFor="sort-criteria">
+                {intl.formatMessage({
+                  id: "items.sort.label",
+                  defaultMessage: "Sort by:",
+                })}
+              </label>
+              <select
+                id="sort-criteria"
+                value={sortCriteria}
+                onChange={(e) => setSortCriteria(e.target.value)}
+                disabled={loading}
+              >
+                <option value="created_at_desc">
+                  {intl.formatMessage({
+                    id: "items.sort.newestFirst",
+                    defaultMessage: "Newest First",
+                  })}
+                </option>
+                <option value="created_at_asc">
+                  {intl.formatMessage({
+                    id: "items.sort.oldestFirst",
+                    defaultMessage: "Oldest First",
+                  })}
+                </option>
+              </select>
+            </div>
+            {/* Text Filter */}
+            <div className="filter-group">
+              <label htmlFor="filter-text">
+                {intl.formatMessage({
+                  id: "items.filter.textLabel",
+                  defaultMessage: "Text contains:",
+                })}
+              </label>
+              <input
+                type="text"
+                id="filter-text"
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+                placeholder={intl.formatMessage({
+                  id: "items.filter.textPlaceholder",
+                  defaultMessage: "e.g., Blue Shirt",
+                })}
+              />
+            </div>
+
+            {/* Location Filter */}
+            <fieldset className="filter-group checkbox-group">
+              <legend>
+                {intl.formatMessage({
+                  id: "items.filter.locationLabel",
+                  defaultMessage: "Location:",
+                })}
+              </legend>
+              {locations.map((loc) => (
+                <div key={loc.location_id} className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`loc-${loc.location_id}`}
+                    value={loc.location_id}
+                    checked={filterLocationIds.includes(loc.location_id)}
+                    onChange={(e) =>
+                      handleCheckboxFilterChange("location", e.target.value)
+                    }
+                  />
+                  <label htmlFor={`loc-${loc.location_id}`}>{loc.name}</label>
+                </div>
+              ))}
+            </fieldset>
+
+            {/* Category Filter */}
+            <fieldset className="filter-group checkbox-group">
+              <legend>
+                {intl.formatMessage({
+                  id: "items.filter.categoryLabel",
+                  defaultMessage: "Category:",
+                })}
+              </legend>
+              {categories.map((cat) => (
+                <div key={cat.category_id} className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`cat-${cat.category_id}`}
+                    value={cat.category_id}
+                    checked={filterCategoryIds.includes(cat.category_id)}
+                    onChange={(e) =>
+                      handleCheckboxFilterChange("category", e.target.value)
+                    }
+                  />
+                  <label htmlFor={`cat-${cat.category_id}`}>{cat.name}</label>
+                </div>
+              ))}
+            </fieldset>
+
+            {/* Owner Filter */}
+            <fieldset className="filter-group checkbox-group">
+              <legend>
+                {intl.formatMessage({
+                  id: "items.filter.ownerLabel",
+                  defaultMessage: "Owner:",
+                })}
+              </legend>
+              {owners.map((owner) => (
+                <div key={owner.owner_id} className="checkbox-item">
+                  <input
+                    type="checkbox"
+                    id={`owner-${owner.owner_id}`}
+                    value={owner.owner_id}
+                    checked={filterOwnerIds.includes(owner.owner_id)}
+                    onChange={(e) =>
+                      handleCheckboxFilterChange("owner", e.target.value)
+                    }
+                  />
+                  <label htmlFor={`owner-${owner.owner_id}`}>
+                    {owner.name}
+                  </label>
+                </div>
+              ))}
+            </fieldset>
+
+            {/* Use button-light for reset */}
+            <button
+              onClick={handleResetFilters}
+              className="button-light reset-filters-button"
+            >
+              {intl.formatMessage({
+                id: "items.filter.resetButton",
+                defaultMessage: "Reset Filters",
+              })}
+            </button>
+          </div>
+        )}
+
       {/* Message for no items found after initial load/filter, and not currently loading */}
-      {api.isConfigured && typeof api.listItems === "function" && !loading && !loadingMore && items.length === 0 && totalItemsCount === 0 && !error && (
-        <p>
-          {intl.formatMessage({
-            id: "items.list.empty",
-            defaultMessage: "No items found. Add one!",
-          })}
-        </p>
-      )}
+      {api.isConfigured &&
+        typeof api.listItems === "function" &&
+        !loading &&
+        !loadingMore &&
+        items.length === 0 &&
+        totalItemsCount === 0 &&
+        !error && (
+          <p>
+            {intl.formatMessage({
+              id: "items.list.empty",
+              defaultMessage: "No items found. Add one!",
+            })}
+          </p>
+        )}
       {/* Message for no items matching filters, but there are items in total */}
-      {api.isConfigured && typeof api.listItems === "function" && !loading && !loadingMore && items.length === 0 && totalItemsCount > 0 && !error && (
-         <p>
-           {intl.formatMessage({
-             id: "items.list.emptyFiltered",
-             defaultMessage: "No items match the current filters.",
-           })}
-         </p>
-      )}
+      {api.isConfigured &&
+        typeof api.listItems === "function" &&
+        !loading &&
+        !loadingMore &&
+        items.length === 0 &&
+        totalItemsCount > 0 &&
+        !error && (
+          <p>
+            {intl.formatMessage({
+              id: "items.list.emptyFiltered",
+              defaultMessage: "No items match the current filters.",
+            })}
+          </p>
+        )}
 
       {items.length > 0 && (
         <div className="items-list">
@@ -1055,8 +1130,7 @@ const ItemsView = () => {
               <div
                 className={`item-image-container ${!itemImageUrls[item.item_id] ? "placeholder" : ""} ${itemImageUrls[item.item_id] ? "clickable" : ""}`}
                 onClick={() =>
-                  item.imageFile &&
-                  handleImageClick(item.imageFile, item.name)
+                  item.imageFile && handleImageClick(item.imageFile, item.name)
                 }
                 title={
                   itemImageUrls[item.item_id]
@@ -1088,7 +1162,9 @@ const ItemsView = () => {
                       },
                       { name: item.name },
                     )}
-                    disabled={loading || loadingMore || isUpdating || isDeleting}
+                    disabled={
+                      loading || loadingMore || isUpdating || isDeleting
+                    }
                   >
                     ✏️
                   </button>
@@ -1101,96 +1177,236 @@ const ItemsView = () => {
 
       {loadingMore && (
         <p className="status-loading">
-          {intl.formatMessage({ id: "items.loadingMore", defaultMessage: "Loading more items..."})}
+          {intl.formatMessage({
+            id: "items.loadingMore",
+            defaultMessage: "Loading more items...",
+          })}
         </p>
       )}
       <div ref={loaderRef} style={{ height: "1px", margin: "1px" }} />
 
-
-      {api.isConfigured && api.addItem && api.listLocations && api.listCategories && api.listOwners && (
-        <button
-          type="button"
-          className="add-item-fab button-primary"
-          onClick={handleOpenAddItemModal}
-          aria-label={intl.formatMessage({ id: "items.addItemFAB.label", defaultMessage: "Add new item" })}
-          disabled={loading || loadingMore || isUpdating || isDeleting}
-        >
-          +
-        </button>
-      )}
+      {api.isConfigured &&
+        api.addItem &&
+        api.listLocations &&
+        api.listCategories &&
+        api.listOwners && (
+          <button
+            type="button"
+            className="add-item-fab button-primary"
+            onClick={handleOpenAddItemModal}
+            aria-label={intl.formatMessage({
+              id: "items.addItemFAB.label",
+              defaultMessage: "Add new item",
+            })}
+            disabled={loading || loadingMore || isUpdating || isDeleting}
+          >
+            +
+          </button>
+        )}
 
       {/* Add Item Modal */}
       {isAddItemModalOpen && (
         <Modal
           show={isAddItemModalOpen}
           onClose={handleCloseAddItemModal}
-          title={intl.formatMessage({ id: "items.addForm.title", defaultMessage: "Add New Item" })}
+          title={intl.formatMessage({
+            id: "items.addForm.title",
+            defaultMessage: "Add New Item",
+          })}
         >
           <form onSubmit={handleAddItem} className="add-item-form">
-            {addItemError && <p className="status-error">Error: {addItemError}</p>}
+            {addItemError && (
+              <p className="status-error">Error: {addItemError}</p>
+            )}
             <div className="form-group">
               <label htmlFor="item-name-modal">
-                {intl.formatMessage({ id: "items.addForm.nameLabel", defaultMessage: "Name:" })}
+                {intl.formatMessage({
+                  id: "items.addForm.nameLabel",
+                  defaultMessage: "Name:",
+                })}
               </label>
-              <input type="text" id="item-name-modal" value={newItemName} onChange={(e) => setNewItemName(e.target.value)} required disabled={loading} />
+              <input
+                type="text"
+                id="item-name-modal"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                required
+                disabled={loading}
+              />
             </div>
             <div className="form-group">
               <label htmlFor="item-description-modal">
-                {intl.formatMessage({ id: "items.addForm.descriptionLabel", defaultMessage: "Description:" })}
+                {intl.formatMessage({
+                  id: "items.addForm.descriptionLabel",
+                  defaultMessage: "Description:",
+                })}
               </label>
-              <input type="text" id="item-description-modal" value={newItemDescription} onChange={(e) => setNewItemDescription(e.target.value)} disabled={loading} />
+              <input
+                type="text"
+                id="item-description-modal"
+                value={newItemDescription}
+                onChange={(e) => setNewItemDescription(e.target.value)}
+                disabled={loading}
+              />
             </div>
             <div className="form-group form-group-image">
               <label htmlFor="item-image-modal">
-                {intl.formatMessage({ id: "items.addForm.imageLabel", defaultMessage: "Image:" })}
+                {intl.formatMessage({
+                  id: "items.addForm.imageLabel",
+                  defaultMessage: "Image:",
+                })}
               </label>
               {addImageUrl && (
                 <div className="image-preview">
-                  <img src={addImageUrl} alt={intl.formatMessage({ id: "items.addForm.imagePreviewAlt", defaultMessage: "New item preview" })} onClick={() => handleImageClick(newItemImageFile, intl.formatMessage({ id: "items.addForm.imagePreviewAlt", defaultMessage: "New item preview" }))} style={{ cursor: "pointer" }} />
+                  <img
+                    src={addImageUrl}
+                    alt={intl.formatMessage({
+                      id: "items.addForm.imagePreviewAlt",
+                      defaultMessage: "New item preview",
+                    })}
+                    onClick={() =>
+                      handleImageClick(
+                        newItemImageFile,
+                        intl.formatMessage({
+                          id: "items.addForm.imagePreviewAlt",
+                          defaultMessage: "New item preview",
+                        }),
+                      )
+                    }
+                    style={{ cursor: "pointer" }}
+                  />
                 </div>
               )}
               <div className="form-group-image-actions">
-                <label htmlFor="item-image-modal" className={`button-light button-file-input ${loading ? "disabled" : ""}`}>
-                  {intl.formatMessage({ id: "items.addForm.chooseFile", defaultMessage: "Choose File" })}
+                <label
+                  htmlFor="item-image-modal"
+                  className={`button-light button-file-input ${loading ? "disabled" : ""}`}
+                >
+                  {intl.formatMessage({
+                    id: "items.addForm.chooseFile",
+                    defaultMessage: "Choose File",
+                  })}
                 </label>
                 {addImageUrl && (
-                  <button type="button" onClick={() => handleRotateImage("add")} className="button-light rotate-image-button" disabled={loading || isRotatingAdd}>
-                    {isRotatingAdd ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." }) : intl.formatMessage({ id: "items.image.rotate", defaultMessage: "Rotate 90°" })}
+                  <button
+                    type="button"
+                    onClick={() => handleRotateImage("add")}
+                    className="button-light rotate-image-button"
+                    disabled={loading || isRotatingAdd}
+                  >
+                    {isRotatingAdd
+                      ? intl.formatMessage({
+                          id: "items.image.rotating",
+                          defaultMessage: "Rotating...",
+                        })
+                      : intl.formatMessage({
+                          id: "items.image.rotate",
+                          defaultMessage: "Rotate 90°",
+                        })}
                   </button>
                 )}
                 {addImageUrl && (
-                  <button type="button" onClick={handleRemoveNewImage} className="button-danger-light remove-image-button" disabled={loading || isRotatingAdd}>
-                    {intl.formatMessage({ id: "items.editForm.removeImage", defaultMessage: "Remove Image" })}
+                  <button
+                    type="button"
+                    onClick={handleRemoveNewImage}
+                    className="button-danger-light remove-image-button"
+                    disabled={loading || isRotatingAdd}
+                  >
+                    {intl.formatMessage({
+                      id: "items.editForm.removeImage",
+                      defaultMessage: "Remove Image",
+                    })}
                   </button>
                 )}
               </div>
-              <input type="file" id="item-image-modal" accept="image/*" onChange={(e) => handleFileChange(e, "add")} disabled={loading} className="hidden-file-input" />
+              <input
+                type="file"
+                id="item-image-modal"
+                accept="image/*"
+                onChange={(e) => handleFileChange(e, "add")}
+                disabled={loading}
+                className="hidden-file-input"
+              />
             </div>
             <div className="form-group">
               <label htmlFor="item-location-modal">
-                {intl.formatMessage({ id: "items.addForm.locationLabel", defaultMessage: "Location:" })}
+                {intl.formatMessage({
+                  id: "items.addForm.locationLabel",
+                  defaultMessage: "Location:",
+                })}
               </label>
-              <select id="item-location-modal" value={newItemLocationId} onChange={(e) => setNewItemLocationId(e.target.value)} required disabled={loading || locations.length === 0}>
-                <option value="">{intl.formatMessage({ id: "items.addForm.selectLocationDefault", defaultMessage: "-- Select Location --" })}</option>
-                {locations.map((loc) => (<option key={loc.location_id} value={loc.location_id}>{loc.name}</option>))}
+              <select
+                id="item-location-modal"
+                value={newItemLocationId}
+                onChange={(e) => setNewItemLocationId(e.target.value)}
+                required
+                disabled={loading || locations.length === 0}
+              >
+                <option value="">
+                  {intl.formatMessage({
+                    id: "items.addForm.selectLocationDefault",
+                    defaultMessage: "-- Select Location --",
+                  })}
+                </option>
+                {locations.map((loc) => (
+                  <option key={loc.location_id} value={loc.location_id}>
+                    {loc.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="form-group">
               <label htmlFor="item-category-modal">
-                {intl.formatMessage({ id: "items.addForm.categoryLabel", defaultMessage: "Category:" })}
+                {intl.formatMessage({
+                  id: "items.addForm.categoryLabel",
+                  defaultMessage: "Category:",
+                })}
               </label>
-              <select id="item-category-modal" value={newItemCategoryId} onChange={(e) => setNewItemCategoryId(e.target.value)} required disabled={loading || categories.length === 0}>
-                <option value="">{intl.formatMessage({ id: "items.addForm.selectCategoryDefault", defaultMessage: "-- Select Category --" })}</option>
-                {categories.map((cat) => (<option key={cat.category_id} value={cat.category_id}>{cat.name}</option>))}
+              <select
+                id="item-category-modal"
+                value={newItemCategoryId}
+                onChange={(e) => setNewItemCategoryId(e.target.value)}
+                required
+                disabled={loading || categories.length === 0}
+              >
+                <option value="">
+                  {intl.formatMessage({
+                    id: "items.addForm.selectCategoryDefault",
+                    defaultMessage: "-- Select Category --",
+                  })}
+                </option>
+                {categories.map((cat) => (
+                  <option key={cat.category_id} value={cat.category_id}>
+                    {cat.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="form-group">
               <label htmlFor="item-owner-modal">
-                {intl.formatMessage({ id: "items.addForm.ownerLabel", defaultMessage: "Owner:" })}
+                {intl.formatMessage({
+                  id: "items.addForm.ownerLabel",
+                  defaultMessage: "Owner:",
+                })}
               </label>
-              <select id="item-owner-modal" value={newItemOwnerId} onChange={(e) => setNewItemOwnerId(e.target.value)} required disabled={loading || owners.length === 0}>
-                <option value="">{intl.formatMessage({ id: "items.addForm.selectOwnerDefault", defaultMessage: "-- Select Owner --" })}</option>
-                {owners.map((owner) => (<option key={owner.owner_id} value={owner.owner_id}>{owner.name}</option>))}
+              <select
+                id="item-owner-modal"
+                value={newItemOwnerId}
+                onChange={(e) => setNewItemOwnerId(e.target.value)}
+                required
+                disabled={loading || owners.length === 0}
+              >
+                <option value="">
+                  {intl.formatMessage({
+                    id: "items.addForm.selectOwnerDefault",
+                    defaultMessage: "-- Select Owner --",
+                  })}
+                </option>
+                {owners.map((owner) => (
+                  <option key={owner.owner_id} value={owner.owner_id}>
+                    {owner.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -1207,8 +1423,14 @@ const ItemsView = () => {
                 className="button-primary"
               >
                 {loading
-                  ? intl.formatMessage({ id: "items.addForm.button.adding", defaultMessage: "Adding..." })
-                  : intl.formatMessage({ id: "items.addForm.button.add", defaultMessage: "Add Item" })}
+                  ? intl.formatMessage({
+                      id: "items.addForm.button.adding",
+                      defaultMessage: "Adding...",
+                    })
+                  : intl.formatMessage({
+                      id: "items.addForm.button.add",
+                      defaultMessage: "Add Item",
+                    })}
               </button>
               <button
                 type="button"
@@ -1216,7 +1438,10 @@ const ItemsView = () => {
                 disabled={loading}
                 className="button-secondary"
               >
-                {intl.formatMessage({ id: "common.cancel", defaultMessage: "Cancel" })}
+                {intl.formatMessage({
+                  id: "common.cancel",
+                  defaultMessage: "Cancel",
+                })}
               </button>
             </div>
           </form>
@@ -1466,20 +1691,19 @@ const ItemsView = () => {
                           defaultMessage: "Save Changes",
                         })}
                   </button>
-                  {api.isConfigured &&
-                    typeof api.deleteItem === "function" && (
-                      <button
-                        type="button"
-                        className="button-danger"
-                        onClick={() => handleDeleteClick(editingItemId)}
-                        disabled={isUpdating || isDeleting}
-                      >
-                        {intl.formatMessage({
-                          id: "common.delete",
-                          defaultMessage: "Delete",
-                        })}
-                      </button>
-                    )}
+                  {api.isConfigured && typeof api.deleteItem === "function" && (
+                    <button
+                      type="button"
+                      className="button-danger"
+                      onClick={() => handleDeleteClick(editingItemId)}
+                      disabled={isUpdating || isDeleting}
+                    >
+                      {intl.formatMessage({
+                        id: "common.delete",
+                        defaultMessage: "Delete",
+                      })}
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleCancelEdit}

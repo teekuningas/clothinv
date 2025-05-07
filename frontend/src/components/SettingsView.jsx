@@ -449,11 +449,13 @@ const SettingsView = () => {
             "It is recommended to refresh the application or navigate to another view and back to see all changes.",
         });
         setDestroySummary(
-          `${result.summary ||
+          `${
+            result.summary ||
             intl.formatMessage({
               id: "settings.data.destroySuccessDefault",
               defaultMessage: "All data destroyed successfully.",
-            })} ${refreshRecommendation}`,
+            })
+          } ${refreshRecommendation}`,
         );
         // Consider forcing a refresh or notifying user to refresh other views
       } else {

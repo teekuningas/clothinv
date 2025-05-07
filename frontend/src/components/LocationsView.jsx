@@ -97,7 +97,8 @@ const LocationsView = () => {
     e.preventDefault();
 
     if (!newLocationName.trim()) {
-      setAddLocationError( // Use modal-specific error state
+      setAddLocationError(
+        // Use modal-specific error state
         intl.formatMessage({
           id: "locations.error.nameEmpty",
           defaultMessage: "Location name cannot be empty.",
@@ -107,7 +108,8 @@ const LocationsView = () => {
     }
     // Only add if the provider is configured and addLocation exists
     if (!api.isConfigured || typeof api.addLocation !== "function") {
-      setAddLocationError( // Use modal-specific error state
+      setAddLocationError(
+        // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "locations.addForm.notSupported",
@@ -152,7 +154,8 @@ const LocationsView = () => {
         });
       } else {
         // Should ideally not happen if addLocation throws errors, but handle just in case
-        setAddLocationError( // Use modal-specific error state
+        setAddLocationError(
+          // Use modal-specific error state
           intl.formatMessage(
             {
               id: "locations.error.add",
@@ -172,7 +175,8 @@ const LocationsView = () => {
     } catch (err) {
       console.error("Failed to add location:", err);
       // Use intl for consistency, even if the message might be technical
-      setAddLocationError( // Use modal-specific error state
+      setAddLocationError(
+        // Use modal-specific error state
         intl.formatMessage(
           {
             id: "locations.error.add",
@@ -395,7 +399,6 @@ const LocationsView = () => {
 
   return (
     <div className="locations-view">
-
       {/* Status Messages */}
       {loading && (
         <p className="status-loading">
@@ -413,7 +416,9 @@ const LocationsView = () => {
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : !isAddLocationModalOpen && api.isConfigured && typeof api.addLocation !== "function" ? (
+      ) : !isAddLocationModalOpen &&
+        api.isConfigured &&
+        typeof api.addLocation !== "function" ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "locations.addForm.notSupported",
@@ -447,7 +452,8 @@ const LocationsView = () => {
           <p>
             {intl.formatMessage({
               id: "locations.list.emptyFAB", // Updated key
-              defaultMessage: "No locations found. Click the '+' button to add one.",
+              defaultMessage:
+                "No locations found. Click the '+' button to add one.",
             })}
           </p>
         )}
@@ -487,7 +493,9 @@ const LocationsView = () => {
           type="button"
           className="add-location-fab button-primary"
           onClick={handleOpenAddLocationModal}
-          aria-label={intl.formatMessage({ id: "locations.addLocationFAB.label" })}
+          aria-label={intl.formatMessage({
+            id: "locations.addLocationFAB.label",
+          })}
           disabled={loading || isUpdating || isDeleting}
         >
           +
@@ -502,7 +510,9 @@ const LocationsView = () => {
           title={intl.formatMessage({ id: "locations.addForm.title" })}
         >
           <form onSubmit={handleAddLocation} className="add-location-form">
-            {addLocationError && <p className="status-error">Error: {addLocationError}</p>}
+            {addLocationError && (
+              <p className="status-error">Error: {addLocationError}</p>
+            )}
             <div className="form-group">
               <label htmlFor="location-name-modal">
                 {intl.formatMessage({ id: "locations.addForm.nameLabel" })}
@@ -518,7 +528,9 @@ const LocationsView = () => {
             </div>
             <div className="form-group">
               <label htmlFor="location-description-modal">
-                {intl.formatMessage({ id: "locations.addForm.descriptionLabel" })}
+                {intl.formatMessage({
+                  id: "locations.addForm.descriptionLabel",
+                })}
               </label>
               <input
                 type="text"
@@ -529,19 +541,29 @@ const LocationsView = () => {
               />
             </div>
             <div className="modal-actions">
-              <button type="submit" disabled={loading || !newLocationName.trim()} className="button-primary">
+              <button
+                type="submit"
+                disabled={loading || !newLocationName.trim()}
+                className="button-primary"
+              >
                 {loading
-                  ? intl.formatMessage({ id: "locations.addForm.button.adding" })
+                  ? intl.formatMessage({
+                      id: "locations.addForm.button.adding",
+                    })
                   : intl.formatMessage({ id: "locations.addForm.button.add" })}
               </button>
-              <button type="button" onClick={handleCloseAddLocationModal} disabled={loading} className="button-secondary">
+              <button
+                type="button"
+                onClick={handleCloseAddLocationModal}
+                disabled={loading}
+                className="button-secondary"
+              >
                 {intl.formatMessage({ id: "common.cancel" })}
               </button>
             </div>
           </form>
         </Modal>
       )}
-
 
       {/* Edit Location Modal */}
       {editingLocationId && (

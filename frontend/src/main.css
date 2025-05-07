@@ -4,15 +4,13 @@
   /* Core Interaction Colors */
   --color-primary: #708090; /* Muted Slate Blue-Grey */
   --color-primary-hover: #5F6F7F; /* Darker Slate Blue-Grey */
-  --color-primary-text: #FFFFFF;
-
+  --color-primary-text: #FFF;
   --color-secondary: #8A8A8A; /* Lighter Medium Stone Grey */
   --color-secondary-hover: #707070; /* Lighter Darker Stone Grey */
-  --color-secondary-text: #FFFFFF;
-
+  --color-secondary-text: #FFF;
   --color-danger: #C97B62; /* Desaturated Maple Leaf Red/Orange */
   --color-danger-hover: #B0644F; /* Darker Maple Leaf */
-  --color-danger-text: #FFFFFF;
+  --color-danger-text: #FFF;
 
   /* Light / “soft” danger (and error) */
   --color-danger-light-bg: #F9F2EF; /* Very Light Desaturated Pink/Beige */
@@ -27,11 +25,11 @@
   --color-text-muted: #8A8A8A; /* Lighter Medium Stone Grey (matches new secondary) */
   --color-text-label: #A0A0A0; /* Light Stone Grey (remains light) */
   --color-text-link: var(--color-primary); /* Updated Muted Moss Green */
-  --color-text-light: #FFFFFF;
+  --color-text-light: #FFF;
 
   /* Backgrounds */
   --color-bg-body: #F5F1EB; /* Slightly Lighter/Cooler Raked Sand */
-  --color-bg-container: #FFFFFF; /* Clean White (Contrast) */
+  --color-bg-container: #FFF; /* Clean White (Contrast) */
   --color-bg-subtle: #EDE7DE; /* Slightly Darker than new body bg */
 
   /* Borders */
@@ -61,6 +59,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -379,6 +378,4 @@ button:disabled {
     outline-offset: 1px;
 }
 
-* {
-    -webkit-tap-highlight-color: transparent;
-}
+

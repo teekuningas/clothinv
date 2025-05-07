@@ -6,7 +6,11 @@ import React, {
   useCallback,
 } from "react";
 import { useSettings } from "../settings/SettingsContext";
-import { providers, getProviderById, REQUIRED_API_METHODS } from "./providerRegistry";
+import {
+  providers,
+  getProviderById,
+  REQUIRED_API_METHODS,
+} from "./providerRegistry";
 
 const ApiContext = createContext();
 

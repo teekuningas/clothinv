@@ -122,7 +122,9 @@ const ExportConfigurationLink = () => {
           {/* Display copy status message */}
           {copyMessage && (
             <p
-              className={copyStatus === "success" ? "status-success" : "status-error"}
+              className={
+                copyStatus === "success" ? "status-success" : "status-error"
+              }
               style={{ marginTop: "10px" }}
             >
               {copyMessage}

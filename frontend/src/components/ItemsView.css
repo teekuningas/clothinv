@@ -74,8 +74,9 @@
  
 .item-image-container.placeholder {
     background-color: var(--color-bg-subtle); /* Base color for placeholder */
+
     /* Subtle diagonal stripes */
-    background-image: linear-gradient(45deg, rgba(0,0,0,0.04) 25%, transparent 25%, transparent 50%, rgba(0,0,0,0.04) 50%, rgba(0,0,0,0.04) 75%, transparent 75%, transparent);
+    background-image: linear-gradient(45deg, rgb(0 0 0 / 4%) 25%, transparent 25%, transparent 50%, rgb(0 0 0 / 4%) 50%, rgb(0 0 0 / 4%) 75%, transparent 75%, transparent);
     background-size: 28px 28px; /* Adjust size of the stripes */
 }
  
@@ -105,6 +106,7 @@
     background-color: var(--color-bg-body); /* Zen-like footer background */
     align-items: center;
 }
+
 .item-card-content h4 { /* Item Name */
     flex-grow: 1; /* Takes available space */
     margin: 0; /* Reset margin */

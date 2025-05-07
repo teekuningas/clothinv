@@ -97,7 +97,8 @@ const CategoriesView = () => {
     e.preventDefault();
 
     if (!newCategoryName.trim()) {
-      setAddCategoryError( // Use modal-specific error state
+      setAddCategoryError(
+        // Use modal-specific error state
         intl.formatMessage({
           id: "categories.error.nameEmpty",
           defaultMessage: "Category name cannot be empty.",
@@ -107,7 +108,8 @@ const CategoriesView = () => {
     }
     // Only add if the provider is configured and addCategory exists
     if (!api.isConfigured || typeof api.addCategory !== "function") {
-      setAddCategoryError( // Use modal-specific error state
+      setAddCategoryError(
+        // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "categories.addForm.notSupported",
@@ -152,7 +154,8 @@ const CategoriesView = () => {
         });
       } else {
         // Should ideally not happen if addCategory throws errors, but handle just in case
-        setAddCategoryError( // Use modal-specific error state
+        setAddCategoryError(
+          // Use modal-specific error state
           intl.formatMessage(
             {
               id: "categories.error.add",
@@ -172,7 +175,8 @@ const CategoriesView = () => {
     } catch (err) {
       console.error("Failed to add category:", err);
       // Use intl for consistency, even if the message might be technical
-      setAddCategoryError( // Use modal-specific error state
+      setAddCategoryError(
+        // Use modal-specific error state
         intl.formatMessage(
           {
             id: "categories.error.add",
@@ -415,7 +419,9 @@ const CategoriesView = () => {
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : !isAddCategoryModalOpen && api.isConfigured && typeof api.addCategory !== "function" ? (
+      ) : !isAddCategoryModalOpen &&
+        api.isConfigured &&
+        typeof api.addCategory !== "function" ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "categories.addForm.notSupported",
@@ -448,7 +454,8 @@ const CategoriesView = () => {
           <p>
             {intl.formatMessage({
               id: "categories.list.emptyFAB", // Updated key
-              defaultMessage: "No categories found. Click the '+' button to add one.",
+              defaultMessage:
+                "No categories found. Click the '+' button to add one.",
             })}
           </p>
         )}
@@ -487,13 +494,14 @@ const CategoriesView = () => {
           type="button"
           className="add-category-fab button-primary"
           onClick={handleOpenAddCategoryModal}
-          aria-label={intl.formatMessage({ id: "categories.addCategoryFAB.label" })}
+          aria-label={intl.formatMessage({
+            id: "categories.addCategoryFAB.label",
+          })}
           disabled={loading || isUpdating || isDeleting}
         >
           +
         </button>
       )}
-
       {/* Add Category Modal */}
       {isAddCategoryModalOpen && (
         <Modal
@@ -502,7 +510,9 @@ const CategoriesView = () => {
           title={intl.formatMessage({ id: "categories.addForm.title" })}
         >
           <form onSubmit={handleAddCategory} className="add-category-form">
-            {addCategoryError && <p className="status-error">Error: {addCategoryError}</p>}
+            {addCategoryError && (
+              <p className="status-error">Error: {addCategoryError}</p>
+            )}
             <div className="form-group">
               <label htmlFor="category-name-modal">
                 {intl.formatMessage({ id: "categories.addForm.nameLabel" })}
@@ -518,7 +528,9 @@ const CategoriesView = () => {
             </div>
             <div className="form-group">
               <label htmlFor="category-description-modal">
-                {intl.formatMessage({ id: "categories.addForm.descriptionLabel" })}
+                {intl.formatMessage({
+                  id: "categories.addForm.descriptionLabel",
+                })}
               </label>
               <input
                 type="text"
@@ -529,12 +541,23 @@ const CategoriesView = () => {
               />
             </div>
             <div className="modal-actions">
-              <button type="submit" disabled={loading || !newCategoryName.trim()} className="button-primary">
+              <button
+                type="submit"
+                disabled={loading || !newCategoryName.trim()}
+                className="button-primary"
+              >
                 {loading
-                  ? intl.formatMessage({ id: "categories.addForm.button.adding" })
+                  ? intl.formatMessage({
+                      id: "categories.addForm.button.adding",
+                    })
                   : intl.formatMessage({ id: "categories.addForm.button.add" })}
               </button>
-              <button type="button" onClick={handleCloseAddCategoryModal} disabled={loading} className="button-secondary">
+              <button
+                type="button"
+                onClick={handleCloseAddCategoryModal}
+                disabled={loading}
+                className="button-secondary"
+              >
                 {intl.formatMessage({ id: "common.cancel" })}
               </button>
             </div>

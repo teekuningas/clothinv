@@ -1,8 +1,13 @@
 .add-location-form {
     /* Container styles (border, padding, margin, background) removed as modal handles this. */
+
     /* Internal structure styles like .form-group remain active. */
+
     /* Retain padding for content within the modal if needed, or let modal padding suffice */
-    /* padding: 15px; */ /* Example: if modal doesn't have enough internal padding */
+
+    /* padding: 15px; */
+
+ /* Example: if modal doesn't have enough internal padding */
 }
 
 .add-location-form h3 {

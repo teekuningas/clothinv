@@ -97,7 +97,8 @@ const OwnersView = () => {
     e.preventDefault();
 
     if (!newOwnerName.trim()) {
-      setAddOwnerError( // Use modal-specific error state
+      setAddOwnerError(
+        // Use modal-specific error state
         intl.formatMessage({
           id: "owners.error.nameEmpty",
           defaultMessage: "Owner name cannot be empty.",
@@ -107,7 +108,8 @@ const OwnersView = () => {
     }
     // Only add if the provider is configured and addOwner exists
     if (!api.isConfigured || typeof api.addOwner !== "function") {
-      setAddOwnerError( // Use modal-specific error state
+      setAddOwnerError(
+        // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "owners.addForm.notSupported",
@@ -152,7 +154,8 @@ const OwnersView = () => {
         });
       } else {
         // Should ideally not happen if addOwner throws errors, but handle just in case
-        setAddOwnerError( // Use modal-specific error state
+        setAddOwnerError(
+          // Use modal-specific error state
           intl.formatMessage(
             {
               id: "owners.error.add",
@@ -172,7 +175,8 @@ const OwnersView = () => {
     } catch (err) {
       console.error("Failed to add owner:", err);
       // Use intl for consistency, even if the message might be technical
-      setAddOwnerError( // Use modal-specific error state
+      setAddOwnerError(
+        // Use modal-specific error state
         intl.formatMessage(
           {
             id: "owners.error.add",
@@ -415,7 +419,9 @@ const OwnersView = () => {
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : !isAddOwnerModalOpen && api.isConfigured && typeof api.addOwner !== "function" ? (
+      ) : !isAddOwnerModalOpen &&
+        api.isConfigured &&
+        typeof api.addOwner !== "function" ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "owners.addForm.notSupported",
@@ -448,7 +454,8 @@ const OwnersView = () => {
           <p>
             {intl.formatMessage({
               id: "owners.list.emptyFAB", // Updated key
-              defaultMessage: "No owners found. Click the '+' button to add one.",
+              defaultMessage:
+                "No owners found. Click the '+' button to add one.",
             })}
           </p>
         )}
@@ -493,7 +500,6 @@ const OwnersView = () => {
           +
         </button>
       )}
-
       {/* Add Owner Modal */}
       {isAddOwnerModalOpen && (
         <Modal
@@ -502,7 +508,9 @@ const OwnersView = () => {
           title={intl.formatMessage({ id: "owners.addForm.title" })}
         >
           <form onSubmit={handleAddOwner} className="add-owner-form">
-            {addOwnerError && <p className="status-error">Error: {addOwnerError}</p>}
+            {addOwnerError && (
+              <p className="status-error">Error: {addOwnerError}</p>
+            )}
             <div className="form-group">
               <label htmlFor="owner-name-modal">
                 {intl.formatMessage({ id: "owners.addForm.nameLabel" })}
@@ -529,12 +537,21 @@ const OwnersView = () => {
               />
             </div>
             <div className="modal-actions">
-              <button type="submit" disabled={loading || !newOwnerName.trim()} className="button-primary">
+              <button
+                type="submit"
+                disabled={loading || !newOwnerName.trim()}
+                className="button-primary"
+              >
                 {loading
                   ? intl.formatMessage({ id: "owners.addForm.button.adding" })
                   : intl.formatMessage({ id: "owners.addForm.button.add" })}
               </button>
-              <button type="button" onClick={handleCloseAddOwnerModal} disabled={loading} className="button-secondary">
+              <button
+                type="button"
+                onClick={handleCloseAddOwnerModal}
+                disabled={loading}
+                className="button-secondary"
+              >
                 {intl.formatMessage({ id: "common.cancel" })}
               </button>
             </div>

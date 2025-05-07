@@ -7,13 +7,11 @@ import { SettingsProvider } from "./settings/SettingsContext.jsx";
 import "./main.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <SettingsProvider>
-      <TranslationProvider>
-        <ApiProvider>
-          <App />
-        </ApiProvider>
-      </TranslationProvider>
-    </SettingsProvider>
-  </React.StrictMode>,
+  <SettingsProvider>
+    <TranslationProvider>
+      <ApiProvider>
+        <App />
+      </ApiProvider>
+    </TranslationProvider>
+  </SettingsProvider>,
 );
