@@ -535,7 +535,7 @@ export const listItems = async (settings, options) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
-    const { page, pageSize, sortBy, sortOrder, filters } = options;
+    const { page, pageSize, sortBy, sortOrder, filters } = options || {}; // Ensure options is an object, provide defaults if needed
 
     try {
         // 1. Fetch all items metadata (basic data + image_id + uuids)
@@ -582,8 +582,17 @@ export const listItems = async (settings, options) => {
         const totalCount = filteredItems.length;
 
         // 5. Apply Pagination (client-side)
-        const startIndex = (page - 1) * pageSize;
-        const paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + pageSize);
+        let paginatedItemMetadata = filteredItems; // Default to all filtered items
+        if (page && pageSize) { // Only paginate if page and pageSize are provided and are numbers
+            const numericPage = Number(page);
+            const numericPageSize = Number(pageSize);
+            if (!isNaN(numericPage) && numericPage > 0 && !isNaN(numericPageSize) && numericPageSize > 0) {
+                const startIndex = (numericPage - 1) * numericPageSize;
+                paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + numericPageSize);
+            } else {
+                console.warn("listItems: Invalid page or pageSize provided, returning all filtered items.", { page, pageSize });
+            }
+        }
 
         // If no items after pagination, return early
         if (paginatedItemMetadata.length === 0) {
@@ -855,6 +864,7 @@ async function importDataV1(settings, loadedZip) {
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
                 owner_id: ownerMap[owner_id],       // Map to new ID
+                image_uuid: imageFile ? imageUuidFromCsv : undefined, // <<< ADD THIS LINE: Pass image UUID from CSV if there's an image
                 imageFile: imageFile,               // Pass the File object (addItem will handle base64 conversion)
                 created_at: itemMetadata.created_at || undefined, // Preserve timestamp or let PG handle
                 updated_at: itemMetadata.updated_at || null   // Preserve timestamp or set null

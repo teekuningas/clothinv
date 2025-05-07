@@ -655,7 +655,7 @@ export const listItems = async (settings, options) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-    const { page, pageSize, sortBy, sortOrder, filters } = options;
+    const { page, pageSize, sortBy, sortOrder, filters } = options || {}; // Ensure options is an object
 
     try {
         // 1. Fetch all items metadata
@@ -707,8 +707,17 @@ export const listItems = async (settings, options) => {
         const totalCount = filteredItems.length;
 
         // 5. Apply Pagination
-        const startIndex = (page - 1) * pageSize;
-        const paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + pageSize);
+        let paginatedItemMetadata = filteredItems; // Default to all filtered items
+        if (page && pageSize) { // Only paginate if page and pageSize are provided and are numbers
+            const numericPage = Number(page);
+            const numericPageSize = Number(pageSize);
+            if (!isNaN(numericPage) && numericPage > 0 && !isNaN(numericPageSize) && numericPageSize > 0) {
+                const startIndex = (numericPage - 1) * numericPageSize;
+                paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + numericPageSize);
+            } else {
+                console.warn("listItems: Invalid page or pageSize provided, returning all filtered items.", { page, pageSize });
+            }
+        }
 
         if (paginatedItemMetadata.length === 0) {
             return { items: [], totalCount: totalCount };
