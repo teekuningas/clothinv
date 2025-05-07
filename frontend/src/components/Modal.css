@@ -5,7 +5,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
+    z-index: 1110; /* Increased to be above hamburger menu and mobile nav overlay */
     padding: 15px;
 }
 
