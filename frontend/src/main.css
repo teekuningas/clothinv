@@ -1,47 +1,47 @@
 :root {
   /* Core Interaction Colors */
-  --color-primary: #1DA1F2;
-  --color-primary-hover: #0D8DD8;
+  --color-primary: #FFA726;
+  --color-primary-hover: #FB8C00;
   --color-primary-text: #FFFFFF;
 
-  --color-secondary: #E1306C;
-  --color-secondary-hover: #C13584;
+  --color-secondary: #26A69A;
+  --color-secondary-hover: #2BBBAD;
   --color-secondary-text: #FFFFFF;
 
-  --color-danger: #E0245E;
-  --color-danger-hover: #C21F53;
+  --color-danger: #E53935;
+  --color-danger-hover: #D32F2F;
   --color-danger-text: #FFFFFF;
 
   /* Light / “soft” danger (and error) */
-  --color-danger-light-bg: #FFD6E8;
-  --color-danger-light-text: #9E0F4E;
-  --color-danger-light-border: #FFACE0;
-  --color-danger-light-hover-bg: #FFB8DC;
-  --color-danger-light-hover-text: #880A3A;
-  --color-danger-light-hover-border: #FFA0D4;
+  --color-danger-light-bg: #FFEBEE;
+  --color-danger-light-text: #C62828;
+  --color-danger-light-border: #FFCDD2;
+  --color-danger-light-hover-bg: #FFCDD2;
+  --color-danger-light-hover-text: #B71C1C;
+  --color-danger-light-hover-border: #EF9A9A;
 
   /* Text */
-  --color-text-base: #111111;
-  --color-text-muted: #657786;
-  --color-text-label: #AAB8C2;
+  --color-text-base: #333333;
+  --color-text-muted: #666666;
+  --color-text-label: #999999;
   --color-text-link: var(--color-primary);
-  --color-text-light: #F5F8FA;
+  --color-text-light: #FFFFFF;
 
   /* Backgrounds */
-  --color-bg-body: #F5F8FA;
+  --color-bg-body: #FFFCF5;
   --color-bg-container: #FFFFFF;
-  --color-bg-subtle: #E1E8ED;
+  --color-bg-subtle: #FFF3E0;
 
   /* Borders */
-  --color-border: #E1E8ED;
-  --color-border-input: #AAB8C2;
-  --color-border-divider: #E1E8ED;
+  --color-border: #E0E0E0;
+  --color-border-input: #CCCCCC;
+  --color-border-divider: #E0E0E0;
 
   /* Status Colors */
-  --color-success-bg: #D1F2EB;
-  --color-success-text: #006644;
-  --color-warning-bg: #FFF7D6;
-  --color-warning-text: #996600;
+  --color-success-bg: #E8F5E9;
+  --color-success-text: #2E7D32;
+  --color-warning-bg: #FFF8E1;
+  --color-warning-text: #FF8F00;
   --color-info-bg: #E3F2FD;
   --color-info-text: #1565C0;
   --color-error-bg: var(--color-danger-light-bg);
@@ -50,9 +50,9 @@
   /* Overlays & Special */
   --color-backdrop: rgb(0 0 0 / 50%);
   --color-overlay-dark-bg: #1A1A1A;
-  --color-overlay-button-bg: rgb(245 248 255 / 80%);
-  --color-overlay-button-hover: rgb(245 248 255 / 100%);
-  --color-overlay-button-icon: #657786;
+  --color-overlay-button-bg: rgb(255 248 245 / 80%);
+  --color-overlay-button-hover: rgb(255 248 245 / 100%);
+  --color-overlay-button-icon: #666666;
 }
 
 * {
