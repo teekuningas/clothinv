@@ -148,7 +148,8 @@
     "settings.data.importConfirmReplace": "WARNING: Importing will replace ALL existing data (clothes, locations, categories, owners). This action cannot be undone. Are you sure you want to proceed?",
     "settings.data.importFailedUnknown": "Import failed for an unknown reason.",
     "settings.data.importUnexpectedError": "An unexpected error occurred during import.",
-   "settings.data.importSuccessSummary": "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} clothes.",
+    "settings.data.importSuccessSummary": "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} clothes.",
+    "settings.data.refreshRecommendation": "It is recommended to refresh the application or navigate to another view and back to see all changes.",
     "settings.data.destroyTitle": "Destroy Data",
     "settings.data.destroyWarning": "Warning: This action will permanently delete ALL data (clothes, locations, categories, owners, images) from the currently active provider ({providerName}). This action CANNOT BE UNDONE.",
     "settings.data.destroyButton": "Destroy All Data",
@@ -257,5 +258,9 @@
     "shareConfig.instructions": "Share the generated URL with someone. When they open it, the specified configuration will be automatically applied to their browser.",
     "shareConfig.warning.secret": "Warning: This URL contains configuration details, potentially including API tokens or other settings. Share it only with trusted individuals.",
     "shareConfig.status.generating": "Generating link...",
-    "items.addItemFAB.label": "Add new item"
+    "items.addItemFAB.label": "Add new item",
+    "settings.data.share.title": "Share Current Configuration",
+    "settings.data.share.description": "Create a shareable link that encapsulates your current application settings. This allows others to easily adopt the same configuration, including API provider details. Useful for collaboration or setting up on different devices.",
+    "settings.data.share.warning": "The generated link will contain all current settings, including any API tokens. Share this link only with trusted individuals, as they will gain the same access and configuration as you.",
+    "settings.data.share.button": "Create Shareable Link"
 }

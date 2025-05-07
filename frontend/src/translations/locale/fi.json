@@ -148,7 +148,8 @@
     "settings.data.importConfirmReplace": "VAROITUS: Tuonti korvaa KAIKKI olemassa olevat tiedot (vaatteet, sijainnit, kategoriat, omistajat). Toimintoa ei voi peruuttaa. Haluatko varmasti jatkaa?",
     "settings.data.importFailedUnknown": "Tuonti epäonnistui tuntemattomasta syystä.",
     "settings.data.importUnexpectedError": "Tuonnin aikana tapahtui odottamaton virhe.",
-   "settings.data.importSuccessSummary": "Tuonti onnistui. Korvattu data: {locCount} sijaintia, {catCount} kategoriaa, {ownerCount} omistajaa, {itemCount} vaatetta.",
+    "settings.data.importSuccessSummary": "Tuonti onnistui. Korvattu data: {locCount} sijaintia, {catCount} kategoriaa, {ownerCount} omistajaa, {itemCount} vaatetta.",
+    "settings.data.refreshRecommendation": "On suositeltavaa päivittää sovellus tai siirtyä pois näkymästä ja takaisin nähdäksesi kaikki muutokset.",
     "settings.data.destroyTitle": "Tuhoa tiedot",
     "settings.data.destroyWarning": "Varoitus: Tämä toiminto poistaa pysyvästi KAIKKI tiedot (vaatteet, sijainnit, kategoriat, omistajat, kuvat) nykyisestä aktiivisesta palvelusta ({providerName}). Toimintoa EI VOI PERUUTTAA.",
     "settings.data.destroyButton": "Tuhoa kaikki tiedot",
@@ -257,5 +258,9 @@
     "shareConfig.instructions": "Jaa luotu linkki toiselle henkilölle. Kun hän avaa sen, määritetyt asetukset otetaan automaattisesti käyttöön hänen selaimessaan.",
     "shareConfig.warning.secret": "Varoitus: Tämä linkki sisältää asetustietoja, mahdollisesti mukaan lukien API-avaimia tai muita määrityksiä. Jaa se vain luotettaville henkilöille.",
     "shareConfig.status.generating": "Luodaan linkkiä...",
-    "items.addItemFAB.label": "Lisää uusi vaate"
+    "items.addItemFAB.label": "Lisää uusi vaate",
+    "settings.data.share.title": "Jaa nykyinen kokoonpano",
+    "settings.data.share.description": "Luo jaettava linkki, joka sisältää nykyiset sovellusasetuksesi. Tämä mahdollistaa muiden helpon saman kokoonpanon käyttöönoton, mukaan lukien API-palveluntarjoajan tiedot. Hyödyllinen yhteistyössä tai sovelluksen asentamisessa useille laitteille.",
+    "settings.data.share.warning": "Luotu linkki sisältää kaikki nykyiset asetukset, mukaan lukien mahdolliset API-avaimet. Jaa tämä linkki vain luotettaville henkilöille, sillä he saavat saman pääsyn ja kokoonpanon kuin sinä.",
+    "settings.data.share.button": "Luo jaettava linkki"
 }

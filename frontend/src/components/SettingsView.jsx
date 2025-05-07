@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useIntl } from "react-intl";
+import { useNavigate } from "react-router-dom";
 import {
   getProviderIds,
   getProviderById,
@@ -15,6 +16,7 @@ const SettingsView = () => {
     useSettings(); // Get general app settings
   const api = useApi(); // Get full API context to access export/import methods
   const { availableLocales } = useTranslationContext(); // Get available locales from context
+  const navigate = useNavigate(); // Initialize navigate
 
   // Local state for Language setting being edited - Initialize from settings context
   const [localLocale, setLocalLocale] = useState(appSettings.locale);
@@ -480,6 +482,11 @@ const SettingsView = () => {
       setDestroyStatus("error");
     }
   }, [api, appSettings.apiProviderType, providerDisplayNames, intl]); // Removed updateAppSettings
+
+  // Handler for the new button
+  const handleGoToSharePage = () => {
+    navigate('/share-configuration');
+  };
 
   // Get the definition for the currently selected provider in the local state
   const selectedProviderId =
@@ -980,6 +987,41 @@ const SettingsView = () => {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Share Configuration Section (NEW) */}
+          <div className="data-management-section">
+            <h4>
+              {intl.formatMessage({
+                id: "settings.data.share.title",
+                defaultMessage: "Share Current Configuration",
+              })}
+            </h4>
+            <p>
+              {intl.formatMessage({
+                id: "settings.data.share.description",
+                defaultMessage: "Create a shareable link that encapsulates your current application settings. This allows others to easily adopt the same configuration, including API provider details. Useful for collaboration or setting up on different devices.",
+              })}
+            </p>
+            <p className="warning-text">
+              {intl.formatMessage({
+                id: "settings.data.share.warning",
+                defaultMessage: "The generated link will contain all current settings, including any API tokens. Share this link only with trusted individuals, as they will gain the same access and configuration as you.",
+              })}
+            </p>
+            <div className="form-actions">
+              <button
+                type="button"
+                onClick={handleGoToSharePage}
+                className="button-primary" // Consistent with Export button
+              >
+                {intl.formatMessage({
+                  id: "settings.data.share.button",
+                  defaultMessage: "Create Shareable Link",
+                })}
+              </button>
+            </div>
+            {/* No feedback section needed here as it navigates away */}
           </div>
         </fieldset>
       </form>
