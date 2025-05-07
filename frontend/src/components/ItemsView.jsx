@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useApi } from "../api/ApiContext";
 import { useSettings } from "../settings/SettingsContext";
 import { useIntl } from "react-intl";
@@ -14,6 +14,13 @@ const ItemsView = () => {
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [owners, setOwners] = useState([]);
+
+  // Pagination and loading state
+  const [currentPage, setCurrentPage] = useState(0); // Will be 1-indexed after first successful fetch
+  const [pageSize, setPageSize] = useState(5); // Items per page
+  const [hasMoreItems, setHasMoreItems] = useState(true);
+  const [totalItemsCount, setTotalItemsCount] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false); // For loading subsequent pages
 
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
@@ -66,156 +73,191 @@ const ItemsView = () => {
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
+  const loaderRef = useRef(null); // For IntersectionObserver
+
   const api = useApi();
   const { settings: appSettings } = useSettings();
   const intl = useIntl();
 
-  const fetchData = useCallback(async () => {
-    // Check if API is configured and required methods exist
-    const canFetchItems =
-      api.isConfigured && typeof api.listItems === "function";
-    const canFetchLocations =
-      api.isConfigured && typeof api.listLocations === "function";
-    const canFetchCategories =
-      api.isConfigured && typeof api.listCategories === "function";
-    const canFetchOwners =
-      api.isConfigured && typeof api.listOwners === "function";
-    if (
-      !canFetchItems ||
-      !canFetchLocations ||
-      !canFetchCategories ||
-      !canFetchOwners
-    ) {
-      setItems([]);
-      setLocations([]);
-      setCategories([]);
-      setOwners([]);
+  const parseSortCriteria = (criteria) => {
+    if (criteria.endsWith("_asc")) {
+      return { sortBy: criteria.slice(0, -4), sortOrder: "asc" };
+    }
+    if (criteria.endsWith("_desc")) {
+      return { sortBy: criteria.slice(0, -5), sortOrder: "desc" };
+    }
+    return { sortBy: "created_at", sortOrder: "desc" }; // Default
+  };
+
+  const fetchPageOfItems = useCallback(async (pageToFetch, isNewQuery = false) => {
+    if (!api.isConfigured || typeof api.listItems !== "function") {
       setError(
         api.isConfigured
-          ? intl.formatMessage({
-              id: "items.error.fetchPrereqs",
-              defaultMessage:
-                "Cannot fetch items. Listing items, locations, or categories is not supported by the current API Provider.",
-            })
-          : intl.formatMessage({ id: "common.status.apiNotConfigured" }),
+          ? intl.formatMessage({ id: "items.list.notSupported", defaultMessage: "Listing items is not supported by the current API Provider." })
+          : intl.formatMessage({ id: "common.status.apiNotConfigured" })
       );
+      setItems([]);
+      setTotalItemsCount(0);
+      setHasMoreItems(false);
+      if (isNewQuery) setLoading(false); else setLoadingMore(false);
       return;
     }
 
-    setLoading(true);
+    if (isNewQuery) {
+      setLoading(true);
+      // setItems([]); // Clearing items here causes a flicker if the new data is similar. Better to clear on success/error of new query.
+      // setCurrentPage(0); // Reset page for new query, will be incremented by success handler
+    } else {
+      setLoadingMore(true);
+    }
     setError(null);
-    setSuccess(null);
+    // Do not clear success message here, let it persist until next action or explicit clear.
+    // setSuccess(null); 
+
+    const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
+    const fetchOptions = {
+      page: pageToFetch,
+      pageSize: pageSize,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      filters: {
+        name: filterName.trim() || undefined,
+        locationIds: filterLocationIds.length > 0 ? filterLocationIds : undefined,
+        categoryIds: filterCategoryIds.length > 0 ? filterCategoryIds : undefined,
+        ownerIds: filterOwnerIds.length > 0 ? filterOwnerIds : undefined,
+      },
+    };
+
     try {
-      // Fetch all data concurrently
-      const [itemsData, locationsData, categoriesData, ownersData] =
-        await Promise.all([
-          api.listItems(),
-          api.listLocations(),
-          api.listCategories(),
-          api.listOwners(),
-        ]);
-      setItems(itemsData || []);
-      setLocations(locationsData || []);
-      setCategories(categoriesData || []);
-      setOwners(ownersData || []);
+      const result = await api.listItems(fetchOptions);
+      setItems(prevItems => isNewQuery ? result.items : [...prevItems, ...result.items]);
+      setTotalItemsCount(result.totalCount);
+      setCurrentPage(pageToFetch); // Update current page upon successful fetch
+      // Calculate hasMoreItems based on potentially updated items list length
+      const currentTotalFetched = isNewQuery ? result.items.length : items.length + result.items.length;
+      setHasMoreItems(currentTotalFetched < result.totalCount);
     } catch (err) {
-      console.error("Failed to fetch data:", err);
-      setError(
-        intl.formatMessage(
-          {
-            id: "items.error.fetch",
-            defaultMessage: "Failed to fetch data: {error}",
-          },
-          { error: err.message },
-        ),
-      );
-      setItems([]);
-      setLocations([]);
-      setCategories([]);
-      setOwners([]);
+      console.error("Failed to fetch items:", err);
+      setError(intl.formatMessage({ id: "items.error.fetch", defaultMessage: "Failed to fetch items: {error}" }, { error: err.message }));
+      if (isNewQuery) {
+        setItems([]); // Clear items on error for a new query
+        setTotalItemsCount(0);
+        setHasMoreItems(false);
+      }
+      // For loading more, we might want to keep existing items and just show an error.
+      // Or, setHasMoreItems(false) to prevent further attempts if loading more fails.
     } finally {
-      setLoading(false);
+      if (isNewQuery) setLoading(false);
+      else setLoadingMore(false);
+    }
+  }, [api, sortCriteria, pageSize, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, items.length, intl]); // Added items.length for hasMoreItems calculation in append mode
+
+  // Fetch locations, categories, owners (ancillary data)
+  const fetchAncillaryData = useCallback(async () => {
+    if (!api.isConfigured) {
+        setLocations([]); setCategories([]); setOwners([]);
+        return;
+    }
+    try {
+        const canFetchLocations = typeof api.listLocations === "function";
+        const canFetchCategories = typeof api.listCategories === "function";
+        const canFetchOwners = typeof api.listOwners === "function";
+
+        const [locationsData, categoriesData, ownersData] = await Promise.all([
+            canFetchLocations ? api.listLocations() : Promise.resolve([]),
+            canFetchCategories ? api.listCategories() : Promise.resolve([]),
+            canFetchOwners ? api.listOwners() : Promise.resolve([]),
+        ]);
+        setLocations(locationsData || []);
+        setCategories(categoriesData || []);
+        setOwners(ownersData || []);
+    } catch (err) {
+        console.error("Failed to fetch ancillary data (locations, categories, owners):", err);
+        // Optionally set an error state specific to ancillary data or a general one
+        setError(prev => `${prev ? prev + '; ' : ''}Failed to load L/C/O: ${err.message}`);
+        setLocations([]); setCategories([]); setOwners([]);
     }
   }, [api, intl]);
 
+
+  // Effect for initial data load (items and ancillary) and when API provider changes
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (api.isConfigured && api.listItems) {
+        fetchAncillaryData(); // Fetch locations, categories, owners
+        fetchPageOfItems(1, true); // Fetch first page of items
+    } else {
+        // Clear data if API is not configured or listItems is not available
+        setItems([]);
+        setTotalItemsCount(0);
+        setHasMoreItems(false);
+        setLocations([]);
+        setCategories([]);
+        setOwners([]);
+        setCurrentPage(0);
+    }
+  }, [api.isConfigured, api.listItems]); // Removed fetchPageOfItems from deps to avoid loop, it's called internally. Added fetchAncillaryData
 
-  // Calculate filtered items based on current filters
-  const filteredItems = useMemo(() => {
-    const lowerFilterName = filterName.toLowerCase();
+  // Effect for filter/sort changes
+  useEffect(() => {
+    // Only run if api.listItems is available, otherwise initial load handles it.
+    // And only if currentPage is not 0 (meaning initial load has happened or tried)
+    if (api.listItems && currentPage !== 0) {
+        fetchPageOfItems(1, true);
+    }
+    // This effect should run when sortCriteria or any filter state changes.
+    // The initial load is handled by the previous useEffect.
+  }, [sortCriteria, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]); // Removed api.listItems, fetchPageOfItems from deps
 
-    return items.filter((item) => {
-      // Combined Text filter (case-insensitive includes for name OR description)
-      if (
-        lowerFilterName &&
-        !item.name.toLowerCase().includes(lowerFilterName) &&
-        !(item.description || "").toLowerCase().includes(lowerFilterName)
-      ) {
-        return false;
-      }
-      // Location filter (must match one of the selected IDs if any are selected)
-      if (
-        filterLocationIds.length > 0 &&
-        !filterLocationIds.includes(item.location_id)
-      ) {
-        return false;
-      }
-      // Category filter (must match one of the selected IDs if any are selected)
-      if (
-        filterCategoryIds.length > 0 &&
-        !filterCategoryIds.includes(item.category_id)
-      ) {
-        return false;
-      }
-      // Owner filter (must match one of the selected IDs if any are selected)
-      if (
-        filterOwnerIds.length > 0 &&
-        !filterOwnerIds.includes(item.owner_id)
-      ) {
-        return false;
-      }
-      return true;
-    });
-  }, [items, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds]);
+  // Infinite Scroll Intersection Observer
+  useEffect(() => {
+    if (loading || loadingMore || !hasMoreItems || !loaderRef.current) return;
 
-  // Apply sorting after filtering
-  const sortedItems = useMemo(() => {
-    const itemsToSort = [...filteredItems];
-    itemsToSort.sort((a, b) => {
-      switch (sortCriteria) {
-        case "created_at_asc":
-          // Handle potential null/undefined created_at defensively
-          return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-        case "created_at_desc":
-        default:
-          return new Date(b.created_at || 0) - new Date(a.created_at || 0);
-        // Add cases for other criteria like 'name_asc', 'name_desc' here if needed later
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) { // No need to check !loadingMore and hasMoreItems again, already checked above
+          fetchPageOfItems(currentPage + 1, false);
+        }
+      },
+      { threshold: 1.0 } // Trigger when 100% of the loader is visible
+    );
+
+    const currentLoaderRef = loaderRef.current;
+    if (currentLoaderRef) {
+      observer.observe(currentLoaderRef);
+    }
+
+    return () => {
+      if (currentLoaderRef) {
+        observer.unobserve(currentLoaderRef);
       }
-    });
-    return itemsToSort;
-  }, [filteredItems, sortCriteria]);
+    };
+  }, [loading, loadingMore, hasMoreItems, currentPage, fetchPageOfItems]); // loaderRef.current is not a stable dependency
 
   // Effect to create/revoke Blob URLs for item list display
   useEffect(() => {
     const newItemImageUrls = {};
-    sortedItems.forEach((item) => {
-      // Use sortedItems for URL generation
+    items.forEach((item) => { // Use items (current page's items)
       if (item.imageFile instanceof File) {
         newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
       }
     });
-    setItemImageUrls(newItemImageUrls);
+    setItemImageUrls(prevUrls => { // Merge with previous URLs to avoid revoking URLs for items not in the current `items` batch but still displayed
+        // Revoke URLs that are no longer needed
+        Object.keys(prevUrls).forEach(itemId => {
+            if (!newItemImageUrls[itemId] && !items.find(i => i.item_id === parseInt(itemId))) {
+                URL.revokeObjectURL(prevUrls[itemId]);
+            }
+        });
+        return {...prevUrls, ...newItemImageUrls};
+    });
 
-    // Cleanup function to revoke URLs when component unmounts or items change
+
+    // Cleanup function to revoke all managed URLs when component unmounts
     return () => {
-      Object.values(newItemImageUrls).forEach((url) =>
-        URL.revokeObjectURL(url),
-      );
+      Object.values(itemImageUrls).forEach(url => URL.revokeObjectURL(url));
       setItemImageUrls({});
     };
-  }, [sortedItems]);
+  }, [items]); // Depend on items state
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
@@ -445,8 +487,8 @@ const ItemsView = () => {
 
       if (result.success) {
         // Fetch data, then close modal and show global success message
-        fetchData().then(() => {
-          handleCloseAddItemModal();
+        handleCloseAddItemModal(); // Close modal first
+        fetchPageOfItems(1, true).then(() => { // Refresh list from page 1
           setSuccess(
             intl.formatMessage(
               {
@@ -655,8 +697,8 @@ const ItemsView = () => {
             { name: editName.trim() },
           ),
         );
-        handleCancelEdit();
-        fetchData();
+        handleCancelEdit(); // Close edit modal
+        fetchPageOfItems(1, true); // Refresh list from page 1
       } else {
         setUpdateError(
           intl.formatMessage(
@@ -728,9 +770,9 @@ const ItemsView = () => {
             defaultMessage: "Item deleted successfully!",
           }),
         );
-        handleCancelDelete();
+        handleCancelDelete(); // Close delete confirm modal
         handleCancelEdit(); // Close edit modal if open
-        fetchData();
+        fetchPageOfItems(1, true); // Refresh list from page 1
       } else {
         setDeleteError(
           intl.formatMessage(
@@ -789,7 +831,8 @@ const ItemsView = () => {
     <div className="items-view">
 
       {/* Status Messages */}
-      {loading && (
+      {/* Main loading indicator for new queries */}
+      {loading && !loadingMore && (
         <p className="status-loading">
           {intl.formatMessage({
             id: "items.loading",
@@ -800,31 +843,23 @@ const ItemsView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
       
-      {/* Conditional rendering for Add Item Form moved to Modal below */}
-      {/* Placeholder for where the old form was, to show messages if API not configured for adding */}
-      { !isAddItemModalOpen && !api.isConfigured ? (
+      {/* Placeholder for API not configured message if no items are shown and not loading */}
+      {!api.isConfigured && !loading && items.length === 0 && (
+         <p className="status-warning">
+           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
+         </p>
+      )}
+      {api.isConfigured && typeof api.listItems !== "function" && !loading && items.length === 0 && (
         <p className="status-warning">
-          {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
+          {intl.formatMessage({ id: "items.list.notSupported", defaultMessage: "Listing items is not supported by the current API Provider."})}
         </p>
-      ) : !isAddItemModalOpen && api.isConfigured && (!api.addItem || // Check method existence
-        !api.listLocations ||
-        !api.listCategories ||
-        !api.listOwners) ? (
-        <p className="status-warning"> {/* This message might be better placed near the FAB or handled differently */}
-          {intl.formatMessage({
-            id: "items.addForm.notSupported",
-            defaultMessage:
-              "Adding or listing required data is not supported by the current API Provider.",
-          })}
-        </p>
-      ) : null}
+      )}
+
 
       {/* Items List */}
 
-      {/* Sort and Filter Controls Container */}
-      {api.isConfigured &&
-        typeof api.listItems === "function" &&
-        items.length > 0 && (
+      {/* Sort and Filter Controls Container - Show if API is configured and listItems exists, even if items array is initially empty */}
+      {api.isConfigured && typeof api.listItems === "function" && (
           <div className="list-controls-container">
             {/* Filter Toggle Button - Use button-light */}
             <button
@@ -832,19 +867,20 @@ const ItemsView = () => {
               className="button-light filter-toggle-button"
               aria-controls="filters-container"
               aria-expanded={isFilterVisible}
+              disabled={loading || loadingMore} // Disable while loading
             >
               {intl.formatMessage({
                 id: "items.filter.toggleButton",
                 defaultMessage: "Filters",
               })}{" "}
-              ({filteredItems.length}/{items.length}){" "}
-              {/* Show filtered/total count */}
+              {/* Show filtered/total count. Use items.length for current display, totalItemsCount for total available */}
+              ({items.length}{totalItemsCount > 0 ? ` / ${totalItemsCount}` : ''})
             </button>
           </div>
         )}
 
       {/* Collapsible Filter Container */}
-      {isFilterVisible && (
+      {isFilterVisible && api.isConfigured && typeof api.listItems === "function" && (
         <div id="filters-container" className="filters-container">
           <h4>
             {intl.formatMessage({
@@ -988,108 +1024,94 @@ const ItemsView = () => {
         </div>
       )}
 
-      {typeof api.listItems !== "function" && api.isConfigured && (
-        <p className="status-warning">
+      {/* Message for no items found after initial load/filter, and not currently loading */}
+      {api.isConfigured && typeof api.listItems === "function" && !loading && !loadingMore && items.length === 0 && totalItemsCount === 0 && !error && (
+        <p>
           {intl.formatMessage({
-            id: "items.list.notSupported",
-            defaultMessage:
-              "Listing items is not supported by the current API Provider.",
+            id: "items.list.empty",
+            defaultMessage: "No items found. Add one!",
           })}
         </p>
       )}
-      {typeof api.listItems === "function" &&
-        !loading &&
-        sortedItems.length === 0 && // Check sortedItems
-        items.length > 0 &&
-        !error &&
-        api.isConfigured && (
-          <p>
-            {intl.formatMessage({
-              id: "items.list.emptyFiltered",
-              defaultMessage: "No items match the current filters.",
-            })}
-          </p>
-        )}
-      {typeof api.listItems === "function" &&
-        !loading &&
-        items.length === 0 &&
-        !error &&
-        api.isConfigured && (
-          <p>
-            {intl.formatMessage({
-              id: "items.list.empty",
-              defaultMessage: "No items found. Add one above!",
-            })}
-          </p>
-        )}
-      {typeof api.listItems === "function" &&
-        sortedItems.length > 0 && ( // Check sortedItems
-          <div className="items-list">
-            {sortedItems.map(
-              (
-                item, // Iterate over sortedItems
-              ) => (
-                <div key={item.item_id} className="item-card">
-                  {/* Display image using Blob URL from state */}
-                  <div
-                    className={`item-image-container ${!itemImageUrls[item.item_id] ? "placeholder" : ""} ${itemImageUrls[item.item_id] ? "clickable" : ""}`}
-                    // Pass the File object to handleImageClick
-                    onClick={() =>
-                      item.imageFile &&
-                      handleImageClick(item.imageFile, item.name)
-                    }
-                    title={
-                      itemImageUrls[item.item_id]
-                        ? intl.formatMessage({
-                            id: "items.card.viewImageTooltip",
-                            defaultMessage: "Click to view full image",
-                          })
-                        : ""
-                    }
-                  >
-                    {
-                      itemImageUrls[item.item_id] ? (
-                        <img
-                          src={itemImageUrls[item.item_id]} // Use Blob URL from state
-                          alt={item.name}
-                          className="item-image"
-                        />
-                      ) : null /* Background handles placeholder */
-                    }
-                  </div>
-                  <div className="item-card-content">
-                    <h4 title={item.name}>{item.name}</h4>
-                    {api.isConfigured && typeof api.updateItem === "function" && (
-                      <button
-                        onClick={() => handleEditClick(item)}
-                        className="edit-button button-light" // Keep existing classes for base styling
-                        aria-label={intl.formatMessage(
-                          {
-                            id: "items.editButton.label",
-                            defaultMessage: "Edit {name}",
-                          },
-                          { name: item.name },
-                        )}
-                        disabled={loading || isUpdating || isDeleting}
-                      >
-                        ✏️ {/* Pencil emoji */}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ),
-            )}
-          </div>
-        )}
+      {/* Message for no items matching filters, but there are items in total */}
+      {api.isConfigured && typeof api.listItems === "function" && !loading && !loadingMore && items.length === 0 && totalItemsCount > 0 && !error && (
+         <p>
+           {intl.formatMessage({
+             id: "items.list.emptyFiltered",
+             defaultMessage: "No items match the current filters.",
+           })}
+         </p>
+      )}
 
-      {/* Add Item FAB */}
+      {items.length > 0 && (
+        <div className="items-list">
+          {items.map((item) => (
+            <div key={item.item_id} className="item-card">
+              {/* Display image using Blob URL from state */}
+              <div
+                className={`item-image-container ${!itemImageUrls[item.item_id] ? "placeholder" : ""} ${itemImageUrls[item.item_id] ? "clickable" : ""}`}
+                onClick={() =>
+                  item.imageFile &&
+                  handleImageClick(item.imageFile, item.name)
+                }
+                title={
+                  itemImageUrls[item.item_id]
+                    ? intl.formatMessage({
+                        id: "items.card.viewImageTooltip",
+                        defaultMessage: "Click to view full image",
+                      })
+                    : ""
+                }
+              >
+                {itemImageUrls[item.item_id] ? (
+                  <img
+                    src={itemImageUrls[item.item_id]}
+                    alt={item.name}
+                    className="item-image"
+                  />
+                ) : null}
+              </div>
+              <div className="item-card-content">
+                <h4 title={item.name}>{item.name}</h4>
+                {api.isConfigured && typeof api.updateItem === "function" && (
+                  <button
+                    onClick={() => handleEditClick(item)}
+                    className="edit-button button-light"
+                    aria-label={intl.formatMessage(
+                      {
+                        id: "items.editButton.label",
+                        defaultMessage: "Edit {name}",
+                      },
+                      { name: item.name },
+                    )}
+                    disabled={loading || loadingMore || isUpdating || isDeleting}
+                  >
+                    ✏️
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Loader for infinite scroll */}
+      {loadingMore && (
+        <p className="status-loading">
+          {intl.formatMessage({ id: "items.loadingMore", defaultMessage: "Loading more items..."})}
+        </p>
+      )}
+      <div ref={loaderRef} style={{ height: "1px", margin: "1px" }} /> {/* Invisible loader trigger */}
+
+
+      {/* Add Item FAB - enable if API configured and core methods exist */}
       {api.isConfigured && api.addItem && api.listLocations && api.listCategories && api.listOwners && (
         <button
           type="button"
           className="add-item-fab button-primary"
           onClick={handleOpenAddItemModal}
           aria-label={intl.formatMessage({ id: "items.addItemFAB.label", defaultMessage: "Add new item" })}
-          disabled={loading || isUpdating || isDeleting} // Disable if any major operation is in progress
+          disabled={loading || loadingMore || isUpdating || isDeleting}
         >
           +
         </button>
