@@ -16,11 +16,11 @@ const ItemsView = () => {
   const [owners, setOwners] = useState([]);
 
   // Pagination and loading state
-  const [currentPage, setCurrentPage] = useState(0); // Will be 1-indexed after first successful fetch
-  const [pageSize, setPageSize] = useState(5); // Items per page
+  const [currentPage, setCurrentPage] = useState(0); // Tracks the last successfully fetched page number (1-indexed after first fetch)
+  const [pageSize, setPageSize] = useState(5);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [totalItemsCount, setTotalItemsCount] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false); // For loading subsequent pages
+  const [loadingMore, setLoadingMore] = useState(false); // True when loading subsequent pages for infinite scroll
 
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
@@ -29,9 +29,9 @@ const ItemsView = () => {
   const [newItemImageFile, setNewItemImageFile] = useState(null);
   const [newItemOwnerId, setNewItemOwnerId] = useState("");
 
-  const [loading, setLoading] = useState(false); // For initial list loading and adding
-  const [error, setError] = useState(null); // For list loading and adding errors
-  const [success, setSuccess] = useState(null); // For general success messages
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const [editingItemId, setEditingItemId] = useState(null);
   const [editName, setEditName] = useState("");
@@ -58,7 +58,7 @@ const ItemsView = () => {
   const [isRotatingEdit, setIsRotatingEdit] = useState(false);
 
   // State for managing temporary Blob URLs for display
-  const [itemImageUrls, setItemImageUrls] = useState({}); // Map itemId -> blobUrl
+  const [itemImageUrls, setItemImageUrls] = useState({});
   const [addImageUrl, setAddImageUrl] = useState(null);
   const [editImageUrl, setEditImageUrl] = useState(null);
 
@@ -73,7 +73,7 @@ const ItemsView = () => {
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
-  const loaderRef = useRef(null); // For IntersectionObserver
+  const loaderRef = useRef(null);
 
   const api = useApi();
   const { settings: appSettings } = useSettings();
@@ -111,8 +111,7 @@ const ItemsView = () => {
       setLoadingMore(true);
     }
     setError(null);
-    // Do not clear success message here, let it persist until next action or explicit clear.
-    // setSuccess(null); 
+    // Success messages are intentionally not cleared here to let them persist.
 
     const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
     const fetchOptions = {
@@ -144,8 +143,7 @@ const ItemsView = () => {
         setTotalItemsCount(0);
         setHasMoreItems(false);
       }
-      // For loading more, we might want to keep existing items and just show an error.
-      // Or, setHasMoreItems(false) to prevent further attempts if loading more fails.
+      // For "load more" errors, existing items are kept, and hasMoreItems might still be true, allowing retry on next scroll.
     } finally {
       if (isNewQuery) setLoading(false);
       else setLoadingMore(false);
@@ -214,7 +212,7 @@ const ItemsView = () => {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) { // No need to check !loadingMore and hasMoreItems again, already checked above
+        if (entries[0].isIntersecting) {
           fetchPageOfItems(currentPage + 1, false);
         }
       },
@@ -236,13 +234,12 @@ const ItemsView = () => {
   // Effect to create/revoke Blob URLs for item list display
   useEffect(() => {
     const newItemImageUrls = {};
-    items.forEach((item) => { // Use items (current page's items)
+    items.forEach((item) => { // `items` is the cumulative list of all fetched items
       if (item.imageFile instanceof File) {
         newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
       }
     });
-    setItemImageUrls(prevUrls => { // Merge with previous URLs to avoid revoking URLs for items not in the current `items` batch but still displayed
-        // Revoke URLs that are no longer needed
+    setItemImageUrls(prevUrls => {
         Object.keys(prevUrls).forEach(itemId => {
             if (!newItemImageUrls[itemId] && !items.find(i => i.item_id === parseInt(itemId))) {
                 URL.revokeObjectURL(prevUrls[itemId]);
@@ -257,7 +254,7 @@ const ItemsView = () => {
       Object.values(itemImageUrls).forEach(url => URL.revokeObjectURL(url));
       setItemImageUrls({});
     };
-  }, [items]); // Depend on items state
+  }, [items]);
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
@@ -537,12 +534,12 @@ const ItemsView = () => {
   };
 
   const handleCheckboxFilterChange = (filterType, id) => {
-    const idNum = parseInt(id, 10); // Ensure it's a number
+    const idNum = parseInt(id, 10);
     const updater = (prevIds) => {
       if (prevIds.includes(idNum)) {
-        return prevIds.filter((existingId) => existingId !== idNum); // Remove ID
+        return prevIds.filter((existingId) => existingId !== idNum);
       } else {
-        return [...prevIds, idNum]; // Add ID
+        return [...prevIds, idNum];
       }
     };
 
@@ -831,7 +828,6 @@ const ItemsView = () => {
     <div className="items-view">
 
       {/* Status Messages */}
-      {/* Main loading indicator for new queries */}
       {loading && !loadingMore && (
         <p className="status-loading">
           {intl.formatMessage({
@@ -843,7 +839,6 @@ const ItemsView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
       
-      {/* Placeholder for API not configured message if no items are shown and not loading */}
       {!api.isConfigured && !loading && items.length === 0 && (
          <p className="status-warning">
            {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
@@ -858,22 +853,19 @@ const ItemsView = () => {
 
       {/* Items List */}
 
-      {/* Sort and Filter Controls Container - Show if API is configured and listItems exists, even if items array is initially empty */}
       {api.isConfigured && typeof api.listItems === "function" && (
           <div className="list-controls-container">
-            {/* Filter Toggle Button - Use button-light */}
             <button
               onClick={handleFilterToggle}
               className="button-light filter-toggle-button"
               aria-controls="filters-container"
               aria-expanded={isFilterVisible}
-              disabled={loading || loadingMore} // Disable while loading
+              disabled={loading || loadingMore}
             >
               {intl.formatMessage({
                 id: "items.filter.toggleButton",
                 defaultMessage: "Filters",
               })}{" "}
-              {/* Show filtered/total count. Use items.length for current display, totalItemsCount for total available */}
               ({items.length}{totalItemsCount > 0 ? ` / ${totalItemsCount}` : ''})
             </button>
           </div>
@@ -888,10 +880,8 @@ const ItemsView = () => {
               defaultMessage: "Filter Items",
             })}
           </h4>
-          {/* Sort Widget - Moved here */}
           <div className="filter-group">
             {" "}
-            {/* Changed class from sort-widget form-group */}
             <label htmlFor="sort-criteria">
               {intl.formatMessage({
                 id: "items.sort.label",
@@ -916,7 +906,6 @@ const ItemsView = () => {
                   defaultMessage: "Oldest First",
                 })}
               </option>
-              {/* Add other sort options here later if needed */}
             </select>
           </div>
           {/* Text Filter */}
@@ -1095,16 +1084,14 @@ const ItemsView = () => {
         </div>
       )}
 
-      {/* Loader for infinite scroll */}
       {loadingMore && (
         <p className="status-loading">
           {intl.formatMessage({ id: "items.loadingMore", defaultMessage: "Loading more items..."})}
         </p>
       )}
-      <div ref={loaderRef} style={{ height: "1px", margin: "1px" }} /> {/* Invisible loader trigger */}
+      <div ref={loaderRef} style={{ height: "1px", margin: "1px" }} />
 
 
-      {/* Add Item FAB - enable if API configured and core methods exist */}
       {api.isConfigured && api.addItem && api.listLocations && api.listCategories && api.listOwners && (
         <button
           type="button"
@@ -1124,7 +1111,7 @@ const ItemsView = () => {
           onClose={handleCloseAddItemModal}
           title={intl.formatMessage({ id: "items.addForm.title", defaultMessage: "Add New Item" })}
         >
-          <form onSubmit={handleAddItem} className="add-item-form"> {/* Re-use class for internal structure */}
+          <form onSubmit={handleAddItem} className="add-item-form">
             {addItemError && <p className="status-error">Error: {addItemError}</p>}
             <div className="form-group">
               <label htmlFor="item-name-modal">
@@ -1139,7 +1126,7 @@ const ItemsView = () => {
               <input type="text" id="item-description-modal" value={newItemDescription} onChange={(e) => setNewItemDescription(e.target.value)} disabled={loading} />
             </div>
             <div className="form-group form-group-image">
-              <label htmlFor="item-image-modal"> {/* Ensure unique ID for label */}
+              <label htmlFor="item-image-modal">
                 {intl.formatMessage({ id: "items.addForm.imageLabel", defaultMessage: "Image:" })}
               </label>
               {addImageUrl && (
@@ -1232,9 +1219,6 @@ const ItemsView = () => {
           })}
         >
           {(() => {
-            // IIFE to manage displayImageUrl logic cleanly
-            // Use editImageUrl (derived from editItemImageFile or original item.imageFile)
-            // If marked for removal, show nothing.
             const displayImageUrl = imageMarkedForRemoval ? null : editImageUrl;
             return (
               <form onSubmit={handleUpdateItem} className="edit-item-form">
@@ -1300,13 +1284,11 @@ const ItemsView = () => {
                               }),
                           )
                         }
-                        style={{ cursor: "pointer" }} // Indicate it's clickable
+                        style={{ cursor: "pointer" }}
                       />
                     </div>
                   )}
-                  {/* Action buttons for image */}
                   <div className="form-group-image-actions">
-                    {/* Use button-light for file input label */}
                     <label
                       htmlFor="edit-item-image"
                       className={`button-light button-file-input ${isUpdating || isDeleting ? "disabled" : ""}`}
@@ -1316,7 +1298,6 @@ const ItemsView = () => {
                         defaultMessage: "Choose File",
                       })}
                     </label>
-                    {/* Rotate Button */}
                     {displayImageUrl && (
                       <button
                         type="button"
@@ -1335,30 +1316,28 @@ const ItemsView = () => {
                             })}
                       </button>
                     )}
-                    {/* Remove Button */}
                     {displayImageUrl &&
                       typeof api.deleteItem === "function" && (
                         <button
                           type="button"
                           onClick={handleRemoveEditImage}
                           className="button-danger-light remove-image-button"
-                          disabled={isUpdating || isDeleting || isRotatingEdit} // Also disable during rotation
+                          disabled={isUpdating || isDeleting || isRotatingEdit}
                         >
                           {intl.formatMessage({
-                            id: "items.editForm.removeImage", // Re-use existing translation
+                            id: "items.editForm.removeImage",
                             defaultMessage: "Remove Image",
                           })}
                         </button>
                       )}
                   </div>
-                  {/* Hidden actual file input */}
                   <input
                     type="file"
                     id="edit-item-image"
                     accept="image/*"
                     onChange={(e) => handleFileChange(e, "edit")}
                     disabled={isUpdating || isDeleting}
-                    className="hidden-file-input" // Class to hide it
+                    className="hidden-file-input"
                   />
                 </div>
                 {/* Location Dropdown */}
@@ -1472,8 +1451,7 @@ const ItemsView = () => {
                           defaultMessage: "Save Changes",
                         })}
                   </button>
-                  {/* Use button-danger for delete */}
-                  {api.isConfigured && // Use api.isConfigured
+                  {api.isConfigured &&
                     typeof api.deleteItem === "function" && (
                       <button
                         type="button"
@@ -1487,7 +1465,6 @@ const ItemsView = () => {
                         })}
                       </button>
                     )}
-                  {/* Use button-secondary for cancel */}
                   <button
                     type="button"
                     onClick={handleCancelEdit}
@@ -1506,7 +1483,6 @@ const ItemsView = () => {
         </Modal>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <Modal
           show={showDeleteConfirm}
@@ -1535,7 +1511,6 @@ const ItemsView = () => {
               )}
             </p>
             <div className="modal-actions">
-              {/* Use button-danger for confirm delete */}
               <button
                 onClick={handleConfirmDelete}
                 disabled={isDeleting}
@@ -1551,7 +1526,6 @@ const ItemsView = () => {
                       defaultMessage: "Confirm Delete",
                     })}
               </button>
-              {/* Use button-secondary for cancel */}
               <button
                 onClick={handleCancelDelete}
                 disabled={isDeleting}
@@ -1567,7 +1541,6 @@ const ItemsView = () => {
         </Modal>
       )}
 
-      {/* Full Size Image View Modal */}
       <ImageViewModal
         show={isImageViewModalOpen}
         onClose={handleCloseImageViewModal}

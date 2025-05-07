@@ -1,11 +1,3 @@
-.add-item-form {
-    /* Container styles (border, padding, margin, background) removed as modal handles this. */
-    /* Internal structure styles like .form-group remain active. */
-}
-
-/* h3 within add-item-form is removed from JSX, so this style is no longer needed.
-/* .add-item-form h3 { ... } */
-
 /* Filter & Checkbox Label Styles (Lower Specificity) */
 .filter-group label,
 .filter-group legend {
