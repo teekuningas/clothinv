@@ -262,11 +262,23 @@ const ItemsView = () => {
 
   // Infinite Scroll Intersection Observer
   useEffect(() => {
-    if (loading || loadingMore || !hasMoreItems || !loaderRef.current || currentPage === 0) return;
+    if (
+      loading ||
+      loadingMore ||
+      !hasMoreItems ||
+      !loaderRef.current ||
+      currentPage === 0
+    )
+      return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !loading && !loadingMore && hasMoreItems) {
+        if (
+          entries[0].isIntersecting &&
+          !loading &&
+          !loadingMore &&
+          hasMoreItems
+        ) {
           fetchPageOfItems(currentPage + 1, false);
         }
       },
