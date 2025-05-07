@@ -261,6 +261,11 @@ button:disabled {
 .items-view,
 .settings-view {
     padding: 20px;
+    /* Add these lines for max-width and centering */
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%; /* Ensures the element takes full width up to max-width */
 }
 
 /* Base Input Styles (Applied via .form-group > input/select) */
