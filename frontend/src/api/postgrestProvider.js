@@ -1,6 +1,7 @@
 // --- PostgREST API Provider ---
 // Interacts with a PostgREST endpoint which exposes a PostgreSQL database.
 import JSZip from 'jszip';
+import { FORMAT_VERSION } from './exportFormat';
 import {
     getMimeTypeFromFilename,
     readFileAsBase64,
@@ -696,7 +697,7 @@ export const exportData = async (settings) => {
 
         // 3. Create Manifest
         const manifest = {
-            exportFormatVersion: "1.0",
+            exportFormatVersion: FORMAT_VERSION,
             exportedAt: new Date().toISOString(),
             sourceProvider: "postgrest" // Identify source
         };
@@ -713,14 +714,14 @@ export const exportData = async (settings) => {
     }
 };
 
-export const importData = async (settings, zipFile) => {
-    const zip = new JSZip();
+/*
+// --- importData v1: your existing code, but taking a pre-loaded JSZip ---
+*/
+async function importDataV1(settings, loadedZip) {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
     try {
-        const loadedZip = await zip.loadAsync(zipFile);
-
         // Validate essential files
         if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv') || !loadedZip.file('images.csv')) {
             throw new Error("Import file is missing required CSV or manifest files.");
@@ -865,6 +866,32 @@ export const importData = async (settings, zipFile) => {
         console.error("Error during PostgREST import:", error);
         // PostgREST uses transactions implicitly per request, but full rollback is hard here.
         return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
+    }
+}
+
+// --- importData dispatcher for versioning ---
+export const importData = async (settings, zipFile) => {
+    const zip = new JSZip();
+    const loadedZip = await zip.loadAsync(zipFile);
+
+    // read manifest version (fallback to current)
+    let version = FORMAT_VERSION;
+    const mf = loadedZip.file("manifest.json");
+    if (mf) {
+        try {
+            const m = JSON.parse(await mf.async("string"));
+            version = m.exportFormatVersion || version;
+        } catch (_) { /* ignore */ }
+    }
+
+    switch (version) {
+        case FORMAT_VERSION:
+            return importDataV1(settings, loadedZip);
+        default:
+            return {
+                success: false,
+                error: `Unsupported export format version: ${version}`,
+            };
     }
 };
 

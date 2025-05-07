@@ -1,4 +1,5 @@
 import JSZip from 'jszip';
+import { FORMAT_VERSION } from './exportFormat';
 import { v4 as uuidv4 } from 'uuid';
 import {
     createCSV,
@@ -213,7 +214,7 @@ export const exportData = async (settings) => {
 
         // 3. Create Manifest
         const manifest = {
-            exportFormatVersion: "1.0",
+            exportFormatVersion: FORMAT_VERSION,
             exportedAt: new Date().toISOString(),
             sourceProvider: "indexedDB"
         };
@@ -230,12 +231,12 @@ export const exportData = async (settings) => {
     }
 };
 
-export const importData = async (settings, zipFile) => {
+/*
+// --- importData v1 for IndexedDB provider ---
+*/
+async function importDataV1(settings, loadedZip) {
     console.log('IndexedDBProvider: importData called');
-    const zip = new JSZip();
     try {
-        const loadedZip = await zip.loadAsync(zipFile);
-
         // Validate essential files
         if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv') || !loadedZip.file('images.csv')) {
             throw new Error("Import file is missing required CSV or manifest files.");
@@ -390,6 +391,31 @@ export const importData = async (settings, zipFile) => {
         console.error("Error during IndexedDB import:", error);
         // Attempt to clean up partially imported data? Difficult in IndexedDB.
         return { success: false, error: `Import failed: ${error.message}` };
+    }
+}
+
+// --- importData dispatcher for versioning ---
+export const importData = async (settings, zipFile) => {
+    const zip = new JSZip();
+    const loadedZip = await zip.loadAsync(zipFile);
+
+    let version = FORMAT_VERSION;
+    const mf = loadedZip.file("manifest.json");
+    if (mf) {
+        try {
+            const m = JSON.parse(await mf.async("string"));
+            version = m.exportFormatVersion || version;
+        } catch (_) {}
+    }
+
+    switch (version) {
+        case FORMAT_VERSION:
+            return importDataV1(settings, loadedZip);
+        default:
+            return {
+                success: false,
+                error: `Unsupported export format version: ${version}`,
+            };
     }
 };
 
