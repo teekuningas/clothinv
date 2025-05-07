@@ -344,6 +344,11 @@ const SettingsView = () => {
       if (result.success) {
         setImportStatus("success");
         // Use summary if provided by API, otherwise format using counts, fallback to default
+        const refreshRecommendation = intl.formatMessage({
+          id: "settings.data.refreshRecommendation",
+          defaultMessage:
+            "It is recommended to refresh the application or navigate to another view and back to see all changes.",
+        });
         let summaryMessage;
         if (result.summary) {
           summaryMessage = result.summary;
@@ -368,27 +373,12 @@ const SettingsView = () => {
               "Import completed successfully. Data has been replaced.",
           });
         }
-        setImportSummary(summaryMessage);
-        /* Old code:
-          result.summary ||
-            intl.formatMessage({
-              id: "settings.data.importSuccessDefault",
-              defaultMessage:
-                "Import completed successfully. Data has been replaced.",
-            }),
-        */
+        setImportSummary(`${summaryMessage} ${refreshRecommendation}`);
         setImportFile(null); // Clear the file input state
         // Clear the actual input element value
         const fileInput = document.getElementById("import-file-input");
         if (fileInput) fileInput.value = "";
         // Consider forcing a refresh or notifying user to refresh other views
-        alert(
-          intl.formatMessage({
-            id: "settings.data.importSuccessRefresh",
-            defaultMessage:
-              "Import successful! It is recommended to refresh the application or navigate away and back to view the changes.",
-          }),
-        );
       } else {
         throw new Error(
           result.error ||
@@ -453,21 +443,19 @@ const SettingsView = () => {
       const result = await api.destroyData();
       if (result.success) {
         setDestroyStatus("success");
+        const refreshRecommendation = intl.formatMessage({
+          id: "settings.data.refreshRecommendation", // Reuse the same ID
+          defaultMessage:
+            "It is recommended to refresh the application or navigate to another view and back to see all changes.",
+        });
         setDestroySummary(
-          result.summary ||
+          `${result.summary ||
             intl.formatMessage({
               id: "settings.data.destroySuccessDefault",
               defaultMessage: "All data destroyed successfully.",
-            }),
+            })} ${refreshRecommendation}`,
         );
         // Consider forcing a refresh or notifying user to refresh other views
-        alert(
-          intl.formatMessage({
-            id: "settings.data.destroySuccessRefresh",
-            defaultMessage:
-              "Data destruction successful! It is recommended to refresh the application or navigate away and back to view the changes.",
-          }),
-        );
       } else {
         throw new Error(
           result.error ||

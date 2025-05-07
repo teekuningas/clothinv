@@ -6,11 +6,15 @@ const ExportConfigurationLink = () => {
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
+  const [copyStatus, setCopyStatus] = useState(""); // "success" or "error"
+  const [copyMessage, setCopyMessage] = useState("");
   const { settings } = useSettings(); // Get the whole settings object
 
   useEffect(() => {
     setError("");
     setGeneratedUrl("");
+    setCopyStatus(""); // Reset copy status
+    setCopyMessage(""); // Reset copy message
 
     if (!settings || Object.keys(settings).length === 0) {
       setError(
@@ -46,27 +50,37 @@ const ExportConfigurationLink = () => {
 
   const handleCopyUrl = () => {
     if (!generatedUrl) return;
+    setCopyStatus(""); // Clear previous message
+    setCopyMessage("");
+
     navigator.clipboard
       .writeText(generatedUrl)
-      .then(() =>
-        alert(
+      .then(() => {
+        setCopyStatus("success");
+        setCopyMessage(
           intl.formatMessage({
             id: "exportConfig.alert.urlCopied",
             defaultMessage: "Configuration URL copied to clipboard!",
           }),
-        ),
-      )
-      .catch((err) =>
-        alert(
+        );
+        // Optionally clear after a few seconds
+        setTimeout(() => {
+          setCopyStatus("");
+          setCopyMessage("");
+        }, 3000);
+      })
+      .catch((err) => {
+        setCopyStatus("error");
+        setCopyMessage(
           intl.formatMessage(
             {
               id: "exportConfig.alert.copyFailed",
               defaultMessage: "Failed to copy URL: {error}",
             },
-            { error: err },
+            { error: err.message }, // Use err.message for better error display
           ),
-        ),
-      );
+        );
+      });
   };
 
   return (
@@ -105,6 +119,15 @@ const ExportConfigurationLink = () => {
               defaultMessage: "Copy URL",
             })}
           </button>
+          {/* Display copy status message */}
+          {copyMessage && (
+            <p
+              className={copyStatus === "success" ? "status-success" : "status-error"}
+              style={{ marginTop: "10px" }}
+            >
+              {copyMessage}
+            </p>
+          )}
           <p style={{ marginTop: "20px", fontStyle: "italic" }}>
             {intl.formatMessage({
               id: "exportConfig.instructions",
