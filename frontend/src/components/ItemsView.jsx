@@ -427,6 +427,17 @@ const ItemsView = () => {
     setNewItemImageFile(null);
     setAddImageUrl(null);
     setNewItemOwnerId("");
+    // Set default if only one option exists
+    if (locations.length === 1) {
+      setNewItemLocationId(locations[0].location_id.toString());
+    }
+    if (categories.length === 1) {
+      setNewItemCategoryId(categories[0].category_id.toString());
+    }
+    if (owners.length === 1) {
+      setNewItemOwnerId(owners[0].owner_id.toString());
+    }
+
     setIsAddItemModalOpen(true);
   };
 
