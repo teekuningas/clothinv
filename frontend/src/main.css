@@ -1,58 +1,60 @@
 :root {
+  /* Zen Garden Palette */
+
   /* Core Interaction Colors */
-  --color-primary: #00875A; /* A sophisticated, slightly tealish green */
-  --color-primary-hover: #006F4A; /* Darker shade for hover */
+  --color-primary: #6A7A55; /* Muted Moss Green */
+  --color-primary-hover: #556344; /* Darker Moss Green */
   --color-primary-text: #FFFFFF;
 
-  --color-secondary: #5A6978; /* A cool, slate grey */
-  --color-secondary-hover: #4C5A68; /* Darker slate grey for hover */
+  --color-secondary: #787878; /* Medium Stone Grey */
+  --color-secondary-hover: #5E5E5E; /* Darker Stone Grey */
   --color-secondary-text: #FFFFFF;
 
-  --color-danger: #DE350B; /* A clear, strong red (Atlassian Red) */
-  --color-danger-hover: #BF2600; /* Darker red for hover */
+  --color-danger: #C97B62; /* Desaturated Maple Leaf Red/Orange */
+  --color-danger-hover: #B0644F; /* Darker Maple Leaf */
   --color-danger-text: #FFFFFF;
 
   /* Light / “soft” danger (and error) */
-  --color-danger-light-bg: #FFECEB; /* Very light red/pink */
-  --color-danger-light-text: #BF2600; /* Strong red text for contrast */
-  --color-danger-light-border: #FFBDAD; /* Soft red border */
-  --color-danger-light-hover-bg: #FFDCD3; /* Slightly darker light red for hover */
-  --color-danger-light-hover-text: #AE2A19; /* Darker red text for hover */
-  --color-danger-light-hover-border: #FFACA7; /* Slightly darker soft red border */
+  --color-danger-light-bg: #F9F2EF; /* Very Light Desaturated Pink/Beige */
+  --color-danger-light-text: #B0644F; /* Darker Maple Leaf (for text contrast) */
+  --color-danger-light-border: #F2E5E0; /* Soft Desaturated Pink/Beige Border */
+  --color-danger-light-hover-bg: #F5EAE6; /* Slightly Darker Light Pink/Beige */
+  --color-danger-light-hover-text: #A05A45; /* Darker Maple Leaf for Hover Text */
+  --color-danger-light-hover-border: #EBDED8; /* Slightly Darker Soft Border */
 
   /* Text */
-  --color-text-base: #172B4D; /* Dark blue/grey for high readability */
-  --color-text-muted: #5E6C84; /* Medium grey for less emphasis */
-  --color-text-label: #7A869A; /* Lighter grey for labels */
-  --color-text-link: var(--color-primary);
+  --color-text-base: #4A4A4A; /* Dark Stone Grey (Charcoal) */
+  --color-text-muted: #787878; /* Medium Stone Grey */
+  --color-text-label: #A0A0A0; /* Light Stone Grey */
+  --color-text-link: var(--color-primary); /* Muted Moss Green */
   --color-text-light: #FFFFFF;
 
   /* Backgrounds */
-  --color-bg-body: #F4F5F7; /* Very light, neutral grey (Atlassian N20) */
-  --color-bg-container: #FFFFFF;
-  --color-bg-subtle: #E9F2EB; /* Very light tint of primary green, or use #DFE1E6 for a neutral grey */
+  --color-bg-body: #F0EBE3; /* Warm Off-White (Raked Sand) */
+  --color-bg-container: #FFFFFF; /* Clean White (Contrast) */
+  --color-bg-subtle: #E6DED5; /* Slightly Darker Sand/Light Beige */
 
   /* Borders */
-  --color-border: #DFE1E6; /* Light grey for borders (Atlassian N40) */
-  --color-border-input: #B3BAC5; /* Slightly darker grey for input borders (Atlassian N50) */
+  --color-border: #D1CABE; /* Soft Beige/Grey Border (Weathered Wood) */
+  --color-border-input: #B0B0B0; /* Medium-Light Stone Grey for Input Borders */
   --color-border-divider: var(--color-border);
 
   /* Status Colors */
-  --color-success-bg: #E3FCEF; /* Light green background (Atlassian Green Light) */
-  --color-success-text: #006644; /* Dark green text (Atlassian Green Dark) */
-  --color-warning-bg: #FFF7D6; /* Light yellow background (Atlassian Yellow Light) */
-  --color-warning-text: #974F0C; /* Dark yellow/brown text (Atlassian Yellow Dark) */
-  --color-info-bg: #E9F2FF; /* Light blue background (Atlassian Blue Light) */
-  --color-info-text: #0747A6; /* Dark blue text (Atlassian Blue Dark) */
+  --color-success-bg: #E6F0E0; /* Light Moss Green */
+  --color-success-text: #3E4A30; /* Dark Moss Green */
+  --color-warning-bg: #FAF3E0; /* Light Warm Beige (Dry Earth) */
+  --color-warning-text: #B58B4C; /* Muted Ochre/Brown */
+  --color-info-bg: #E8EFF5; /* Light, Calm Blue (Still Pond) */
+  --color-info-text: #5A728A; /* Muted Dark Blue */
   --color-error-bg: var(--color-danger-light-bg);
   --color-error-text: var(--color-danger-light-text);
 
   /* Overlays & Special */
-  --color-backdrop: rgb(0 0 0 / 50%);
-  --color-overlay-dark-bg: #091E42; /* Very dark blue/grey (Atlassian N800) */
-  --color-overlay-button-bg: rgb(244 245 247 / 85%); /* Using body bg color with alpha */
-  --color-overlay-button-hover: rgb(223 225 230 / 100%); /* Using border color with more opacity */
-  --color-overlay-button-icon: var(--color-text-muted);
+  --color-backdrop: rgb(0 0 0 / 50%); /* Standard backdrop */
+  --color-overlay-dark-bg: #2C2C2C; /* Very Dark Grey (Deep Shadow) */
+  --color-overlay-button-bg: rgb(240 235 227 / 85%); /* Body bg (Sand) with alpha */
+  --color-overlay-button-hover: rgb(230 222 213 / 100%); /* Subtle bg (Darker Sand) with more opacity */
+  --color-overlay-button-icon: var(--color-text-muted); /* Medium Stone Grey */
 }
 
 * {
