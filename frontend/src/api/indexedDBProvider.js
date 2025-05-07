@@ -801,25 +801,78 @@ export const deleteOwner = async (settings, ownerId) => {
 
 
 // Items
-export const listItems = async (settings) => {
-    console.log('IndexedDBProvider: listItems called');
-    const itemsMetadata = await getAllFromStore(STORES.items);
-    const itemsWithFiles = [];
+export const listItems = async (settings, options) => {
+    console.log('IndexedDBProvider: listItems called with options:', options);
+    const { page, pageSize, sortBy, sortOrder, filters } = options;
 
-    for (const item of itemsMetadata) {
-        // Try to get the image File object using item_id as the key
-        const imageFile = await getFromStore(STORES.images, item.item_id); // Image file itself doesn't store UUID here
-        itemsWithFiles.push({
-            ...item,
-            imageFile: imageFile || null // Add the File object or null
+    try {
+        // 1. Fetch all items metadata
+        let allItemsMetadata = await getAllFromStore(STORES.items);
+
+        // 2. Apply Filtering (client-side)
+        let filteredItems = allItemsMetadata.filter(item => {
+            let matches = true;
+            if (filters.name) {
+                const searchTerm = filters.name.toLowerCase();
+                const nameMatch = item.name?.toLowerCase().includes(searchTerm);
+                const descMatch = item.description?.toLowerCase().includes(searchTerm);
+                if (!nameMatch && !descMatch) matches = false;
+            }
+            if (matches && filters.locationIds && !filters.locationIds.includes(item.location_id)) {
+                matches = false;
+            }
+            if (matches && filters.categoryIds && !filters.categoryIds.includes(item.category_id)) {
+                matches = false;
+            }
+            if (matches && filters.ownerIds && !filters.ownerIds.includes(item.owner_id)) {
+                matches = false;
+            }
+            return matches;
         });
+
+        // 3. Apply Sorting (client-side)
+        // Ensure properties like 'created_at' and 'name' exist on items for sorting.
+        filteredItems.sort((a, b) => {
+            const valA = a[sortBy];
+            const valB = b[sortBy];
+            let comparison = 0;
+
+            // Handle different data types for sorting
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                // For date strings like created_at, direct string comparison works if ISO format
+                // For general strings, localeCompare is better but simple comparison is fine for now
+                comparison = valA.localeCompare(valB);
+            } else {
+                if (valA > valB) comparison = 1;
+                else if (valA < valB) comparison = -1;
+            }
+            return sortOrder === 'desc' ? comparison * -1 : comparison;
+        });
+
+        // 4. Calculate totalCount
+        const totalCount = filteredItems.length;
+
+        // 5. Apply Pagination
+        const startIndex = (page - 1) * pageSize;
+        const paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + pageSize);
+
+        // 6. Fetch images (File objects) for the paginated subset
+        const itemsWithFiles = [];
+        for (const item of paginatedItemMetadata) {
+            const imageFile = await getFromStore(STORES.images, item.item_id); // item_id is the key for image
+            itemsWithFiles.push({
+                ...item,
+                imageFile: imageFile || null
+            });
+        }
+
+        console.log(`IndexedDBProvider: listed ${itemsWithFiles.length} items for page ${page}, total filtered: ${totalCount}.`);
+        return { items: itemsWithFiles, totalCount: totalCount };
+
+    } catch (error) {
+        console.error("Error in IndexedDB listItems:", error);
+        throw error;
     }
-
-    // Sort by creation date descending
-    itemsWithFiles.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-    console.log(`IndexedDBProvider: listed ${itemsWithFiles.length} items with files.`);
-    return itemsWithFiles;
 };
 
 export const addItem = async (settings, data) => {

@@ -651,83 +651,131 @@ export const deleteItem = async (settings, itemId) => {
     return handleResponse(res, 'delete', `item ID ${itemId}`);
 };
 
-export const listItems = async (settings) => {
+export const listItems = async (settings, options) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
+    const { page, pageSize, sortBy, sortOrder, filters } = options;
+
     try {
-        // 1. Fetch all items (basic data + image_id)
-        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`; // Fetches all columns including uuid, image_uuid
+        // 1. Fetch all items metadata
+        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`; // Fetches all columns
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         });
         if (!itemsRes.ok) {
             const errorText = await itemsRes.text();
-            console.error(`Failed to fetch items: ${itemsRes.status} ${errorText}`, itemsRes);
-            throw new Error(`Failed to fetch items: ${itemsRes.status}`);
+            throw new Error(`Failed to fetch items metadata: ${itemsRes.status} ${errorText}`);
         }
-        const itemsData = await itemsRes.json();
+        let allItemsMetadata = await itemsRes.json();
+        if (!allItemsMetadata) allItemsMetadata = [];
 
-        // If no items, return early
-        if (!itemsData || itemsData.length === 0) {
-            console.log("Fetched 0 items.");
-            return [];
-        }
 
-        // 2. Fetch all images (including filename and UUID)
-        // Optimization: Could fetch only images referenced by itemsData if needed
-        const imagesUrl = `${baseUrl}/images.json?_shape=array&_select=image_id,uuid,image_data,image_mimetype,image_filename`;
-        const imagesRes = await fetch(imagesUrl, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
+        // 2. Apply Filtering (client-side)
+        let filteredItems = allItemsMetadata.filter(item => {
+            let matches = true;
+            if (filters.name) {
+                const searchTerm = filters.name.toLowerCase();
+                const nameMatch = item.name?.toLowerCase().includes(searchTerm);
+                const descMatch = item.description?.toLowerCase().includes(searchTerm);
+                if (!nameMatch && !descMatch) matches = false;
+            }
+            if (matches && filters.locationIds && !filters.locationIds.includes(item.location_id)) {
+                matches = false;
+            }
+            if (matches && filters.categoryIds && !filters.categoryIds.includes(item.category_id)) {
+                matches = false;
+            }
+            if (matches && filters.ownerIds && !filters.ownerIds.includes(item.owner_id)) {
+                matches = false;
+            }
+            return matches;
         });
-        let imageMap = {};
-        if (imagesRes.ok) {
-            const imagesData = await imagesRes.json();
-            // 3. Create a map of image_id -> { blob, filename }
-            // No need to store image UUID in the map, it's already in the item data
-            imageMap = imagesData.reduce((map, img) => {
-                if (img.image_id && img.image_data && img.image_mimetype) {
-                    const blob = base64ToBlob(img.image_data, img.image_mimetype);
-                    if (blob) {
-                        map[img.image_id] = {
-                            blob: blob,
-                            filename: img.image_filename || `image_${img.image_id}` // Use stored filename or generate
-                        };
-                    }
-                }
-                return map;
-            }, {});
-        } else {
-            console.warn(`Failed to fetch images: ${imagesRes.status}. Items will be listed without images.`);
+
+        // 3. Apply Sorting (client-side)
+        filteredItems.sort((a, b) => {
+            const valA = a[sortBy];
+            const valB = b[sortBy];
+            let comparison = 0;
+            if (valA > valB) comparison = 1;
+            else if (valA < valB) comparison = -1;
+            return sortOrder === 'desc' ? comparison * -1 : comparison;
+        });
+
+        // 4. Calculate totalCount
+        const totalCount = filteredItems.length;
+
+        // 5. Apply Pagination
+        const startIndex = (page - 1) * pageSize;
+        const paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + pageSize);
+
+        if (paginatedItemMetadata.length === 0) {
+            return { items: [], totalCount: totalCount };
         }
 
+        // 6. Fetch images only for the paginated subset
+        // Datasette doesn't have a direct way to fetch multiple images by ID in one query like `image_id=in.(1,2,3)`
+        // So, we fetch all images and then map, or fetch one by one (less efficient).
+        // For this phase, let's fetch all images metadata and filter client-side.
+        // A more optimized approach would be to fetch images one by one for the page if the images table is large.
+        // Or, if the number of images is small, fetching all image data is acceptable.
+        // Let's stick to the "fetch all image data then map" for now, similar to original logic but scoped.
 
-        // 4. Merge image File object into items
-        const itemsWithFiles = itemsData.map(item => {
+        const imageIdsForPage = paginatedItemMetadata
+            .map(item => item.image_id)
+            .filter(id => id != null);
+
+        let imageMap = {};
+        if (imageIdsForPage.length > 0) {
+            // To get specific images, we'd ideally filter. If not possible, fetch all and map.
+            // For simplicity and consistency with the "fetch all then filter" pattern for items,
+            // we'll fetch all images and then pick the ones we need.
+            // This is NOT optimal if the images table is huge.
+            // A better Datasette-specific way would be multiple `fetch` calls for each image_id or a complex SQL query if possible.
+            // Given the constraints of "use existing machinery", we'll fetch all images.
+            const imagesUrl = `${baseUrl}/images.json?_shape=array&select=image_id,image_data,image_mimetype,image_filename`;
+            const imagesRes = await fetch(imagesUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (imagesRes.ok) {
+                const allImagesData = await imagesRes.json();
+                const relevantImagesData = allImagesData.filter(img => imageIdsForPage.includes(img.image_id));
+
+                imageMap = relevantImagesData.reduce((map, img) => {
+                    if (img.image_id && img.image_data && img.image_mimetype) {
+                        const blob = base64ToBlob(img.image_data, img.image_mimetype);
+                        if (blob) {
+                            map[img.image_id] = {
+                                blob: blob,
+                                filename: img.image_filename || `image_${img.image_id}`
+                            };
+                        }
+                    }
+                    return map;
+                }, {});
+            } else {
+                console.warn(`Failed to fetch images for page: ${imagesRes.status}. Items will be listed without images.`);
+            }
+        }
+
+        // 7. Merge image File object into paginated items
+        const itemsWithFiles = paginatedItemMetadata.map(item => {
             let imageFile = null;
             if (item.image_id && imageMap[item.image_id]) {
                 const { blob, filename } = imageMap[item.image_id];
-                // Create a File object from the Blob
                 imageFile = new File([blob], filename, { type: blob.type });
             }
-            // Remove old image properties and add imageFile
-            // Keep uuid and image_uuid from the item fetch
-            return {
-                ...item, // Keep all original item fields including uuids
-                imageFile: imageFile // Add the File object (or null)
-            };
+            return { ...item, imageFile: imageFile };
         });
 
-        console.log(`Fetched ${itemsWithFiles.length} items and converted images to File objects.`);
-        return itemsWithFiles; // Returns array of item objects including imageFile property
+        return { items: itemsWithFiles, totalCount: totalCount };
 
     } catch (error) {
-        // Log the error and re-throw or return empty array based on desired handling
-        console.error("Error in listItems:", error);
-        throw error; // Re-throw the error to be caught by the component
-        // Or return []; // To show an empty list in case of error
+        console.error("Error in Datasette listItems:", error);
+        throw error;
     }
 };
 

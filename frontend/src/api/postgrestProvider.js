@@ -531,83 +531,112 @@ export const deleteItem = async (settings, itemId) => {
     return { success: true }; // Return success even if item/image was already gone
 };
 
-export const listItems = async (settings) => {
+export const listItems = async (settings, options) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
+    const { page, pageSize, sortBy, sortOrder, filters } = options;
+
     try {
-        // 1. Fetch all items (basic data + image_id)
-        const itemsUrl = `${baseUrl}/items?order=created_at.desc`; // Selects * including uuid, image_uuid
+        // 1. Fetch all items metadata (basic data + image_id + uuids)
+        const itemsUrl = `${baseUrl}/items?select=*,image_id,image_uuid&order=created_at.desc`; // Fetch all, initial sort can be simple
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: defaultHeaders(settings, false)
         });
-        const itemsResult = await handleResponse(itemsRes, 'list', 'items');
-        const itemsData = itemsResult.data || [];
+        const itemsResult = await handleResponse(itemsRes, 'list', 'all items metadata');
+        let allItemsMetadata = itemsResult.data || [];
 
-        // If no items, return early
-        if (itemsData.length === 0) {
-            console.log("Fetched 0 items.");
-            return [];
+        // 2. Apply Filtering (client-side)
+        let filteredItems = allItemsMetadata.filter(item => {
+            let matches = true;
+            if (filters.name) {
+                const searchTerm = filters.name.toLowerCase();
+                const nameMatch = item.name?.toLowerCase().includes(searchTerm);
+                const descMatch = item.description?.toLowerCase().includes(searchTerm);
+                if (!nameMatch && !descMatch) matches = false;
+            }
+            if (matches && filters.locationIds && !filters.locationIds.includes(item.location_id)) {
+                matches = false;
+            }
+            if (matches && filters.categoryIds && !filters.categoryIds.includes(item.category_id)) {
+                matches = false;
+            }
+            if (matches && filters.ownerIds && !filters.ownerIds.includes(item.owner_id)) {
+                matches = false;
+            }
+            return matches;
+        });
+
+        // 3. Apply Sorting (client-side)
+        filteredItems.sort((a, b) => {
+            const valA = a[sortBy];
+            const valB = b[sortBy];
+            let comparison = 0;
+            if (valA > valB) comparison = 1;
+            else if (valA < valB) comparison = -1;
+            return sortOrder === 'desc' ? comparison * -1 : comparison;
+        });
+
+        // 4. Calculate totalCount (after filtering, before pagination)
+        const totalCount = filteredItems.length;
+
+        // 5. Apply Pagination (client-side)
+        const startIndex = (page - 1) * pageSize;
+        const paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + pageSize);
+
+        // If no items after pagination, return early
+        if (paginatedItemMetadata.length === 0) {
+            return { items: [], totalCount: totalCount };
         }
 
-        // 2. Fetch all images (including filename, mimetype, base64 data)
-        // Optimization: Only fetch images whose IDs are present in the items list?
-        // For simplicity now, fetch all. Consider optimization if image table grows large.
-        const imageIds = itemsData.map(item => item.image_id).filter(id => id != null);
+        // 6. Fetch images only for the paginated subset
+        const imageIdsForPage = paginatedItemMetadata
+            .map(item => item.image_id)
+            .filter(id => id != null);
+
         let imageMap = {};
-        if (imageIds.length > 0) {
-            // Construct query like ?image_id=in.(1,5,12)&select=...
-            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})&select=image_id,uuid,image_data,image_mimetype,image_filename`; // Select image uuid too
+        if (imageIdsForPage.length > 0) {
+            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIdsForPage.join(',')})&select=image_id,image_data,image_mimetype,image_filename`;
             const imagesRes = await fetch(imagesUrl, {
                 method: 'GET',
                 headers: defaultHeaders(settings, false)
             });
             if (imagesRes.ok) {
-                const imagesResult = await handleResponse(imagesRes, 'list', 'images');
-                const imagesData = imagesResult.data || [];
-                // 3. Create a map of image_id -> { blob, filename }
-                imageMap = imagesData.reduce((map, img) => { // Image UUID is already in the item data, no need to map it here
+                const imagesPageResult = await handleResponse(imagesRes, 'list page images', 'images for page');
+                const imagesPageData = imagesPageResult.data || [];
+                imageMap = imagesPageData.reduce((map, img) => {
                     if (img.image_id && img.image_data && img.image_mimetype) {
                         const blob = base64ToBlob(img.image_data, img.image_mimetype);
                         if (blob) {
                             map[img.image_id] = {
                                 blob: blob,
-                                filename: img.image_filename || `image_${img.image_id}` // Use stored filename or generate one
+                                filename: img.image_filename || `image_${img.image_id}`
                             };
                         }
                     }
                     return map;
                 }, {});
             } else {
-                console.warn(`Failed to fetch images: ${imagesRes.status}. Items will be listed without images.`);
-                // Don't throw error, just proceed without images
+                console.warn(`Failed to fetch images for page: ${imagesRes.status}. Items will be listed without images.`);
             }
         }
 
-
-        // 4. Merge image File object into items
-        const itemsWithFiles = itemsData.map(item => {
+        // 7. Merge image File object into paginated items
+        const itemsWithFiles = paginatedItemMetadata.map(item => {
             let imageFile = null;
             if (item.image_id && imageMap[item.image_id]) {
                 const { blob, filename } = imageMap[item.image_id];
-                // Create a File object from the Blob
                 imageFile = new File([blob], filename, { type: blob.type });
             }
-            // Remove base64 data if it was somehow included in item fetch (it shouldn't be)
-            // Keep uuid and image_uuid from the item fetch
-            return {
-                ...item, // Keep all original item fields including uuids
-                imageFile: imageFile // Add the File object (or null)
-            };
+            return { ...item, imageFile: imageFile };
         });
 
-        console.log(`Fetched ${itemsWithFiles.length} items and converted images to File objects.`);
-        return itemsWithFiles; // Returns array of item objects including imageFile property
+        return { items: itemsWithFiles, totalCount: totalCount };
 
     } catch (error) {
-        console.error("Error in listItems:", error);
-        throw error; // Re-throw the error to be caught by the component
+        console.error("Error in PostgREST listItems:", error);
+        throw error;
     }
 };
 
