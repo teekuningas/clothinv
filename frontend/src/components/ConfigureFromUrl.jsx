@@ -2,9 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
-// getLocaleCodes might not be needed if we trust the imported settings structure
-// or if locale validation happens within SettingsContext or TranslationContext upon update.
-// For now, let's assume the imported locale will be validated by TranslationContext.
 
 const ConfigureFromUrl = () => {
   const [searchParams] = useSearchParams();
@@ -19,7 +16,6 @@ const ConfigureFromUrl = () => {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    // Use the new parameter name from ExportConfigurationLink
     const encodedSettingsPayload = searchParams.get("settingsPayload");
 
     if (!encodedSettingsPayload) {

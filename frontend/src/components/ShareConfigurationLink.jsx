@@ -108,6 +108,7 @@ const ShareConfigurationLink = () => {
               wordBreak: "break-all",
               backgroundColor: "var(--color-bg-subtle)",
               padding: "10px",
+              marginBottom: "10px",
               borderRadius: "4px",
             }}
           >

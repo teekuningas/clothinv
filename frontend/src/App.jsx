@@ -15,7 +15,7 @@ import CategoriesView from "./components/CategoriesView";
 import OwnersView from "./components/OwnersView";
 import SettingsView from "./components/SettingsView";
 import ConfigureFromUrl from "./components/ConfigureFromUrl";
-import ExportConfigurationLink from "./components/ExportConfigurationLink";
+import ShareConfigurationLink from "./components/ShareConfigurationLink";
 import "./App.css";
 
 function App() {
@@ -200,8 +200,8 @@ function App() {
             <Route path="/settings" element={<SettingsView />} />
             <Route path="/configure" element={<ConfigureFromUrl />} />
             <Route
-              path="/export-configuration"
-              element={<ExportConfigurationLink />}
+              path="/share-configuration"
+              element={<ShareConfigurationLink />}
             />
           </Routes>
           <div

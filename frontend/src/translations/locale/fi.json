@@ -255,12 +255,12 @@
     "shareConfig.alert.urlCopied": "Asetuslinkki kopioitu leikepöydälle!",
     "shareConfig.alert.copyFailed": "Linkin kopiointi epäonnistui: {error}",
     "shareConfig.button.copyUrl": "Kopioi linkki",
-    "shareConfig.instructions": "Jaa luotu linkki toiselle henkilölle. Kun hän avaa sen, määritetyt asetukset otetaan automaattisesti käyttöön hänen selaimessaan.",
+    "shareConfig.instructions": "Jaa luotu linkki toiselle laitteelle tai henkilölle. Kun linkki avataan, määritetyt asetukset otetaan automaattisesti käyttöön.",
     "shareConfig.warning.secret": "Varoitus: Tämä linkki sisältää asetustietoja, mahdollisesti mukaan lukien API-avaimia tai muita määrityksiä. Jaa se vain luotettaville henkilöille.",
     "shareConfig.status.generating": "Luodaan linkkiä...",
     "items.addItemFAB.label": "Lisää uusi vaate",
-    "settings.data.share.title": "Jaa nykyinen kokoonpano",
-    "settings.data.share.description": "Luo jaettava linkki, joka sisältää nykyiset sovellusasetuksesi. Tämä mahdollistaa muiden helpon saman kokoonpanon käyttöönoton, mukaan lukien API-palveluntarjoajan tiedot. Hyödyllinen yhteistyössä tai sovelluksen asentamisessa useille laitteille.",
-    "settings.data.share.warning": "Luotu linkki sisältää kaikki nykyiset asetukset, mukaan lukien mahdolliset API-avaimet. Jaa tämä linkki vain luotettaville henkilöille, sillä he saavat saman pääsyn ja kokoonpanon kuin sinä.",
+    "settings.data.share.title": "Jaa nykyiset asetukset",
+    "settings.data.share.description": "Luo jaettava linkki, joka sisältää nykyiset sovellusasetuksesi. Tämä mahdollistaa helpon käyttöönoton useammalla laitteella, sillä voit jakaa sen mukana API-asetuksesi.",
+    "settings.data.share.warning": "Luotu linkki sisältää kaikki nykyiset asetukset, mukaan lukien mahdolliset API-avaimet. Jaa tämä linkki vain luotettaville henkilöille, sillä he saavat pääsyn samaan tietokantaan kuin sinä.",
     "settings.data.share.button": "Luo jaettava linkki"
 }

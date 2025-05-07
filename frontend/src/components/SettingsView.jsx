@@ -485,7 +485,7 @@ const SettingsView = () => {
 
   // Handler for the new button
   const handleGoToSharePage = () => {
-    navigate('/share-configuration');
+    navigate("/share-configuration");
   };
 
   // Get the definition for the currently selected provider in the local state
@@ -1000,13 +1000,15 @@ const SettingsView = () => {
             <p>
               {intl.formatMessage({
                 id: "settings.data.share.description",
-                defaultMessage: "Create a shareable link that encapsulates your current application settings. This allows others to easily adopt the same configuration, including API provider details. Useful for collaboration or setting up on different devices.",
+                defaultMessage:
+                  "Create a shareable link that encapsulates your current application settings. This allows others to easily adopt the same configuration, including API provider details. Useful for collaboration or setting up on different devices.",
               })}
             </p>
             <p className="warning-text">
               {intl.formatMessage({
                 id: "settings.data.share.warning",
-                defaultMessage: "The generated link will contain all current settings, including any API tokens. Share this link only with trusted individuals, as they will gain the same access and configuration as you.",
+                defaultMessage:
+                  "The generated link will contain all current settings, including any API tokens. Share this link only with trusted individuals, as they will gain the same access and configuration as you.",
               })}
             </p>
             <div className="form-actions">
