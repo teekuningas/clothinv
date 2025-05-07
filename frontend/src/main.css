@@ -1,13 +1,13 @@
 :root {
-  /* Zen Garden Palette */
+  /* Zen Garden Palette - Lightened */
 
   /* Core Interaction Colors */
-  --color-primary: #6A7A55; /* Muted Moss Green */
-  --color-primary-hover: #556344; /* Darker Moss Green */
+  --color-primary: #7D8F69; /* Lighter Moss Green */
+  --color-primary-hover: #6A7A55; /* Original Moss Green (as hover) */
   --color-primary-text: #FFFFFF;
 
-  --color-secondary: #787878; /* Medium Stone Grey */
-  --color-secondary-hover: #5E5E5E; /* Darker Stone Grey */
+  --color-secondary: #8A8A8A; /* Lighter Medium Stone Grey */
+  --color-secondary-hover: #707070; /* Lighter Darker Stone Grey */
   --color-secondary-text: #FFFFFF;
 
   --color-danger: #C97B62; /* Desaturated Maple Leaf Red/Orange */
@@ -23,20 +23,20 @@
   --color-danger-light-hover-border: #EBDED8; /* Slightly Darker Soft Border */
 
   /* Text */
-  --color-text-base: #4A4A4A; /* Dark Stone Grey (Charcoal) */
-  --color-text-muted: #787878; /* Medium Stone Grey */
-  --color-text-label: #A0A0A0; /* Light Stone Grey */
-  --color-text-link: var(--color-primary); /* Muted Moss Green */
+  --color-text-base: #595959; /* Lighter Charcoal */
+  --color-text-muted: #8A8A8A; /* Lighter Medium Stone Grey (matches new secondary) */
+  --color-text-label: #A0A0A0; /* Light Stone Grey (remains light) */
+  --color-text-link: var(--color-primary); /* Updated Muted Moss Green */
   --color-text-light: #FFFFFF;
 
   /* Backgrounds */
-  --color-bg-body: #F0EBE3; /* Warm Off-White (Raked Sand) */
+  --color-bg-body: #F5F1EB; /* Slightly Lighter/Cooler Raked Sand */
   --color-bg-container: #FFFFFF; /* Clean White (Contrast) */
-  --color-bg-subtle: #E6DED5; /* Slightly Darker Sand/Light Beige */
+  --color-bg-subtle: #EDE7DE; /* Slightly Darker than new body bg */
 
   /* Borders */
-  --color-border: #D1CABE; /* Soft Beige/Grey Border (Weathered Wood) */
-  --color-border-input: #B0B0B0; /* Medium-Light Stone Grey for Input Borders */
+  --color-border: #DAD2C5; /* Lighter Soft Beige/Grey Border */
+  --color-border-input: #BEBEBE; /* Lighter Medium-Light Stone Grey for Input Borders */
   --color-border-divider: var(--color-border);
 
   /* Status Colors */
@@ -51,10 +51,10 @@
 
   /* Overlays & Special */
   --color-backdrop: rgb(0 0 0 / 50%); /* Standard backdrop */
-  --color-overlay-dark-bg: #2C2C2C; /* Very Dark Grey (Deep Shadow) */
-  --color-overlay-button-bg: rgb(240 235 227 / 85%); /* Body bg (Sand) with alpha */
-  --color-overlay-button-hover: rgb(230 222 213 / 100%); /* Subtle bg (Darker Sand) with more opacity */
-  --color-overlay-button-icon: var(--color-text-muted); /* Medium Stone Grey */
+  --color-overlay-dark-bg: #3D3D3D; /* Less Deep Shadow */
+  --color-overlay-button-bg: rgb(245 241 235 / 85%); /* Updated Body bg (Sand) with alpha */
+  --color-overlay-button-hover: rgb(237 231 222 / 100%); /* Updated Subtle bg (Darker Sand) with more opacity */
+  --color-overlay-button-icon: var(--color-text-muted); /* Updated Medium Stone Grey */
 }
 
 * {
