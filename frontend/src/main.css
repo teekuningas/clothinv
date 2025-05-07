@@ -1,54 +1,58 @@
 :root {
   /* Core Interaction Colors */
-  --color-primary: #0d6efd;
-  --color-primary-hover: #0b5ed7;
-  --color-primary-text: #fff;
-  --color-secondary: #6c757d;
-  --color-secondary-hover: #5c636a;
-  --color-secondary-text: #fff;
-  --color-danger: #dc3545;
-  --color-danger-hover: #bb2d3b;
-  --color-danger-text: #fff;
-  --color-danger-light-bg: #f8d7da;
-  --color-danger-light-text: #842029;
-  --color-danger-light-border: #f5c2c7;
-  --color-danger-light-hover-bg: #f1b0b7;
-  --color-danger-light-hover-text: #6a1a21;
-  --color-danger-light-hover-border: #ec9fa9;
+  --color-primary: #1DA1F2;
+  --color-primary-hover: #0D8DD8;
+  --color-primary-text: #FFFFFF;
+
+  --color-secondary: #E1306C;
+  --color-secondary-hover: #C13584;
+  --color-secondary-text: #FFFFFF;
+
+  --color-danger: #E0245E;
+  --color-danger-hover: #C21F53;
+  --color-danger-text: #FFFFFF;
+
+  /* Light / “soft” danger (and error) */
+  --color-danger-light-bg: #FFD6E8;
+  --color-danger-light-text: #9E0F4E;
+  --color-danger-light-border: #FFACE0;
+  --color-danger-light-hover-bg: #FFB8DC;
+  --color-danger-light-hover-text: #880A3A;
+  --color-danger-light-hover-border: #FFA0D4;
 
   /* Text */
-  --color-text-base: #212529;
-  --color-text-muted: #6c757d;
-  --color-text-label: #495057;
+  --color-text-base: #111111;
+  --color-text-muted: #657786;
+  --color-text-label: #AAB8C2;
   --color-text-link: var(--color-primary);
-  --color-text-light: #f8f9fa;
+  --color-text-light: #F5F8FA;
 
   /* Backgrounds */
-  --color-bg-body: #f8f9fa;
-  --color-bg-container: #fff;
-  --color-bg-subtle: #e9ecef;
+  --color-bg-body: #F5F8FA;
+  --color-bg-container: #FFFFFF;
+  --color-bg-subtle: #E1E8ED;
 
   /* Borders */
-  --color-border: #dee2e6;
-  --color-border-input: #ced4da;
-  --color-border-divider: #e9ecef;
+  --color-border: #E1E8ED;
+  --color-border-input: #AAB8C2;
+  --color-border-divider: #E1E8ED;
 
-  /* Status Colors (Background + Text for contrast) */
-  --color-success-bg: #d1e7dd;
-  --color-success-text: #0f5132;
-  --color-warning-bg: #fff3cd;
-  --color-warning-text: #664d03;
-  --color-info-bg: #cff4fc;
-  --color-info-text: #055160;
-  --color-error-bg: #f8d7da;
-  --color-error-text: #842029;
+  /* Status Colors */
+  --color-success-bg: #D1F2EB;
+  --color-success-text: #006644;
+  --color-warning-bg: #FFF7D6;
+  --color-warning-text: #996600;
+  --color-info-bg: #E3F2FD;
+  --color-info-text: #1565C0;
+  --color-error-bg: var(--color-danger-light-bg);
+  --color-error-text: var(--color-danger-light-text);
 
   /* Overlays & Special */
   --color-backdrop: rgb(0 0 0 / 50%);
-  --color-overlay-dark-bg: #2c2c2c;
-  --color-overlay-button-bg: rgb(255 255 255 / 80%);
-  --color-overlay-button-hover: rgb(255 255 255 / 100%);
-  --color-overlay-button-icon: #333;
+  --color-overlay-dark-bg: #1A1A1A;
+  --color-overlay-button-bg: rgb(245 248 255 / 80%);
+  --color-overlay-button-hover: rgb(245 248 255 / 100%);
+  --color-overlay-button-icon: #657786;
 }
 
 * {
