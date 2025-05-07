@@ -378,3 +378,7 @@ button:disabled {
     outline: 2px solid var(--color-primary);
     outline-offset: 1px;
 }
+
+* {
+    -webkit-tap-highlight-color: transparent;
+}

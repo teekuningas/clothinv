@@ -2,6 +2,10 @@
   text-align: center;
 }
 
+.app-main-content {
+  margin-bottom: 30px;
+}
+
 .app-header p {
   font-size: 1.2rem;
 }

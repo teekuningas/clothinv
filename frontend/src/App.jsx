@@ -190,7 +190,7 @@ function App() {
             </nav>
           </div>
         )}
-        <main className="app-main-content" style={{ padding: "20px" }}>
+        <main className="app-main-content">
           <Routes>
             <Route path="/" element={<Navigate to="/items" replace />} />
             <Route path="/items" element={<ItemsView />} />
