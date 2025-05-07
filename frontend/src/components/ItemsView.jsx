@@ -129,12 +129,15 @@ const ItemsView = () => {
 
     try {
       const result = await api.listItems(fetchOptions);
-      setItems(prevItems => isNewQuery ? result.items : [...prevItems, ...result.items]);
+
+      setItems(prevItems => {
+        const newItems = isNewQuery ? result.items : [...prevItems, ...result.items];
+        // Calculate hasMoreItems based on the actual new items list length
+        setHasMoreItems(newItems.length < result.totalCount);
+        return newItems;
+      });
       setTotalItemsCount(result.totalCount);
       setCurrentPage(pageToFetch); // Update current page upon successful fetch
-      // Calculate hasMoreItems based on potentially updated items list length
-      const currentTotalFetched = isNewQuery ? result.items.length : items.length + result.items.length;
-      setHasMoreItems(currentTotalFetched < result.totalCount);
     } catch (err) {
       console.error("Failed to fetch items:", err);
       setError(intl.formatMessage({ id: "items.error.fetch", defaultMessage: "Failed to fetch items: {error}" }, { error: err.message }));
@@ -142,13 +145,14 @@ const ItemsView = () => {
         setItems([]); // Clear items on error for a new query
         setTotalItemsCount(0);
         setHasMoreItems(false);
+        // setCurrentPage(0); // Consider if page should be reset on new query error
       }
       // For "load more" errors, existing items are kept, and hasMoreItems might still be true, allowing retry on next scroll.
     } finally {
       if (isNewQuery) setLoading(false);
       else setLoadingMore(false);
     }
-  }, [api, sortCriteria, pageSize, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, items.length, intl]); // Added items.length for hasMoreItems calculation in append mode
+  }, [api, sortCriteria, pageSize, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, intl]);
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
@@ -240,19 +244,30 @@ const ItemsView = () => {
       }
     });
     setItemImageUrls(prevUrls => {
-        Object.keys(prevUrls).forEach(itemId => {
-            if (!newItemImageUrls[itemId] && !items.find(i => i.item_id === parseInt(itemId))) {
-                URL.revokeObjectURL(prevUrls[itemId]);
-            }
+        // Create a mutable copy of previous URLs to track what to revoke
+        const urlsToRevokeMap = { ...prevUrls };
+
+        // Iterate over newly generated URLs
+        Object.keys(newItemImageUrls).forEach(itemId => {
+            // If a previous URL exists for this item and it's different from the new one,
+            // the old one (prevUrls[itemId]) is already in urlsToRevokeMap and will be revoked.
+            // Remove this item's new URL from the map of URLs to revoke,
+            // as this new URL is now the active one (or it's the same as before).
+            delete urlsToRevokeMap[itemId];
         });
-        return {...prevUrls, ...newItemImageUrls};
+
+        // Anything remaining in urlsToRevokeMap needs to be revoked
+        Object.values(urlsToRevokeMap).forEach(url => URL.revokeObjectURL(url));
+
+        // The new state is simply the fresh set of URLs for the current items
+        return newItemImageUrls;
     });
 
-
-    // Cleanup function to revoke all managed URLs when component unmounts
     return () => {
-      Object.values(itemImageUrls).forEach(url => URL.revokeObjectURL(url));
-      setItemImageUrls({});
+      setItemImageUrls(currentUrls => {
+        Object.values(currentUrls).forEach(url => URL.revokeObjectURL(url));
+        return {};
+      });
     };
   }, [items]);
 
