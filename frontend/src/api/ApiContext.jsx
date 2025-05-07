@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import { useSettings } from "../settings/SettingsContext";
-import { providers, getProviderById } from "./providerRegistry";
+import { providers, getProviderById, REQUIRED_API_METHODS } from "./providerRegistry";
 
 const ApiContext = createContext();
 
@@ -47,7 +47,7 @@ export const ApiProvider = ({ children }) => {
       const provider = getProviderById(providerType);
 
       if (provider && provider.module && configured) {
-        provider.methods.forEach((methodName) => {
+        REQUIRED_API_METHODS.forEach((methodName) => {
           const methodImpl = provider.module[methodName];
           if (typeof methodImpl === "function") {
             const providerSpecificSettingsForMethod =

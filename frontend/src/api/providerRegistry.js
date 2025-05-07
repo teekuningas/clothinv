@@ -4,6 +4,31 @@ import * as postgrestProvider from './postgrestProvider';
 // import * as homeboxProvider from './homeboxProvider';
 
 /**
+ * Canonical list of API methods that all providers must implement.
+ */
+export const REQUIRED_API_METHODS = [
+    'listLocations',
+    'addLocation',
+    'updateLocation',
+    'deleteLocation',
+    'listCategories',
+    'addCategory',
+    'updateCategory',
+    'deleteCategory',
+    'listItems',
+    'addItem',
+    'updateItem',
+    'deleteItem',
+    'listOwners',
+    'addOwner',
+    'updateOwner',
+    'deleteOwner',
+    'exportData',
+    'importData',
+    'destroyData',
+];
+
+/**
  * Defines the configuration and capabilities of each supported API provider.
  */
 export const providers = {
@@ -33,28 +58,6 @@ export const providers = {
         ],
         // Function to determine if the provider is considered configured based on its settings
         isConfiguredCheck: (settings) => !!settings?.datasetteBaseUrl,
-        // List the API methods this provider implements (must match exports from the module)
-        methods: [
-            'listLocations',
-            'addLocation',
-            'updateLocation',
-            'deleteLocation',
-            'listCategories',
-            'addCategory',
-            'updateCategory',
-            'deleteCategory',
-            'listItems',
-            'addItem',
-            'updateItem',
-            'deleteItem',
-            'listOwners',
-            'addOwner',
-            'updateOwner',
-            'deleteOwner',
-            'exportData',
-            'importData',
-            'destroyData',
-        ]
     },
 
     // --- IndexedDB Provider Definition ---
@@ -64,28 +67,6 @@ export const providers = {
         module: indexedDBProvider,
         configFields: [],
         isConfiguredCheck: () => true, // Always configured as it needs no settings
-        // Ensure this list matches the methods provided by datasetteProvider
-        methods: [
-            'listLocations',
-            'addLocation',
-            'updateLocation',
-            'deleteLocation',
-            'listCategories',
-            'addCategory',
-            'updateCategory',
-            'deleteCategory',
-            'listItems',
-            'addItem',
-            'updateItem',
-            'deleteItem',
-            'listOwners',
-            'addOwner',
-            'updateOwner',
-            'deleteOwner',
-            'exportData',
-            'importData',
-            'destroyData',
-        ]
     },
 
     // --- PostgREST Provider Definition ---
@@ -112,14 +93,6 @@ export const providers = {
             }
         ],
         isConfiguredCheck: (settings) => !!settings?.postgrestApiUrl && !!settings?.postgrestApiToken, // Check both URL and Token
-        // List the API methods this provider implements
-        methods: [
-            'listLocations', 'addLocation', 'updateLocation', 'deleteLocation',
-            'listCategories', 'addCategory', 'updateCategory', 'deleteCategory',
-            'listOwners', 'addOwner', 'updateOwner', 'deleteOwner',
-            'listItems', 'addItem', 'updateItem', 'deleteItem',
-            'exportData', 'importData', 'destroyData',
-        ]
     },
 };
 
@@ -146,3 +119,28 @@ export const getProviderDisplayNames = () => {
         return acc;
     }, {});
 };
+
+/**
+ * Verifies that all registered providers with a module implement the required API methods.
+ * Logs an error for any missing methods.
+ */
+function verifyProviderMethods() {
+    Object.values(providers).forEach(provider => {
+        if (provider.module && provider.id !== 'none') { // Check only if module is defined and not the 'none' provider
+            REQUIRED_API_METHODS.forEach(methodName => {
+                if (typeof provider.module[methodName] !== 'function') {
+                    console.error(
+                        `API Provider Verification Error: Provider '${provider.displayName}' (ID: '${provider.id}') ` +
+                        `is missing the required method '${methodName}'. ` +
+                        `This may lead to runtime errors if this provider is selected.`
+                    );
+                    // Optionally, to make this a hard stop:
+                    // throw new Error(`Provider '${provider.displayName}' (ID: '${provider.id}') missing required method '${methodName}'.`);
+                }
+            });
+        }
+    });
+}
+
+// Perform the verification when this module is loaded.
+verifyProviderMethods();
