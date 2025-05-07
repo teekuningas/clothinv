@@ -20,6 +20,8 @@ const OwnersView = () => {
   const [deleteCandidateId, setDeleteCandidateId] = useState(null); // ID of owner to potentially delete
   const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
   const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
+  const [isAddOwnerModalOpen, setIsAddOwnerModalOpen] = useState(false);
+  const [addOwnerError, setAddOwnerError] = useState(null);
 
   const api = useApi();
   const intl = useIntl();
@@ -73,12 +75,29 @@ const OwnersView = () => {
     fetchOwners();
   }, [fetchOwners]);
 
+  const handleOpenAddOwnerModal = () => {
+    setNewOwnerName("");
+    setNewOwnerDescription("");
+    setAddOwnerError(null); // Clear previous modal errors
+    setError(null); // Clear general page errors
+    setSuccess(null); // Clear success messages
+    setIsAddOwnerModalOpen(true);
+  };
+
+  const handleCloseAddOwnerModal = () => {
+    setIsAddOwnerModalOpen(false);
+    setAddOwnerError(null); // Clear errors when closing
+    // Optionally reset form fields
+    // setNewOwnerName("");
+    // setNewOwnerDescription("");
+  };
+
   // Function to handle adding a new owner
   const handleAddOwner = async (e) => {
     e.preventDefault();
 
     if (!newOwnerName.trim()) {
-      setError(
+      setAddOwnerError( // Use modal-specific error state
         intl.formatMessage({
           id: "owners.error.nameEmpty",
           defaultMessage: "Owner name cannot be empty.",
@@ -88,7 +107,7 @@ const OwnersView = () => {
     }
     // Only add if the provider is configured and addOwner exists
     if (!api.isConfigured || typeof api.addOwner !== "function") {
-      setError(
+      setAddOwnerError( // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "owners.addForm.notSupported",
@@ -105,8 +124,9 @@ const OwnersView = () => {
     }
 
     setLoading(true);
-    setError(null);
-    setSuccess(null);
+    setAddOwnerError(null); // Clear modal error
+    // setError(null); // Main page error cleared on modal open
+    // setSuccess(null); // Main page success cleared on modal open
 
     try {
       const result = await api.addOwner({
@@ -115,22 +135,24 @@ const OwnersView = () => {
       });
 
       if (result.success) {
-        setSuccess(
-          intl.formatMessage(
-            {
-              id: "owners.success.add",
-              defaultMessage: 'Owner "{name}" added successfully!',
-            },
-            { name: newOwnerName.trim() },
-          ),
-        );
-        setNewOwnerName("");
-        setNewOwnerDescription("");
-        await new Promise((resolve) => setTimeout(resolve, 250)); // Add delay before refetch
-        fetchOwners(); // Refresh the list
+        // Fetch data, then close modal and show global success message
+        fetchOwners().then(() => {
+          handleCloseAddOwnerModal();
+          setSuccess(
+            intl.formatMessage(
+              {
+                id: "owners.success.add",
+                defaultMessage: 'Owner "{name}" added successfully!',
+              },
+              { name: newOwnerName.trim() },
+            ),
+          );
+          // setNewOwnerName(""); // Already cleared on modal open or close
+          // setNewOwnerDescription("");
+        });
       } else {
         // Should ideally not happen if addOwner throws errors, but handle just in case
-        setError(
+        setAddOwnerError( // Use modal-specific error state
           intl.formatMessage(
             {
               id: "owners.error.add",
@@ -150,7 +172,7 @@ const OwnersView = () => {
     } catch (err) {
       console.error("Failed to add owner:", err);
       // Use intl for consistency, even if the message might be technical
-      setError(
+      setAddOwnerError( // Use modal-specific error state
         intl.formatMessage(
           {
             id: "owners.error.add",
@@ -389,11 +411,11 @@ const OwnersView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
       {/* Add Owner Form */}
-      {!api.isConfigured ? (
+      {!isAddOwnerModalOpen && !api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : typeof api.addOwner !== "function" ? (
+      ) : !isAddOwnerModalOpen && api.isConfigured && typeof api.addOwner !== "function" ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "owners.addForm.notSupported",
@@ -401,64 +423,7 @@ const OwnersView = () => {
               "Adding owners is not supported by the current API Provider.",
           })}
         </p>
-      ) : (
-        <form onSubmit={handleAddOwner} className="add-owner-form">
-          {" "}
-          {/* Use add-owner-form class */}
-          <h3>
-            {intl.formatMessage({
-              id: "owners.addForm.title",
-              defaultMessage: "Add New Owner",
-            })}
-          </h3>
-          <div className="form-group">
-            <label htmlFor="owner-name">
-              {intl.formatMessage({
-                id: "owners.addForm.nameLabel",
-                defaultMessage: "Name:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="owner-name"
-              value={newOwnerName}
-              onChange={(e) => setNewOwnerName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="owner-description">
-              {intl.formatMessage({
-                id: "owners.addForm.descriptionLabel",
-                defaultMessage: "Description:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="owner-description"
-              value={newOwnerDescription}
-              onChange={(e) => setNewOwnerDescription(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !newOwnerName.trim()}
-            className="button-primary"
-          >
-            {loading
-              ? intl.formatMessage({
-                  id: "owners.addForm.button.adding",
-                  defaultMessage: "Adding...",
-                })
-              : intl.formatMessage({
-                  id: "owners.addForm.button.add",
-                  defaultMessage: "Add Owner",
-                })}
-          </button>
-        </form>
-      )}
+      ) : null}
       {/* Owners List */}
       <h3>
         {intl.formatMessage({
@@ -482,8 +447,8 @@ const OwnersView = () => {
         api.isConfigured && (
           <p>
             {intl.formatMessage({
-              id: "owners.list.empty",
-              defaultMessage: "No owners found. Add one above!",
+              id: "owners.list.emptyFAB", // Updated key
+              defaultMessage: "No owners found. Click the '+' button to add one.",
             })}
           </p>
         )}
@@ -509,15 +474,72 @@ const OwnersView = () => {
                   )}
                   disabled={loading || isUpdating || isDeleting}
                 >
-                  {intl.formatMessage({
-                    id: "common.edit",
-                    defaultMessage: "Edit",
-                  })}
+                  ✏️ {/* Pencil emoji */}
                 </button>
               )}
             </div>
           ))}
         </div>
+      )}
+      {/* Add Owner FAB */}
+      {api.isConfigured && typeof api.addOwner === "function" && (
+        <button
+          type="button"
+          className="add-owner-fab button-primary"
+          onClick={handleOpenAddOwnerModal}
+          aria-label={intl.formatMessage({ id: "owners.addOwnerFAB.label" })}
+          disabled={loading || isUpdating || isDeleting}
+        >
+          +
+        </button>
+      )}
+
+      {/* Add Owner Modal */}
+      {isAddOwnerModalOpen && (
+        <Modal
+          show={isAddOwnerModalOpen}
+          onClose={handleCloseAddOwnerModal}
+          title={intl.formatMessage({ id: "owners.addForm.title" })}
+        >
+          <form onSubmit={handleAddOwner} className="add-owner-form">
+            {addOwnerError && <p className="status-error">Error: {addOwnerError}</p>}
+            <div className="form-group">
+              <label htmlFor="owner-name-modal">
+                {intl.formatMessage({ id: "owners.addForm.nameLabel" })}
+              </label>
+              <input
+                type="text"
+                id="owner-name-modal"
+                value={newOwnerName}
+                onChange={(e) => setNewOwnerName(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="owner-description-modal">
+                {intl.formatMessage({ id: "owners.addForm.descriptionLabel" })}
+              </label>
+              <input
+                type="text"
+                id="owner-description-modal"
+                value={newOwnerDescription}
+                onChange={(e) => setNewOwnerDescription(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="submit" disabled={loading || !newOwnerName.trim()} className="button-primary">
+                {loading
+                  ? intl.formatMessage({ id: "owners.addForm.button.adding" })
+                  : intl.formatMessage({ id: "owners.addForm.button.add" })}
+              </button>
+              <button type="button" onClick={handleCloseAddOwnerModal} disabled={loading} className="button-secondary">
+                {intl.formatMessage({ id: "common.cancel" })}
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
       {/* Edit Owner Modal */}
       {editingOwnerId && (

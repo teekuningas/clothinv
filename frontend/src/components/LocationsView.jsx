@@ -20,6 +20,8 @@ const LocationsView = () => {
   const [deleteCandidateId, setDeleteCandidateId] = useState(null); // ID of location to potentially delete
   const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
   const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
+  const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
+  const [addLocationError, setAddLocationError] = useState(null);
 
   const api = useApi();
   const intl = useIntl();
@@ -73,12 +75,29 @@ const LocationsView = () => {
     fetchLocations();
   }, [fetchLocations]);
 
+  const handleOpenAddLocationModal = () => {
+    setNewLocationName("");
+    setNewLocationDescription("");
+    setAddLocationError(null); // Clear previous modal errors
+    setError(null); // Clear general page errors
+    setSuccess(null); // Clear success messages
+    setIsAddLocationModalOpen(true);
+  };
+
+  const handleCloseAddLocationModal = () => {
+    setIsAddLocationModalOpen(false);
+    setAddLocationError(null); // Clear errors when closing
+    // Optionally reset form fields if not done elsewhere
+    // setNewLocationName("");
+    // setNewLocationDescription("");
+  };
+
   // Function to handle adding a new location
   const handleAddLocation = async (e) => {
     e.preventDefault();
 
     if (!newLocationName.trim()) {
-      setError(
+      setAddLocationError( // Use modal-specific error state
         intl.formatMessage({
           id: "locations.error.nameEmpty",
           defaultMessage: "Location name cannot be empty.",
@@ -88,7 +107,7 @@ const LocationsView = () => {
     }
     // Only add if the provider is configured and addLocation exists
     if (!api.isConfigured || typeof api.addLocation !== "function") {
-      setError(
+      setAddLocationError( // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "locations.addForm.notSupported",
@@ -105,8 +124,9 @@ const LocationsView = () => {
     }
 
     setLoading(true);
-    setError(null);
-    setSuccess(null);
+    setAddLocationError(null); // Clear modal error
+    // setError(null); // Main page error cleared on modal open
+    // setSuccess(null); // Main page success cleared on modal open
 
     try {
       const result = await api.addLocation({
@@ -115,22 +135,24 @@ const LocationsView = () => {
       });
 
       if (result.success) {
-        setSuccess(
-          intl.formatMessage(
-            {
-              id: "locations.success.add",
-              defaultMessage: 'Location "{name}" added successfully!',
-            },
-            { name: newLocationName.trim() },
-          ),
-        );
-        setNewLocationName("");
-        setNewLocationDescription("");
-        await new Promise((resolve) => setTimeout(resolve, 250)); // Add delay before refetch
-        fetchLocations(); // Refresh the list
+        // Fetch data, then close modal and show global success message
+        fetchLocations().then(() => {
+          handleCloseAddLocationModal();
+          setSuccess(
+            intl.formatMessage(
+              {
+                id: "locations.success.add",
+                defaultMessage: 'Location "{name}" added successfully!',
+              },
+              { name: newLocationName.trim() },
+            ),
+          );
+          // setNewLocationName(""); // Already cleared on modal open or close
+          // setNewLocationDescription("");
+        });
       } else {
         // Should ideally not happen if addLocation throws errors, but handle just in case
-        setError(
+        setAddLocationError( // Use modal-specific error state
           intl.formatMessage(
             {
               id: "locations.error.add",
@@ -150,7 +172,7 @@ const LocationsView = () => {
     } catch (err) {
       console.error("Failed to add location:", err);
       // Use intl for consistency, even if the message might be technical
-      setError(
+      setAddLocationError( // Use modal-specific error state
         intl.formatMessage(
           {
             id: "locations.error.add",
@@ -386,12 +408,12 @@ const LocationsView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
 
-      {/* Add Location Form */}
-      {!api.isConfigured ? (
+      {/* Placeholder for messages if API not configured for adding, shown when modal is not open */}
+      {!isAddLocationModalOpen && !api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : typeof api.addLocation !== "function" ? (
+      ) : !isAddLocationModalOpen && api.isConfigured && typeof api.addLocation !== "function" ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "locations.addForm.notSupported",
@@ -399,62 +421,7 @@ const LocationsView = () => {
               "Adding locations is not supported by the current API Provider.",
           })}
         </p>
-      ) : (
-        <form onSubmit={handleAddLocation} className="add-location-form">
-          <h3>
-            {intl.formatMessage({
-              id: "locations.addForm.title",
-              defaultMessage: "Add New Location",
-            })}
-          </h3>
-          <div className="form-group">
-            <label htmlFor="location-name">
-              {intl.formatMessage({
-                id: "locations.addForm.nameLabel",
-                defaultMessage: "Name:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="location-name"
-              value={newLocationName}
-              onChange={(e) => setNewLocationName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="location-description">
-              {intl.formatMessage({
-                id: "locations.addForm.descriptionLabel",
-                defaultMessage: "Description:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="location-description"
-              value={newLocationDescription}
-              onChange={(e) => setNewLocationDescription(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !newLocationName.trim()}
-            className="button-primary"
-          >
-            {loading
-              ? intl.formatMessage({
-                  id: "locations.addForm.button.adding",
-                  defaultMessage: "Adding...",
-                })
-              : intl.formatMessage({
-                  id: "locations.addForm.button.add",
-                  defaultMessage: "Add Location",
-                })}
-          </button>
-        </form>
-      )}
+      ) : null}
 
       {/* Locations List */}
       <h3>
@@ -479,8 +446,8 @@ const LocationsView = () => {
         api.isConfigured && (
           <p>
             {intl.formatMessage({
-              id: "locations.list.empty",
-              defaultMessage: "No locations found. Add one above!",
+              id: "locations.list.emptyFAB", // Updated key
+              defaultMessage: "No locations found. Click the '+' button to add one.",
             })}
           </p>
         )}
@@ -506,16 +473,75 @@ const LocationsView = () => {
                   )}
                   disabled={loading || isUpdating || isDeleting}
                 >
-                  {intl.formatMessage({
-                    id: "common.edit",
-                    defaultMessage: "Edit",
-                  })}
+                  ✏️ {/* Pencil emoji */}
                 </button>
               )}
             </div>
           ))}
         </div>
       )}
+
+      {/* Add Location FAB */}
+      {api.isConfigured && typeof api.addLocation === "function" && (
+        <button
+          type="button"
+          className="add-location-fab button-primary"
+          onClick={handleOpenAddLocationModal}
+          aria-label={intl.formatMessage({ id: "locations.addLocationFAB.label" })}
+          disabled={loading || isUpdating || isDeleting}
+        >
+          +
+        </button>
+      )}
+
+      {/* Add Location Modal */}
+      {isAddLocationModalOpen && (
+        <Modal
+          show={isAddLocationModalOpen}
+          onClose={handleCloseAddLocationModal}
+          title={intl.formatMessage({ id: "locations.addForm.title" })}
+        >
+          <form onSubmit={handleAddLocation} className="add-location-form">
+            {addLocationError && <p className="status-error">Error: {addLocationError}</p>}
+            <div className="form-group">
+              <label htmlFor="location-name-modal">
+                {intl.formatMessage({ id: "locations.addForm.nameLabel" })}
+              </label>
+              <input
+                type="text"
+                id="location-name-modal"
+                value={newLocationName}
+                onChange={(e) => setNewLocationName(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="location-description-modal">
+                {intl.formatMessage({ id: "locations.addForm.descriptionLabel" })}
+              </label>
+              <input
+                type="text"
+                id="location-description-modal"
+                value={newLocationDescription}
+                onChange={(e) => setNewLocationDescription(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="submit" disabled={loading || !newLocationName.trim()} className="button-primary">
+                {loading
+                  ? intl.formatMessage({ id: "locations.addForm.button.adding" })
+                  : intl.formatMessage({ id: "locations.addForm.button.add" })}
+              </button>
+              <button type="button" onClick={handleCloseAddLocationModal} disabled={loading} className="button-secondary">
+                {intl.formatMessage({ id: "common.cancel" })}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
 
       {/* Edit Location Modal */}
       {editingLocationId && (

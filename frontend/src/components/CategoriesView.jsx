@@ -20,6 +20,8 @@ const CategoriesView = () => {
   const [deleteCandidateId, setDeleteCandidateId] = useState(null); // ID of category to potentially delete
   const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
   const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [addCategoryError, setAddCategoryError] = useState(null);
 
   const api = useApi();
   const intl = useIntl();
@@ -73,12 +75,29 @@ const CategoriesView = () => {
     fetchCategories();
   }, [fetchCategories]);
 
+  const handleOpenAddCategoryModal = () => {
+    setNewCategoryName("");
+    setNewCategoryDescription("");
+    setAddCategoryError(null); // Clear previous modal errors
+    setError(null); // Clear general page errors
+    setSuccess(null); // Clear success messages
+    setIsAddCategoryModalOpen(true);
+  };
+
+  const handleCloseAddCategoryModal = () => {
+    setIsAddCategoryModalOpen(false);
+    setAddCategoryError(null); // Clear errors when closing
+    // Optionally reset form fields
+    // setNewCategoryName("");
+    // setNewCategoryDescription("");
+  };
+
   // Function to handle adding a new category
   const handleAddCategory = async (e) => {
     e.preventDefault();
 
     if (!newCategoryName.trim()) {
-      setError(
+      setAddCategoryError( // Use modal-specific error state
         intl.formatMessage({
           id: "categories.error.nameEmpty",
           defaultMessage: "Category name cannot be empty.",
@@ -88,7 +107,7 @@ const CategoriesView = () => {
     }
     // Only add if the provider is configured and addCategory exists
     if (!api.isConfigured || typeof api.addCategory !== "function") {
-      setError(
+      setAddCategoryError( // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "categories.addForm.notSupported",
@@ -105,8 +124,9 @@ const CategoriesView = () => {
     }
 
     setLoading(true);
-    setError(null);
-    setSuccess(null);
+    setAddCategoryError(null); // Clear modal error
+    // setError(null); // Main page error cleared on modal open
+    // setSuccess(null); // Main page success cleared on modal open
 
     try {
       const result = await api.addCategory({
@@ -115,22 +135,24 @@ const CategoriesView = () => {
       });
 
       if (result.success) {
-        setSuccess(
-          intl.formatMessage(
-            {
-              id: "categories.success.add",
-              defaultMessage: 'Category "{name}" added successfully!',
-            },
-            { name: newCategoryName.trim() },
-          ),
-        );
-        setNewCategoryName("");
-        setNewCategoryDescription("");
-        await new Promise((resolve) => setTimeout(resolve, 250)); // Add delay before refetch
-        fetchCategories(); // Refresh the list
+        // Fetch data, then close modal and show global success message
+        fetchCategories().then(() => {
+          handleCloseAddCategoryModal();
+          setSuccess(
+            intl.formatMessage(
+              {
+                id: "categories.success.add",
+                defaultMessage: 'Category "{name}" added successfully!',
+              },
+              { name: newCategoryName.trim() },
+            ),
+          );
+          // setNewCategoryName(""); // Already cleared on modal open or close
+          // setNewCategoryDescription("");
+        });
       } else {
         // Should ideally not happen if addCategory throws errors, but handle just in case
-        setError(
+        setAddCategoryError( // Use modal-specific error state
           intl.formatMessage(
             {
               id: "categories.error.add",
@@ -150,7 +172,7 @@ const CategoriesView = () => {
     } catch (err) {
       console.error("Failed to add category:", err);
       // Use intl for consistency, even if the message might be technical
-      setError(
+      setAddCategoryError( // Use modal-specific error state
         intl.formatMessage(
           {
             id: "categories.error.add",
@@ -389,11 +411,11 @@ const CategoriesView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
       {/* Add Category Form */}
-      {!api.isConfigured ? (
+      {!isAddCategoryModalOpen && !api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : typeof api.addCategory !== "function" ? (
+      ) : !isAddCategoryModalOpen && api.isConfigured && typeof api.addCategory !== "function" ? (
         <p className="status-warning">
           {intl.formatMessage({
             id: "categories.addForm.notSupported",
@@ -401,64 +423,7 @@ const CategoriesView = () => {
               "Adding categories is not supported by the current API Provider.",
           })}
         </p>
-      ) : (
-        <form onSubmit={handleAddCategory} className="add-category-form">
-          {" "}
-          {/* Use add-category-form class */}
-          <h3>
-            {intl.formatMessage({
-              id: "categories.addForm.title",
-              defaultMessage: "Add New Category",
-            })}
-          </h3>
-          <div className="form-group">
-            <label htmlFor="category-name">
-              {intl.formatMessage({
-                id: "categories.addForm.nameLabel",
-                defaultMessage: "Name:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="category-name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="category-description">
-              {intl.formatMessage({
-                id: "categories.addForm.descriptionLabel",
-                defaultMessage: "Description:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="category-description"
-              value={newCategoryDescription}
-              onChange={(e) => setNewCategoryDescription(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !newCategoryName.trim()}
-            className="button-primary"
-          >
-            {loading
-              ? intl.formatMessage({
-                  id: "categories.addForm.button.adding",
-                  defaultMessage: "Adding...",
-                })
-              : intl.formatMessage({
-                  id: "categories.addForm.button.add",
-                  defaultMessage: "Add Category",
-                })}
-          </button>
-        </form>
-      )}
+      ) : null}
       {/* Categories List */}
       <h3>
         {intl.formatMessage({
@@ -482,8 +447,8 @@ const CategoriesView = () => {
         api.isConfigured && (
           <p>
             {intl.formatMessage({
-              id: "categories.list.empty",
-              defaultMessage: "No categories found. Add one above!",
+              id: "categories.list.emptyFAB", // Updated key
+              defaultMessage: "No categories found. Click the '+' button to add one.",
             })}
           </p>
         )}
@@ -509,15 +474,72 @@ const CategoriesView = () => {
                   )}
                   disabled={loading || isUpdating || isDeleting}
                 >
-                  {intl.formatMessage({
-                    id: "common.edit",
-                    defaultMessage: "Edit",
-                  })}
+                  ✏️ {/* Pencil emoji */}
                 </button>
               )}
             </div>
           ))}
         </div>
+      )}
+      {/* Add Category FAB */}
+      {api.isConfigured && typeof api.addCategory === "function" && (
+        <button
+          type="button"
+          className="add-category-fab button-primary"
+          onClick={handleOpenAddCategoryModal}
+          aria-label={intl.formatMessage({ id: "categories.addCategoryFAB.label" })}
+          disabled={loading || isUpdating || isDeleting}
+        >
+          +
+        </button>
+      )}
+
+      {/* Add Category Modal */}
+      {isAddCategoryModalOpen && (
+        <Modal
+          show={isAddCategoryModalOpen}
+          onClose={handleCloseAddCategoryModal}
+          title={intl.formatMessage({ id: "categories.addForm.title" })}
+        >
+          <form onSubmit={handleAddCategory} className="add-category-form">
+            {addCategoryError && <p className="status-error">Error: {addCategoryError}</p>}
+            <div className="form-group">
+              <label htmlFor="category-name-modal">
+                {intl.formatMessage({ id: "categories.addForm.nameLabel" })}
+              </label>
+              <input
+                type="text"
+                id="category-name-modal"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="category-description-modal">
+                {intl.formatMessage({ id: "categories.addForm.descriptionLabel" })}
+              </label>
+              <input
+                type="text"
+                id="category-description-modal"
+                value={newCategoryDescription}
+                onChange={(e) => setNewCategoryDescription(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="submit" disabled={loading || !newCategoryName.trim()} className="button-primary">
+                {loading
+                  ? intl.formatMessage({ id: "categories.addForm.button.adding" })
+                  : intl.formatMessage({ id: "categories.addForm.button.add" })}
+              </button>
+              <button type="button" onClick={handleCloseAddCategoryModal} disabled={loading} className="button-secondary">
+                {intl.formatMessage({ id: "common.cancel" })}
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
       {/* Edit Category Modal */}
       {editingCategoryId && (
