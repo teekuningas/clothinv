@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
 
-const ExportConfigurationLink = () => {
+const ShareConfigurationLink = () => {
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
@@ -19,8 +19,8 @@ const ExportConfigurationLink = () => {
     if (!settings || Object.keys(settings).length === 0) {
       setError(
         intl.formatMessage({
-          id: "exportConfig.error.noConfigToExport",
-          defaultMessage: "Error: No configuration available to export.",
+          id: "shareConfig.error.noConfigToExport",
+          defaultMessage: "Error: No configuration available to share.",
         }),
       );
       return;
@@ -28,19 +28,19 @@ const ExportConfigurationLink = () => {
 
     try {
       const settingsJson = JSON.stringify(settings);
-      console.log("ExportConfig: Settings JSON:", settingsJson);
+      console.log("ShareConfig: Settings JSON:", settingsJson);
 
       const base64String = btoa(settingsJson);
 
       const configureUrl = `${window.location.origin}/configure?settingsPayload=${base64String}`;
 
       setGeneratedUrl(configureUrl);
-      console.log("ExportConfig: Generated URL:", configureUrl);
+      console.log("ShareConfig: Generated URL:", configureUrl);
     } catch (e) {
-      console.error("ExportConfig: Error generating configuration link:", e);
+      console.error("ShareConfig: Error generating configuration link:", e);
       setError(
         intl.formatMessage({
-          id: "exportConfig.error.encodingFailed",
+          id: "shareConfig.error.encodingFailed",
           defaultMessage: "Error: Failed to generate configuration link.",
         }),
       );
@@ -59,7 +59,7 @@ const ExportConfigurationLink = () => {
         setCopyStatus("success");
         setCopyMessage(
           intl.formatMessage({
-            id: "exportConfig.alert.urlCopied",
+            id: "shareConfig.alert.urlCopied",
             defaultMessage: "Configuration URL copied to clipboard!",
           }),
         );
@@ -74,7 +74,7 @@ const ExportConfigurationLink = () => {
         setCopyMessage(
           intl.formatMessage(
             {
-              id: "exportConfig.alert.copyFailed",
+              id: "shareConfig.alert.copyFailed",
               defaultMessage: "Failed to copy URL: {error}",
             },
             { error: err.message }, // Use err.message for better error display
@@ -87,8 +87,8 @@ const ExportConfigurationLink = () => {
     <div className="settings-view">
       <h2>
         {intl.formatMessage({
-          id: "exportConfig.title",
-          defaultMessage: "Export Configuration Link",
+          id: "shareConfig.title",
+          defaultMessage: "Share Configuration Link",
         })}
       </h2>
 
@@ -99,7 +99,7 @@ const ExportConfigurationLink = () => {
           {" "}
           <h3>
             {intl.formatMessage({
-              id: "exportConfig.section.generatedUrl",
+              id: "shareConfig.section.generatedUrl",
               defaultMessage: "Generated Configuration URL:",
             })}
           </h3>
@@ -115,7 +115,7 @@ const ExportConfigurationLink = () => {
           </p>
           <button onClick={handleCopyUrl} className="button-primary">
             {intl.formatMessage({
-              id: "exportConfig.button.copyUrl",
+              id: "shareConfig.button.copyUrl",
               defaultMessage: "Copy URL",
             })}
           </button>
@@ -132,7 +132,7 @@ const ExportConfigurationLink = () => {
           )}
           <p style={{ marginTop: "20px", fontStyle: "italic" }}>
             {intl.formatMessage({
-              id: "exportConfig.instructions",
+              id: "shareConfig.instructions",
               defaultMessage:
                 "Share the generated URL with someone. When they open it, the specified configuration will be automatically applied to their browser.",
             })}
@@ -140,7 +140,7 @@ const ExportConfigurationLink = () => {
           {/* Use status-warning class */}
           <p className="status-warning" style={{ marginTop: "10px" }}>
             {intl.formatMessage({
-              id: "exportConfig.warning.secret",
+              id: "shareConfig.warning.secret",
               defaultMessage:
                 "Warning: This URL contains configuration details, potentially including API tokens or other settings. Share it only with trusted individuals.",
             })}
@@ -151,7 +151,7 @@ const ExportConfigurationLink = () => {
       {!error && !generatedUrl && (
         <p className="status-loading">
           {intl.formatMessage({
-            id: "exportConfig.status.generating",
+            id: "shareConfig.status.generating",
             defaultMessage: "Generating link...",
           })}
         </p>
@@ -160,4 +160,4 @@ const ExportConfigurationLink = () => {
   );
 };
 
-export default ExportConfigurationLink;
+export default ShareConfigurationLink;
