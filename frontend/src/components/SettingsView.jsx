@@ -488,12 +488,6 @@ const SettingsView = () => {
   return (
     <div className="settings-view">
       {/* Changed class name */}
-      <h2>
-        {intl.formatMessage({
-          id: "settings.title",
-          defaultMessage: "Settings",
-        })}
-      </h2>
       <form onSubmit={(e) => e.preventDefault()}>
         {/* --- Language Settings --- */}
         <fieldset className="settings-fieldset">

@@ -377,12 +377,6 @@ const OwnersView = () => {
     <div className="owners-view">
       {" "}
       {/* Use owners-view class */}
-      <h2>
-        {intl.formatMessage({
-          id: "owners.title",
-          defaultMessage: "Owners Management",
-        })}
-      </h2>
       {/* Status Messages */}
       {loading && (
         <p className="status-loading">

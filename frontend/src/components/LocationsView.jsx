@@ -373,12 +373,6 @@ const LocationsView = () => {
 
   return (
     <div className="locations-view">
-      <h2>
-        {intl.formatMessage({
-          id: "locations.title",
-          defaultMessage: "Locations Management",
-        })}
-      </h2>
 
       {/* Status Messages */}
       {loading && (

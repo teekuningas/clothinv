@@ -787,12 +787,6 @@ const ItemsView = () => {
   // --- Render ---
   return (
     <div className="items-view">
-      <h2>
-        {intl.formatMessage({
-          id: "items.title",
-          defaultMessage: "Clothes Management",
-        })}
-      </h2>
 
       {/* Status Messages */}
       {loading && (
@@ -826,12 +820,6 @@ const ItemsView = () => {
       ) : null}
 
       {/* Items List */}
-      <h3>
-        {intl.formatMessage({
-          id: "items.list.title",
-          defaultMessage: "Existing Items",
-        })}
-      </h3>
 
       {/* Sort and Filter Controls Container */}
       {api.isConfigured &&

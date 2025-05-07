@@ -71,7 +71,7 @@
 /* Container for image or placeholder */
 .item-image-container {
     width: 100%;
-    height: 200px;
+    height: 320px; /* Increased height for portrait feel */
     border-bottom: 1px solid var(--color-border-divider);
     display: flex;
     align-items: center;
@@ -132,9 +132,17 @@
 
 .item-card-content .edit-button { /* Edit icon button on card */
     flex-shrink: 0; /* Prevent shrinking */
-    padding: 4px 8px; /* Smaller padding for icon button */
-    font-size: 1.1em; /* Adjust emoji/icon size */
+    padding: 4px; /* Adjusted padding for icon button */
+    font-size: 1.2em; /* Adjust emoji/icon size */
     line-height: 1; /* Ensure consistent height */
+    background-color: transparent; /* Remove background */
+    border: none; /* Remove border */
+    color: var(--color-text-muted); /* Subtle icon color */
+}
+
+.item-card-content .edit-button:hover:not(:disabled) {
+    color: var(--color-primary); /* Darken or use primary color on hover */
+    background-color: var(--color-bg-subtle); /* Optional: slight background on hover for feedback */
 }
 
 /* --- Edit/Delete Modal Styles --- */

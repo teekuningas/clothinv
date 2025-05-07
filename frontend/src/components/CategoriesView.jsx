@@ -377,12 +377,6 @@ const CategoriesView = () => {
     <div className="categories-view">
       {" "}
       {/* Use categories-view class */}
-      <h2>
-        {intl.formatMessage({
-          id: "categories.title",
-          defaultMessage: "Categories Management",
-        })}
-      </h2>
       {/* Status Messages */}
       {loading && (
         <p className="status-loading">
