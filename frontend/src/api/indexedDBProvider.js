@@ -803,7 +803,7 @@ export const deleteOwner = async (settings, ownerId) => {
 // Items
 export const listItems = async (settings, options) => {
     console.log('IndexedDBProvider: listItems called with options:', options);
-    const { page, pageSize, sortBy, sortOrder, filters } = options;
+    const { page, pageSize, sortBy, sortOrder, filters } = options || {}; // Ensure options is an object
 
     try {
         // 1. Fetch all items metadata
@@ -853,8 +853,17 @@ export const listItems = async (settings, options) => {
         const totalCount = filteredItems.length;
 
         // 5. Apply Pagination
-        const startIndex = (page - 1) * pageSize;
-        const paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + pageSize);
+        let paginatedItemMetadata = filteredItems; // Default to all filtered items
+        if (page && pageSize) { // Only paginate if page and pageSize are provided and are numbers
+            const numericPage = Number(page);
+            const numericPageSize = Number(pageSize);
+            if (!isNaN(numericPage) && numericPage > 0 && !isNaN(numericPageSize) && numericPageSize > 0) {
+                const startIndex = (numericPage - 1) * numericPageSize;
+                paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + numericPageSize);
+            } else {
+                console.warn("listItems (IndexedDB): Invalid page or pageSize provided, returning all filtered items.", { page, pageSize });
+            }
+        }
 
         // 6. Fetch images (File objects) for the paginated subset
         const itemsWithFiles = [];
@@ -1005,7 +1014,7 @@ export const updateItem = async (settings, itemId, data) => {
         } else if (imageFile instanceof File) {
             console.log(`IndexedDBProvider: Updating/adding image for item ${itemId}`);
             // Add or update image using item_id as key
-            newImageUuid = existingItem.image_uuid || uuidv4(); // Reuse existing image UUID or generate new if none existed
+            newImageUuid = uuidv4(); // Always generate a new UUID for a new/replaced image file
             imageRequest = imagesStore.put(imageFile, itemId);
             imageRequest.onerror = (event) => {
                 console.error("Error putting image to IndexedDB:", event.target.error);
