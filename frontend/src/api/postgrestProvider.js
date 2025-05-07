@@ -283,14 +283,12 @@ export const deleteOwner = async (settings, ownerId) => {
 /**
  * Internal: Inserts image data and filename, returns the new ID and UUID.
  * Sends base64 data as a string in the JSON payload.
- * Accepts an optional UUID for import scenarios.
  */
-const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid = undefined) => {
+const _insertImage = async (settings, base64Data, mimeType, filename) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
     const imageData = {
-        uuid: imageUuid || undefined, // Use provided UUID or let PG generate
         // PG trigger handles created_at
         image_data: base64Data, // Store base64 string directly (will go into TEXT column)
         image_mimetype: mimeType,
@@ -375,8 +373,7 @@ export const addItem = async (settings, data) => {
     if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
-            // Pass image UUID if provided (e.g., during import), otherwise PG generates
-            const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name, data.image_uuid);
+            const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
             imageId = imageResult.imageId;
             imageUuid = imageResult.imageUuid;
         } catch (error) {
@@ -855,7 +852,6 @@ async function importDataV1(settings, loadedZip) {
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
                 owner_id: ownerMap[owner_id],       // Map to new ID
-                image_uuid: imageUuidFromCsv, // Pass image UUID from CSV (addItem will use this for _insertImage)
                 imageFile: imageFile,               // Pass the File object (addItem will handle base64 conversion)
                 created_at: itemMetadata.created_at || undefined, // Preserve timestamp or let PG handle
                 updated_at: itemMetadata.updated_at || null   // Preserve timestamp or set null

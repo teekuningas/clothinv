@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS items (
     description TEXT,
     location_id INTEGER,
     category_id INTEGER,
-    image_id INTEGER, -- Keep for potential direct linking if needed, but image_uuid is primary reference
+    image_id INTEGER, -- Foreign key to images.image_id
     image_uuid UUID, -- Added column to store the UUID of the linked image
     owner_id INTEGER,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS items (
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
     FOREIGN KEY (category_id) REFERENCES categories(category_id) ON DELETE SET NULL,
     FOREIGN KEY (image_id) REFERENCES images(image_id) ON DELETE SET NULL,
-    FOREIGN KEY (image_uuid) REFERENCES images(uuid) ON DELETE SET NULL, -- Added FK constraint for image UUID
+    FOREIGN KEY (image_uuid) REFERENCES images(uuid) ON DELETE SET NULL,
     FOREIGN KEY (owner_id) REFERENCES owners(owner_id) ON DELETE SET NULL
 );
 
