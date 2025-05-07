@@ -6,7 +6,7 @@ import {
     // No image helpers needed directly here as we store File objects
 } from './providerUtils'; // Import shared utilities
 // --- IndexedDB Setup ---
-const DB_NAME = 'ClothingInventoryDB';
+const DB_NAME = 'ClothinvInventoryDB';
 const DB_VERSION = 2; // Increment this if schema changes
 const STORES = {
     items: 'items',
