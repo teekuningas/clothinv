@@ -99,7 +99,7 @@ start-backend-datasette: build-datasette-image
 			datasette serve /data/$(DATASETTE_DB_FILENAME) --port $(DATASETTE_PORT) --host 0.0.0.0 --cors --root; \
 		echo "Datasette container started on http://127.0.0.1:$(DATASETTE_PORT)"; \
 		echo "Waiting for Datasette to initialize..."; \
-		sleep 1; \
+		sleep 2; \
 		DATASETTE_API_TOKEN=$$(sudo docker exec $(DATASETTE_CONTAINER_NAME) datasette create-token root --expires-after 864000 2>/dev/null); \
 		echo ""; \
 		echo "Datasette API Token (ENV=$(ENV)):"; \
