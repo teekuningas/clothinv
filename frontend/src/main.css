@@ -1,58 +1,58 @@
 :root {
   /* Core Interaction Colors */
-  --color-primary: #FFA726;
-  --color-primary-hover: #FB8C00;
+  --color-primary: #00875A; /* A sophisticated, slightly tealish green */
+  --color-primary-hover: #006F4A; /* Darker shade for hover */
   --color-primary-text: #FFFFFF;
 
-  --color-secondary: #26A69A;
-  --color-secondary-hover: #2BBBAD;
+  --color-secondary: #5A6978; /* A cool, slate grey */
+  --color-secondary-hover: #4C5A68; /* Darker slate grey for hover */
   --color-secondary-text: #FFFFFF;
 
-  --color-danger: #E53935;
-  --color-danger-hover: #D32F2F;
+  --color-danger: #DE350B; /* A clear, strong red (Atlassian Red) */
+  --color-danger-hover: #BF2600; /* Darker red for hover */
   --color-danger-text: #FFFFFF;
 
   /* Light / “soft” danger (and error) */
-  --color-danger-light-bg: #FFEBEE;
-  --color-danger-light-text: #C62828;
-  --color-danger-light-border: #FFCDD2;
-  --color-danger-light-hover-bg: #FFCDD2;
-  --color-danger-light-hover-text: #B71C1C;
-  --color-danger-light-hover-border: #EF9A9A;
+  --color-danger-light-bg: #FFECEB; /* Very light red/pink */
+  --color-danger-light-text: #BF2600; /* Strong red text for contrast */
+  --color-danger-light-border: #FFBDAD; /* Soft red border */
+  --color-danger-light-hover-bg: #FFDCD3; /* Slightly darker light red for hover */
+  --color-danger-light-hover-text: #AE2A19; /* Darker red text for hover */
+  --color-danger-light-hover-border: #FFACA7; /* Slightly darker soft red border */
 
   /* Text */
-  --color-text-base: #333333;
-  --color-text-muted: #666666;
-  --color-text-label: #999999;
+  --color-text-base: #172B4D; /* Dark blue/grey for high readability */
+  --color-text-muted: #5E6C84; /* Medium grey for less emphasis */
+  --color-text-label: #7A869A; /* Lighter grey for labels */
   --color-text-link: var(--color-primary);
   --color-text-light: #FFFFFF;
 
   /* Backgrounds */
-  --color-bg-body: #FFFCF5;
+  --color-bg-body: #F4F5F7; /* Very light, neutral grey (Atlassian N20) */
   --color-bg-container: #FFFFFF;
-  --color-bg-subtle: #FFF3E0;
+  --color-bg-subtle: #E9F2EB; /* Very light tint of primary green, or use #DFE1E6 for a neutral grey */
 
   /* Borders */
-  --color-border: #E0E0E0;
-  --color-border-input: #CCCCCC;
-  --color-border-divider: #E0E0E0;
+  --color-border: #DFE1E6; /* Light grey for borders (Atlassian N40) */
+  --color-border-input: #B3BAC5; /* Slightly darker grey for input borders (Atlassian N50) */
+  --color-border-divider: var(--color-border);
 
   /* Status Colors */
-  --color-success-bg: #E8F5E9;
-  --color-success-text: #2E7D32;
-  --color-warning-bg: #FFF8E1;
-  --color-warning-text: #FF8F00;
-  --color-info-bg: #E3F2FD;
-  --color-info-text: #1565C0;
+  --color-success-bg: #E3FCEF; /* Light green background (Atlassian Green Light) */
+  --color-success-text: #006644; /* Dark green text (Atlassian Green Dark) */
+  --color-warning-bg: #FFF7D6; /* Light yellow background (Atlassian Yellow Light) */
+  --color-warning-text: #974F0C; /* Dark yellow/brown text (Atlassian Yellow Dark) */
+  --color-info-bg: #E9F2FF; /* Light blue background (Atlassian Blue Light) */
+  --color-info-text: #0747A6; /* Dark blue text (Atlassian Blue Dark) */
   --color-error-bg: var(--color-danger-light-bg);
   --color-error-text: var(--color-danger-light-text);
 
   /* Overlays & Special */
   --color-backdrop: rgb(0 0 0 / 50%);
-  --color-overlay-dark-bg: #1A1A1A;
-  --color-overlay-button-bg: rgb(255 248 245 / 80%);
-  --color-overlay-button-hover: rgb(255 248 245 / 100%);
-  --color-overlay-button-icon: #666666;
+  --color-overlay-dark-bg: #091E42; /* Very dark blue/grey (Atlassian N800) */
+  --color-overlay-button-bg: rgb(244 245 247 / 85%); /* Using body bg color with alpha */
+  --color-overlay-button-hover: rgb(223 225 230 / 100%); /* Using border color with more opacity */
+  --color-overlay-button-icon: var(--color-text-muted);
 }
 
 * {
