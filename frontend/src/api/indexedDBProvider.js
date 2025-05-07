@@ -7,8 +7,8 @@ import {
     // No image helpers needed directly here as we store File objects
 } from './providerUtils'; // Import shared utilities
 // --- IndexedDB Setup ---
-const DB_NAME = 'ClothinvInventoryDB';
-const DB_VERSION = 2; // Increment this if schema changes
+const DB_NAME    = 'ClothinvInventoryDB';
+const DB_VERSION = 1; // single‐version schema
 const STORES = {
     items: 'items',
     images: 'images', // Note: Stores File objects, keyed by item_id (integer)
@@ -38,47 +38,30 @@ const openDB = () => {
 
         request.onupgradeneeded = (event) => {
             console.log(`IndexedDB upgrade needed from version ${event.oldVersion} to ${event.newVersion}`);
-            const db = event.target.result;
-            const transaction = event.target.transaction; // Get transaction for initialization
+            const db          = event.target.result;
+            const transaction = event.target.transaction;
 
-            // Version 1: Create initial stores
-            if (event.oldVersion < 1) {
-                console.log("Creating initial object stores (items, images, locations, categories, owners)...");
-                if (!db.objectStoreNames.contains(STORES.items)) { // Stores item metadata { item_id, uuid, name, ..., image_uuid? }
-                    db.createObjectStore(STORES.items, { keyPath: 'item_id' });
-                }
-                if (!db.objectStoreNames.contains(STORES.images)) {
-                    db.createObjectStore(STORES.images); // Keyed by item_id (integer), stores File object
-                }
-                if (!db.objectStoreNames.contains(STORES.locations)) {
-                    db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
-                }
-                if (!db.objectStoreNames.contains(STORES.categories)) { // Stores { category_id, uuid, name, ... }
-                    db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
-                }
-                if (!db.objectStoreNames.contains(STORES.owners)) {
-                    db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
-                }
+            // Create all object stores if missing
+            if (!db.objectStoreNames.contains(STORES.items)) {
+                db.createObjectStore(STORES.items, { keyPath: 'item_id' });
             }
-
-            // Version 2: Create counters store and initialize
-            if (event.oldVersion < 2) {
-                console.log("Creating and initializing counters store...");
-                if (!db.objectStoreNames.contains(STORES.counters)) {
-                    const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
-                    // Initialize counters within the upgrade transaction
-                    // Use the transaction associated with the upgrade event
-                    console.log("Initializing default counters...");
-                    const entities = ['items', 'locations', 'categories', 'owners'];
-                    entities.forEach(entity => {
-                        // Use transaction.objectStore to ensure it happens within the upgrade
-                        const store = transaction.objectStore(STORES.counters);
-                        store.put({ entity: entity, nextId: 1 }).onerror = (e) => {
-                             console.error(`Error initializing counter for ${entity}:`, e.target.error);
-                        };
-                    });
-                     console.log("Counters initialized.");
-                }
+            if (!db.objectStoreNames.contains(STORES.images)) {
+                db.createObjectStore(STORES.images);
+            }
+            if (!db.objectStoreNames.contains(STORES.locations)) {
+                db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
+            }
+            if (!db.objectStoreNames.contains(STORES.categories)) {
+                db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
+            }
+            if (!db.objectStoreNames.contains(STORES.owners)) {
+                db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
+            }
+            // Counters store (seed default nextId = 1 for each entity)
+            if (!db.objectStoreNames.contains(STORES.counters)) {
+                const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
+                ['items','locations','categories','owners']
+                  .forEach(entity => counterStore.put({ entity, nextId: 1 }));
             }
 
             console.log("IndexedDB upgrade complete");
