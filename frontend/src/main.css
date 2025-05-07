@@ -1,9 +1,9 @@
 :root {
-  /* Zen Garden Palette - Lightened */
+  /* Zen Garden Palette - Lightened & Shifted to Muted Blue-Grey */
 
   /* Core Interaction Colors */
-  --color-primary: #7D8F69; /* Lighter Moss Green */
-  --color-primary-hover: #6A7A55; /* Original Moss Green (as hover) */
+  --color-primary: #708090; /* Muted Slate Blue-Grey */
+  --color-primary-hover: #5F6F7F; /* Darker Slate Blue-Grey */
   --color-primary-text: #FFFFFF;
 
   --color-secondary: #8A8A8A; /* Lighter Medium Stone Grey */
@@ -40,8 +40,8 @@
   --color-border-divider: var(--color-border);
 
   /* Status Colors */
-  --color-success-bg: #E6F0E0; /* Light Moss Green */
-  --color-success-text: #3E4A30; /* Dark Moss Green */
+  --color-success-bg: #E3F2FD; /* Very Light Positive Blue */
+  --color-success-text: #155E9A; /* Darker Positive Blue */
   --color-warning-bg: #FAF3E0; /* Light Warm Beige (Dry Earth) */
   --color-warning-text: #B58B4C; /* Muted Ochre/Brown */
   --color-info-bg: #E8EFF5; /* Light, Calm Blue (Still Pond) */
