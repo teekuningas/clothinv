@@ -61,6 +61,9 @@ const ItemsView = () => {
   const [filterCategoryIds, setFilterCategoryIds] = useState([]);
   const [filterOwnerIds, setFilterOwnerIds] = useState([]);
 
+  const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
+  const [addItemError, setAddItemError] = useState(null);
+
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
   const api = useApi();
@@ -306,11 +309,41 @@ const ItemsView = () => {
     }
   };
 
+  const handleOpenAddItemModal = () => {
+    setError(null); // Clear any previous main page errors
+    setSuccess(null);
+    setAddItemError(null); // Clear add item specific error
+    // Reset form fields when opening the modal
+    setNewItemName("");
+    setNewItemDescription("");
+    setNewItemLocationId("");
+    setNewItemCategoryId("");
+    if (addImageUrl) URL.revokeObjectURL(addImageUrl);
+    setNewItemImageFile(null);
+    setAddImageUrl(null);
+    setNewItemOwnerId("");
+    setIsAddItemModalOpen(true);
+  };
+
+  const handleCloseAddItemModal = () => {
+    setIsAddItemModalOpen(false);
+    setAddItemError(null); // Clear error when closing
+    // Reset form fields
+    setNewItemName("");
+    setNewItemDescription("");
+    setNewItemLocationId("");
+    setNewItemCategoryId("");
+    if (addImageUrl) URL.revokeObjectURL(addImageUrl);
+    setNewItemImageFile(null);
+    setAddImageUrl(null);
+    setNewItemOwnerId("");
+  };
+
   // --- Add Item Handler ---
   const handleAddItem = async (e) => {
     e.preventDefault();
     if (!newItemName.trim()) {
-      setError(
+      setAddItemError(
         intl.formatMessage({
           id: "items.error.nameEmpty",
           defaultMessage: "Item name cannot be empty.",
@@ -319,7 +352,7 @@ const ItemsView = () => {
       return;
     }
     if (!newItemLocationId) {
-      setError(
+      setAddItemError(
         intl.formatMessage({
           id: "items.error.locationMissing",
           defaultMessage: "Please select a location.",
@@ -328,7 +361,7 @@ const ItemsView = () => {
       return;
     }
     if (!newItemCategoryId) {
-      setError(
+      setAddItemError(
         intl.formatMessage({
           id: "items.error.categoryMissing",
           defaultMessage: "Please select a category.",
@@ -337,7 +370,7 @@ const ItemsView = () => {
       return;
     }
     if (!newItemOwnerId) {
-      setError(
+      setAddItemError(
         intl.formatMessage({
           id: "items.error.ownerMissing",
           defaultMessage: "Please select an owner.",
@@ -346,7 +379,7 @@ const ItemsView = () => {
       return;
     }
     if (!api.isConfigured || !api.addItem) {
-      setError(
+      setAddItemError(
         api.isConfigured
           ? intl.formatMessage({
               id: "items.addForm.notSupported",
@@ -359,8 +392,8 @@ const ItemsView = () => {
     }
 
     setLoading(true); // Use general loading for add form
-    setError(null);
-    setSuccess(null);
+    setAddItemError(null); // Clear previous modal-specific error
+    // setSuccess(null); // Global success, cleared when modal opens or handled globally
 
     try {
       let fileToSend = null; // Initialize fileToSend
@@ -411,27 +444,21 @@ const ItemsView = () => {
       });
 
       if (result.success) {
-        setSuccess(
-          intl.formatMessage(
-            {
-              id: "items.success.add",
-              defaultMessage: 'Item "{name}" added successfully!',
-            },
-            { name: newItemName.trim() },
-          ),
-        );
-        setNewItemName("");
-        setNewItemDescription("");
-        setNewItemLocationId("");
-        setNewItemCategoryId("");
-        if (addImageUrl) URL.revokeObjectURL(addImageUrl); // Revoke URL on success
-        setNewItemImageFile(null);
-        setAddImageUrl(null);
-        setNewItemOwnerId("");
-        await new Promise((resolve) => setTimeout(resolve, 250)); // Add delay before refetch
-        fetchData();
+        // Fetch data, then close modal and show global success message
+        fetchData().then(() => {
+          handleCloseAddItemModal();
+          setSuccess(
+            intl.formatMessage(
+              {
+                id: "items.success.add",
+                defaultMessage: 'Item "{name}" added successfully!',
+              },
+              { name: newItemName.trim() },
+            ),
+          );
+        });
       } else {
-        setError(
+        setAddItemError( // Set modal-specific error
           intl.formatMessage(
             {
               id: "items.error.add",
@@ -447,7 +474,8 @@ const ItemsView = () => {
       }
     } catch (err) {
       console.error("Failed to add item:", err);
-      setError(
+      // Prefer setting modal-specific error if the operation originated from the modal
+      setAddItemError(
         intl.formatMessage(
           {
             id: "items.error.add",
@@ -777,253 +805,25 @@ const ItemsView = () => {
       )}
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
-
-      {/* Add Item Form */}
-      {!api.isConfigured ? (
+      
+      {/* Conditional rendering for Add Item Form moved to Modal below */}
+      {/* Placeholder for where the old form was, to show messages if API not configured for adding */}
+      { !isAddItemModalOpen && !api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
-      ) : !api.addItem || // Check method existence
+      ) : !isAddItemModalOpen && api.isConfigured && (!api.addItem || // Check method existence
         !api.listLocations ||
         !api.listCategories ||
-        !api.listOwners ? (
-        <p className="status-warning">
+        !api.listOwners) ? (
+        <p className="status-warning"> {/* This message might be better placed near the FAB or handled differently */}
           {intl.formatMessage({
             id: "items.addForm.notSupported",
             defaultMessage:
               "Adding or listing required data is not supported by the current API Provider.",
           })}
         </p>
-      ) : (
-        <form onSubmit={handleAddItem} className="add-item-form">
-          <h3>
-            {intl.formatMessage({
-              id: "items.addForm.title",
-              defaultMessage: "Add New Item",
-            })}
-          </h3>
-          <div className="form-group">
-            <label htmlFor="item-name">
-              {intl.formatMessage({
-                id: "items.addForm.nameLabel",
-                defaultMessage: "Name:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="item-name"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="item-description">
-              {intl.formatMessage({
-                id: "items.addForm.descriptionLabel",
-                defaultMessage: "Description:",
-              })}
-            </label>
-            <input
-              type="text"
-              id="item-description"
-              value={newItemDescription}
-              onChange={(e) => setNewItemDescription(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          {/* Image Upload */}
-          <div className="form-group form-group-image">
-            <label htmlFor="item-image">
-              {intl.formatMessage({
-                id: "items.addForm.imageLabel",
-                defaultMessage: "Image:",
-              })}
-            </label>
-            {/* Use addImageUrl for preview */}
-            {addImageUrl && (
-              <div className="image-preview">
-                <img
-                  src={addImageUrl}
-                  alt={intl.formatMessage({
-                    id: "items.addForm.imagePreviewAlt",
-                    defaultMessage: "New item preview",
-                  })}
-                  // Pass the File object to handleImageClick
-                  onClick={() =>
-                    handleImageClick(
-                      newItemImageFile,
-                      intl.formatMessage({
-                        id: "items.addForm.imagePreviewAlt",
-                        defaultMessage: "New item preview",
-                      }),
-                    )
-                  }
-                  style={{ cursor: "pointer" }} // Indicate it's clickable
-                />
-              </div>
-            )}
-            {/* Action buttons for image */}
-            <div className="form-group-image-actions">
-              {/* Use button-light for file input label */}
-              <label
-                htmlFor="item-image"
-                className={`button-light button-file-input ${loading ? "disabled" : ""}`}
-              >
-                {intl.formatMessage({
-                  id: "items.addForm.chooseFile",
-                  defaultMessage: "Choose File",
-                })}
-              </label>
-              {/* Rotate Button */}
-              {addImageUrl && (
-                <button
-                  type="button"
-                  onClick={() => handleRotateImage("add")}
-                  className="button-light rotate-image-button"
-                  disabled={loading || isRotatingAdd}
-                >
-                  {isRotatingAdd
-                    ? intl.formatMessage({
-                        id: "items.image.rotating",
-                        defaultMessage: "Rotating...",
-                      })
-                    : intl.formatMessage({
-                        id: "items.image.rotate",
-                        defaultMessage: "Rotate 90°",
-                      })}
-                </button>
-              )}
-              {/* Remove Button */}
-              {addImageUrl && (
-                <button
-                  type="button"
-                  onClick={handleRemoveNewImage}
-                  className="button-danger-light remove-image-button"
-                  disabled={loading || isRotatingAdd} // Also disable during rotation
-                >
-                  {intl.formatMessage({
-                    id: "items.editForm.removeImage", // Re-use existing translation
-                    defaultMessage: "Remove Image",
-                  })}
-                </button>
-              )}
-            </div>
-            {/* Hidden actual file input */}
-            <input
-              type="file"
-              id="item-image"
-              accept="image/*"
-              onChange={(e) => handleFileChange(e, "add")}
-              disabled={loading}
-              className="hidden-file-input"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="item-location">
-              {intl.formatMessage({
-                id: "items.addForm.locationLabel",
-                defaultMessage: "Location:",
-              })}
-            </label>
-            <select
-              id="item-location"
-              value={newItemLocationId}
-              onChange={(e) => setNewItemLocationId(e.target.value)}
-              required
-              disabled={loading || locations.length === 0}
-            >
-              <option value="">
-                {intl.formatMessage({
-                  id: "items.addForm.selectLocationDefault",
-                  defaultMessage: "-- Select Location --",
-                })}
-              </option>
-              {locations.map((loc) => (
-                <option key={loc.location_id} value={loc.location_id}>
-                  {loc.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="item-category">
-              {intl.formatMessage({
-                id: "items.addForm.categoryLabel",
-                defaultMessage: "Category:",
-              })}
-            </label>
-            <select
-              id="item-category"
-              value={newItemCategoryId}
-              onChange={(e) => setNewItemCategoryId(e.target.value)}
-              required
-              disabled={loading || categories.length === 0}
-            >
-              <option value="">
-                {intl.formatMessage({
-                  id: "items.addForm.selectCategoryDefault",
-                  defaultMessage: "-- Select Category --",
-                })}
-              </option>
-              {categories.map((cat) => (
-                <option key={cat.category_id} value={cat.category_id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="item-owner">
-              {intl.formatMessage({
-                id: "items.addForm.ownerLabel",
-                defaultMessage: "Owner:",
-              })}
-            </label>
-            <select
-              id="item-owner"
-              value={newItemOwnerId}
-              onChange={(e) => setNewItemOwnerId(e.target.value)}
-              required
-              disabled={loading || owners.length === 0}
-            >
-              <option value="">
-                {intl.formatMessage({
-                  id: "items.addForm.selectOwnerDefault",
-                  defaultMessage: "-- Select Owner --",
-                })}
-              </option>
-              {owners.map((owner) => (
-                <option key={owner.owner_id} value={owner.owner_id}>
-                  {owner.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={
-              loading ||
-              !newItemName.trim() ||
-              !newItemLocationId ||
-              !newItemCategoryId ||
-              !newItemOwnerId
-            }
-            className="button-primary"
-          >
-            {loading
-              ? intl.formatMessage({
-                  id: "items.addForm.button.adding",
-                  defaultMessage: "Adding...",
-                })
-              : intl.formatMessage({
-                  id: "items.addForm.button.add",
-                  defaultMessage: "Add Item",
-                })}
-          </button>
-        </form>
-      )}
+      ) : null}
 
       {/* Items List */}
       <h3>
@@ -1270,56 +1070,11 @@ const ItemsView = () => {
                     }
                   </div>
                   <div className="item-card-content">
-                    <h4>{item.name}</h4>
-                    {item.description && (
-                      <p className="item-description">{item.description}</p>
-                    )}
-                    <p className="item-meta">
-                      {intl.formatMessage({
-                        id: "locations.titleSingular",
-                        defaultMessage: "Location",
-                      })}
-                      : {getLocationNameById(item.location_id)}
-                    </p>
-                    <p className="item-meta">
-                      {intl.formatMessage({
-                        id: "categories.titleSingular",
-                        defaultMessage: "Category",
-                      })}
-                      : {getCategoryNameById(item.category_id)}
-                    </p>
-                    <p className="item-meta">
-                      {intl.formatMessage({
-                        id: "owners.titleSingular",
-                        defaultMessage: "Owner",
-                      })}
-                      : {getOwnerNameById(item.owner_id)}
-                    </p>
-                    <p className="item-meta">
-                      {intl.formatMessage({
-                        id: "items.card.createdAt",
-                        defaultMessage: "Created:",
-                      })}{" "}
-                      {item.created_at
-                        ? intl.formatDate(new Date(item.created_at), {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            // Optional: Add time if desired and available
-                            // hour: 'numeric', minute: 'numeric'
-                          })
-                        : intl.formatMessage({
-                            id: "items.card.unknownDate",
-                            defaultMessage: "Unknown",
-                          })}
-                    </p>
-                  </div>
-                  {/* Show Edit button only if provider configured and update method exists - Use button-light */}
-                  {api.isConfigured && // Use api.isConfigured
-                    typeof api.updateItem === "function" && (
+                    <h4 title={item.name}>{item.name}</h4>
+                    {api.isConfigured && typeof api.updateItem === "function" && (
                       <button
                         onClick={() => handleEditClick(item)}
-                        className="edit-button button-light"
+                        className="edit-button button-light" // Keep existing classes for base styling
                         aria-label={intl.formatMessage(
                           {
                             id: "items.editButton.label",
@@ -1329,17 +1084,132 @@ const ItemsView = () => {
                         )}
                         disabled={loading || isUpdating || isDeleting}
                       >
-                        {intl.formatMessage({
-                          id: "common.edit",
-                          defaultMessage: "Edit",
-                        })}
+                        ✏️ {/* Pencil emoji */}
                       </button>
                     )}
+                  </div>
                 </div>
               ),
             )}
           </div>
         )}
+
+      {/* Add Item FAB */}
+      {api.isConfigured && api.addItem && api.listLocations && api.listCategories && api.listOwners && (
+        <button
+          type="button"
+          className="add-item-fab button-primary"
+          onClick={handleOpenAddItemModal}
+          aria-label={intl.formatMessage({ id: "items.addItemFAB.label", defaultMessage: "Add new item" })}
+          disabled={loading || isUpdating || isDeleting} // Disable if any major operation is in progress
+        >
+          +
+        </button>
+      )}
+
+      {/* Add Item Modal */}
+      {isAddItemModalOpen && (
+        <Modal
+          show={isAddItemModalOpen}
+          onClose={handleCloseAddItemModal}
+          title={intl.formatMessage({ id: "items.addForm.title", defaultMessage: "Add New Item" })}
+        >
+          <form onSubmit={handleAddItem} className="add-item-form"> {/* Re-use class for internal structure */}
+            {addItemError && <p className="status-error">Error: {addItemError}</p>}
+            <div className="form-group">
+              <label htmlFor="item-name-modal">
+                {intl.formatMessage({ id: "items.addForm.nameLabel", defaultMessage: "Name:" })}
+              </label>
+              <input type="text" id="item-name-modal" value={newItemName} onChange={(e) => setNewItemName(e.target.value)} required disabled={loading} />
+            </div>
+            <div className="form-group">
+              <label htmlFor="item-description-modal">
+                {intl.formatMessage({ id: "items.addForm.descriptionLabel", defaultMessage: "Description:" })}
+              </label>
+              <input type="text" id="item-description-modal" value={newItemDescription} onChange={(e) => setNewItemDescription(e.target.value)} disabled={loading} />
+            </div>
+            <div className="form-group form-group-image">
+              <label htmlFor="item-image-modal"> {/* Ensure unique ID for label */}
+                {intl.formatMessage({ id: "items.addForm.imageLabel", defaultMessage: "Image:" })}
+              </label>
+              {addImageUrl && (
+                <div className="image-preview">
+                  <img src={addImageUrl} alt={intl.formatMessage({ id: "items.addForm.imagePreviewAlt", defaultMessage: "New item preview" })} onClick={() => handleImageClick(newItemImageFile, intl.formatMessage({ id: "items.addForm.imagePreviewAlt", defaultMessage: "New item preview" }))} style={{ cursor: "pointer" }} />
+                </div>
+              )}
+              <div className="form-group-image-actions">
+                <label htmlFor="item-image-modal" className={`button-light button-file-input ${loading ? "disabled" : ""}`}>
+                  {intl.formatMessage({ id: "items.addForm.chooseFile", defaultMessage: "Choose File" })}
+                </label>
+                {addImageUrl && (
+                  <button type="button" onClick={() => handleRotateImage("add")} className="button-light rotate-image-button" disabled={loading || isRotatingAdd}>
+                    {isRotatingAdd ? intl.formatMessage({ id: "items.image.rotating", defaultMessage: "Rotating..." }) : intl.formatMessage({ id: "items.image.rotate", defaultMessage: "Rotate 90°" })}
+                  </button>
+                )}
+                {addImageUrl && (
+                  <button type="button" onClick={handleRemoveNewImage} className="button-danger-light remove-image-button" disabled={loading || isRotatingAdd}>
+                    {intl.formatMessage({ id: "items.editForm.removeImage", defaultMessage: "Remove Image" })}
+                  </button>
+                )}
+              </div>
+              <input type="file" id="item-image-modal" accept="image/*" onChange={(e) => handleFileChange(e, "add")} disabled={loading} className="hidden-file-input" />
+            </div>
+            <div className="form-group">
+              <label htmlFor="item-location-modal">
+                {intl.formatMessage({ id: "items.addForm.locationLabel", defaultMessage: "Location:" })}
+              </label>
+              <select id="item-location-modal" value={newItemLocationId} onChange={(e) => setNewItemLocationId(e.target.value)} required disabled={loading || locations.length === 0}>
+                <option value="">{intl.formatMessage({ id: "items.addForm.selectLocationDefault", defaultMessage: "-- Select Location --" })}</option>
+                {locations.map((loc) => (<option key={loc.location_id} value={loc.location_id}>{loc.name}</option>))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="item-category-modal">
+                {intl.formatMessage({ id: "items.addForm.categoryLabel", defaultMessage: "Category:" })}
+              </label>
+              <select id="item-category-modal" value={newItemCategoryId} onChange={(e) => setNewItemCategoryId(e.target.value)} required disabled={loading || categories.length === 0}>
+                <option value="">{intl.formatMessage({ id: "items.addForm.selectCategoryDefault", defaultMessage: "-- Select Category --" })}</option>
+                {categories.map((cat) => (<option key={cat.category_id} value={cat.category_id}>{cat.name}</option>))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="item-owner-modal">
+                {intl.formatMessage({ id: "items.addForm.ownerLabel", defaultMessage: "Owner:" })}
+              </label>
+              <select id="item-owner-modal" value={newItemOwnerId} onChange={(e) => setNewItemOwnerId(e.target.value)} required disabled={loading || owners.length === 0}>
+                <option value="">{intl.formatMessage({ id: "items.addForm.selectOwnerDefault", defaultMessage: "-- Select Owner --" })}</option>
+                {owners.map((owner) => (<option key={owner.owner_id} value={owner.owner_id}>{owner.name}</option>))}
+              </select>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="submit"
+                disabled={
+                  loading ||
+                  !newItemName.trim() ||
+                  !newItemLocationId ||
+                  !newItemCategoryId ||
+                  !newItemOwnerId
+                }
+                className="button-primary"
+              >
+                {loading
+                  ? intl.formatMessage({ id: "items.addForm.button.adding", defaultMessage: "Adding..." })
+                  : intl.formatMessage({ id: "items.addForm.button.add", defaultMessage: "Add Item" })}
+              </button>
+              <button
+                type="button"
+                onClick={handleCloseAddItemModal}
+                disabled={loading}
+                className="button-secondary"
+              >
+                {intl.formatMessage({ id: "common.cancel", defaultMessage: "Cancel" })}
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       {/* Edit Item Modal */}
       {editingItemId && (
