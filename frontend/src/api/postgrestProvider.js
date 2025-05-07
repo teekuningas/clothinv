@@ -283,12 +283,14 @@ export const deleteOwner = async (settings, ownerId) => {
 /**
  * Internal: Inserts image data and filename, returns the new ID and UUID.
  * Sends base64 data as a string in the JSON payload.
+ * Accepts an optional UUID for import scenarios.
  */
-const _insertImage = async (settings, base64Data, mimeType, filename) => {
+const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid = undefined) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
     const imageData = {
+        uuid: imageUuid || undefined, // Use provided UUID or let PG generate
         // PG trigger handles created_at
         image_data: base64Data, // Store base64 string directly (will go into TEXT column)
         image_mimetype: mimeType,
@@ -373,9 +375,10 @@ export const addItem = async (settings, data) => {
     if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
-            const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
+            // Pass image_uuid if provided (e.g., during import)
+            const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name, data.image_uuid);
             imageId = imageResult.imageId;
-            imageUuid = imageResult.imageUuid;
+            imageUuid = imageResult.imageUuid; // This will be the UUID used (either provided or PG-generated)
         } catch (error) {
             console.error("Failed to process or insert image:", error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
