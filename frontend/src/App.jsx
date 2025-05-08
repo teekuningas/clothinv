@@ -57,8 +57,11 @@ function App() {
     }
   };
 
+  // Use VITE_BASE_URL from environment variables, defaulting to "/" if not set
+  const baseUrl = import.meta.env.VITE_BASE_URL || "/";
+
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={baseUrl}>
       <div className="app">
         <header className="app-header">
           <h1>
