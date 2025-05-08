@@ -204,7 +204,7 @@ export const deleteLocation = async (settings, inputData) => {
             if (checkData && checkData.count > 0) {
                 console.warn(`Attempted to delete location ${locationId} which is used by ${checkData.count} items.`);
                 // Use the specific error message expected by LocationsView
-                return { success: false, message: 'Cannot delete location: It is currently assigned to one or more items.' };
+                return { success: false, errorCode: 'ENTITY_IN_USE' };
             }
         }
     } catch (error) {
@@ -290,7 +290,7 @@ export const deleteCategory = async (settings, inputData) => {
             if (checkData && checkData.count > 0) {
                 console.warn(`Attempted to delete category ${categoryId} which is used by ${checkData.count} items.`);
                 // Use the specific error message expected by CategoriesView
-                return { success: false, message: 'Cannot delete category: It is currently assigned to one or more items.' };
+                return { success: false, errorCode: 'ENTITY_IN_USE' };
             }
         }
     } catch (error) {
@@ -422,7 +422,7 @@ export const deleteOwner = async (settings, inputData) => {
             if (checkData && checkData.count > 0) {
                 console.warn(`Attempted to delete owner ${ownerId} which is used by ${checkData.count} items.`);
                 // Use the specific error message expected by OwnersView
-                return { success: false, message: 'Cannot delete owner: They are currently assigned to one or more items.' };
+                return { success: false, errorCode: 'ENTITY_IN_USE' };
             }
         }
     } catch (error) {

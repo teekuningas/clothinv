@@ -602,7 +602,7 @@ export const deleteLocation = async (settings, inputData) => {
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.location_id === locationId);
     if (isUsed) {
-        return { success: false, message: 'Cannot delete location: It is currently assigned to one or more items.' };
+        return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
     // Check if exists before attempting delete (optional, deleteFromStore handles NotFoundError)
     const existing = await getFromStore(STORES.locations, locationId);
@@ -699,7 +699,7 @@ export const deleteCategory = async (settings, inputData) => {
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.category_id === categoryId);
     if (isUsed) {
-        return { success: false, message: 'Cannot delete category: It is currently assigned to one or more items.' };
+        return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
      const existing = await getFromStore(STORES.categories, categoryId);
      if (!existing) return { success: false, message: 'Category not found' };
@@ -794,7 +794,7 @@ export const deleteOwner = async (settings, inputData) => {
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.owner_id === ownerId);
     if (isUsed) {
-        return { success: false, message: 'Cannot delete owner: They are currently assigned to one or more items.' };
+        return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
     const existing = await getFromStore(STORES.owners, ownerId);
     if (!existing) return { success: false, message: 'Owner not found' };

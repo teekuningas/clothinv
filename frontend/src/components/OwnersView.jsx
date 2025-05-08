@@ -318,23 +318,7 @@ const OwnersView = () => {
     setSuccess(null);
 
     try {
-      // 1. Check if any items use this owner
-      const items = await api.listItems();
-      const isOwnerInUse = items.some(
-        (item) => item.owner_id === deleteCandidateId,
-      );
-
-      if (isOwnerInUse) {
-        throw new Error(
-          intl.formatMessage({
-            id: "owners.error.deleteInUse",
-            defaultMessage:
-              "Cannot delete owner because it is currently assigned to one or more items.",
-          }),
-        );
-      }
-
-      // 2. Proceed with deletion if not in use
+      // Proceed with deletion - provider will check if in use
       const result = await api.deleteOwner({ owner_id: deleteCandidateId });
       if (result.success) {
         setSuccess(
@@ -347,42 +331,36 @@ const OwnersView = () => {
         handleCancelEdit(); // Close edit modal as well if open
         fetchOwners(); // Refresh list
       } else {
-        // Should ideally not happen if deleteOwner throws errors
-        setDeleteError(
-          intl.formatMessage(
-            {
-              id: "owners.error.delete",
-              defaultMessage: "Failed to delete owner: {error}",
-            },
-            {
-              error:
-                result.message ||
-                intl.formatMessage({
-                  id: "common.error.unknown",
-                  defaultMessage: "Unknown reason",
-                }),
-            },
-          ),
-        );
+        if (result.errorCode === 'ENTITY_IN_USE') {
+          setDeleteError(intl.formatMessage({ id: "owners.error.deleteInUse" }));
+        } else {
+          setDeleteError(
+            intl.formatMessage(
+              {
+                id: "owners.error.delete",
+                defaultMessage: "Failed to delete owner: {error}",
+              },
+              {
+                error:
+                  result.message ||
+                  intl.formatMessage({
+                    id: "common.error.unknown",
+                    defaultMessage: "Unknown reason",
+                  }),
+              },
+            ),
+          );
+        }
       }
     } catch (err) {
       console.error("Failed to delete owner:", err);
-      // Use intl for consistency, check if message is already translated from the 'in use' check
-      // Simple check for keywords - adjust if needed for more robust language detection
-      const isAlreadyTranslated = [
-        "assigned to one or more items",
-        "liitetty yhteen tai useampaan vaatteeseen",
-      ].some((phrase) => err.message.includes(phrase));
-      const errorMessage = isAlreadyTranslated
-        ? err.message // Already translated
-        : intl.formatMessage(
+      setDeleteError(intl.formatMessage(
             {
               id: "owners.error.delete",
               defaultMessage: "Failed to delete owner: {error}",
             },
             { error: err.message },
-          );
-      setDeleteError(errorMessage);
+          ));
     } finally {
       // Add a small delay before resetting loading state if successful
       const wasSuccessful = !!success; // Capture success state before potential async delay

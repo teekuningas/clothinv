@@ -140,7 +140,7 @@ export const deleteLocation = async (settings, inputData) => {
     const checkResult = await handleResponse(checkRes, 'check usage for', `location ID ${locationId}`);
     if (checkResult.data && checkResult.data.length > 0) {
         console.warn(`Attempted to delete location ${locationId} which is in use.`);
-        return { success: false, message: 'Cannot delete location: It is currently assigned to one or more items.' };
+        return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
 
     // Proceed with deletion
@@ -213,7 +213,7 @@ export const deleteCategory = async (settings, inputData) => {
     const checkResult = await handleResponse(checkRes, 'check usage for', `category ID ${categoryId}`);
     if (checkResult.data && checkResult.data.length > 0) {
         console.warn(`Attempted to delete category ${categoryId} which is in use.`);
-        return { success: false, message: 'Cannot delete category: It is currently assigned to one or more items.' };
+        return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
 
     const deleteUrl = `${baseUrl}/categories?category_id=eq.${categoryId}`;
@@ -281,7 +281,7 @@ export const deleteOwner = async (settings, inputData) => {
     const checkResult = await handleResponse(checkRes, 'check usage for', `owner ID ${ownerId}`);
     if (checkResult.data && checkResult.data.length > 0) {
         console.warn(`Attempted to delete owner ${ownerId} which is in use.`);
-        return { success: false, message: 'Cannot delete owner: They are currently assigned to one or more items.' };
+        return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
 
     const deleteUrl = `${baseUrl}/owners?owner_id=eq.${ownerId}`;
