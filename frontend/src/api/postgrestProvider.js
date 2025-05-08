@@ -44,10 +44,10 @@ const handleResponse = async (res, operation, entityDescription) => {
             if (errorJson.code) errorDetails += ` Code: ${errorJson.code}`;
         } catch (e) {
             // If response is not JSON, use the raw text
-            errorText = await res.text() || errorText;
+            errorText = (await res.text()) || errorText;
         }
         const fullError = `Failed to ${operation} ${entityDescription}: ${errorText}${errorDetails}`;
-        console.error(`[${PROVIDER_NAME}]: ${fullError}`, res); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: ${fullError}`, res);
         throw new Error(fullError);
     }
     // For successful POST/PATCH with Prefer: return=representation, response body contains the data
@@ -61,7 +61,7 @@ const handleResponse = async (res, operation, entityDescription) => {
         return { success: true, status: res.status, data: responseData };
     } catch (e) {
         // Handle cases where response is OK but not JSON (shouldn't happen with Accept header)
-        console.warn(`[${PROVIDER_NAME}]: Could not parse JSON response for ${operation} ${entityDescription}, status ${res.status}`); // Add prefix
+        console.warn(`[${PROVIDER_NAME}]: Could not parse JSON response for ${operation} ${entityDescription}, status ${res.status}`);
         return { success: true, status: res.status, data: null };
     }
 };
@@ -90,7 +90,7 @@ export const addLocation = async (settings, data) => {
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
     // PG handles uuid generation by default, but include if provided (e.g., during import)
-    const locationData = { ...data, uuid: data.uuid || undefined, updated_at: null }; // PG trigger handles created_at
+    const locationData = { ...data, uuid: data.uuid || undefined, updated_at: null };
 
     const res = await fetch(`${baseUrl}/locations`, {
         method: 'POST',
@@ -101,7 +101,7 @@ export const addLocation = async (settings, data) => {
     const result = await handleResponse(res, 'add', 'location');
     // Response is an array with the new object: [{ "location_id": 123, ... }]
     if (!result.data || result.data.length === 0 || !result.data[0].location_id || !result.data[0].uuid) {
-        console.error(`[${PROVIDER_NAME}]: Could not find location_id in PostgREST response:`, result.data); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Could not find location_id in PostgREST response:`, result.data);
         throw new Error("Failed to retrieve location_id after insert.");
     }
     const newLocationId = result.data[0].location_id;
@@ -116,7 +116,6 @@ export const updateLocation = async (settings, inputData) => {
     if (!locationId) throw new Error("Location ID is required for update.");
 
     const updateUrl = `${baseUrl}/locations?location_id=eq.${locationId}`;
-    // PG trigger handles updated_at
     const { uuid, ...payload } = data; // Exclude uuid from update payload
 
     const res = await fetch(updateUrl, {
@@ -140,11 +139,10 @@ export const deleteLocation = async (settings, inputData) => {
     const checkRes = await fetch(checkUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
     const checkResult = await handleResponse(checkRes, 'check usage for', `location ID ${locationId}`);
     if (checkResult.data && checkResult.data.length > 0) {
-        console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is in use.`); // Add prefix
+        console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is in use.`);
         return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
 
-    // Proceed with deletion
     const deleteUrl = `${baseUrl}/locations?location_id=eq.${locationId}`;
     const res = await fetch(deleteUrl, {
         method: 'DELETE',
@@ -176,7 +174,7 @@ export const addCategory = async (settings, data) => {
     });
     const result = await handleResponse(res, 'add', 'category');
     if (!result.data || result.data.length === 0 || !result.data[0].category_id || !result.data[0].uuid) {
-        console.error(`[${PROVIDER_NAME}]: Could not find category_id in PostgREST response:`, result.data); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Could not find category_id in PostgREST response:`, result.data);
         throw new Error("Failed to retrieve category_id after insert.");
     }
     const newCategoryId = result.data[0].category_id;
@@ -211,7 +209,7 @@ export const deleteCategory = async (settings, inputData) => {
     const checkRes = await fetch(checkUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
     const checkResult = await handleResponse(checkRes, 'check usage for', `category ID ${categoryId}`);
     if (checkResult.data && checkResult.data.length > 0) {
-        console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is in use.`); // Add prefix
+        console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is in use.`);
         return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
 
@@ -242,7 +240,7 @@ export const addOwner = async (settings, data) => {
     });
     const result = await handleResponse(res, 'add', 'owner');
     if (!result.data || result.data.length === 0 || !result.data[0].owner_id || !result.data[0].uuid) {
-        console.error(`[${PROVIDER_NAME}]: Could not find owner_id in PostgREST response:`, result.data); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Could not find owner_id in PostgREST response:`, result.data);
         throw new Error("Failed to retrieve owner_id after insert.");
     }
     const newOwnerId = result.data[0].owner_id;
@@ -277,7 +275,7 @@ export const deleteOwner = async (settings, inputData) => {
     const checkRes = await fetch(checkUrl, { method: 'GET', headers: defaultHeaders(settings, false) });
     const checkResult = await handleResponse(checkRes, 'check usage for', `owner ID ${ownerId}`);
     if (checkResult.data && checkResult.data.length > 0) {
-        console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is in use.`); // Add prefix
+        console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is in use.`);
         return { success: false, errorCode: 'ENTITY_IN_USE' };
     }
 
@@ -300,7 +298,6 @@ const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid 
 
     const imageData = {
         uuid: imageUuid || undefined, // Use provided UUID or let PG generate
-        // PG trigger handles created_at
         image_data: base64Data, // Store base64 string directly (will go into TEXT column)
         image_mimetype: mimeType,
         image_filename: filename || 'image', // Store filename, provide default
@@ -313,10 +310,10 @@ const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid 
     });
     const result = await handleResponse(res, 'insert', 'image');
     if (!result.data || result.data.length === 0 || !result.data[0].image_id || !result.data[0].uuid) {
-        console.error(`[${PROVIDER_NAME}]: Could not find image_id in PostgREST response:`, result.data); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Could not find image_id in PostgREST response:`, result.data);
         throw new Error("Failed to retrieve image_id after insert.");
     }
-    return { imageId: result.data[0].image_id, imageUuid: result.data[0].uuid }; // Return both ID and UUID
+    return { imageId: result.data[0].image_id, imageUuid: result.data[0].uuid };
 };
 
 /**
@@ -348,7 +345,7 @@ const _deleteImage = async (settings, imageId) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!imageId) {
-        console.warn(`[${PROVIDER_NAME}]: _deleteImage called with null/undefined imageId`); // Add prefix
+        console.warn(`[${PROVIDER_NAME}]: _deleteImage called with null/undefined imageId`);
         return { success: true }; // Nothing to delete
     }
 
@@ -379,7 +376,7 @@ export const addItem = async (settings, data) => {
     }
 
     let imageId = null;
-    let imageUuid = null; // Store image UUID separately
+    let imageUuid = null;
     if (data.imageFile instanceof File) { // Ensure it's a File object
         try {
             const base64Data = await readFileAsBase64(data.imageFile);
@@ -388,7 +385,7 @@ export const addItem = async (settings, data) => {
             imageId = imageResult.imageId;
             imageUuid = imageResult.imageUuid; // This will be the UUID used (either provided or PG-generated)
         } catch (error) {
-            console.error(`[${PROVIDER_NAME}]: Failed to process or insert image:`, error); // Add prefix
+            console.error(`[${PROVIDER_NAME}]: Failed to process or insert image:`, error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
         }
     }
@@ -404,7 +401,6 @@ export const addItem = async (settings, data) => {
         image_id: imageId, // Use the inserted image ID or null
         image_uuid: imageUuid, // Use the inserted image UUID or null
         updated_at: null // Explicitly set updated_at to null on creation
-        // PG trigger handles created_at
     };
 
     const res = await fetch(`${baseUrl}/items`, {
@@ -417,7 +413,7 @@ export const addItem = async (settings, data) => {
     // Even if Prefer: return=representation fails, the item might have been added.
     // imageUuid is known from _insertImage call.
     if (!result.data || result.data.length === 0 || !result.data[0].item_id || !result.data[0].uuid) {
-        console.error(`[${PROVIDER_NAME}]: Could not find item_id/uuid in PostgREST response for new item:`, result.data); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Could not find item_id/uuid in PostgREST response for new item:`, result.data);
         return { success: true, image_uuid: imageUuid }; // imageUuid is from earlier in the function
     }
     const newItem = result.data[0];
@@ -479,7 +475,6 @@ export const updateItem = async (settings, inputData) => { // data should NOT co
     const updateUrl = `${baseUrl}/items?item_id=eq.${itemId}`;
     const { uuid, ...updateData } = data; // Ensure item's own UUID isn't in the update payload
     const payload = {
-        // PG trigger handles updated_at
         name: updateData.name,
         description: updateData.description || null,
         location_id: updateData.location_id,
@@ -547,7 +542,7 @@ export const deleteItem = async (settings, inputData) => {
         await _deleteImage(settings, imageIdToDelete); // _deleteImage handles its own errors/404s
     }
 
-    return { success: true }; // Return success
+    return { success: true };
 };
 
 // listItems: Remove options, pagination, filtering, sorting, and direct image fetching.
@@ -566,7 +561,7 @@ export const listItems = async (settings) => {
         const itemsResult = await handleResponse(itemsRes, 'list', 'all items metadata');
         return itemsResult.data || []; // Return raw metadata array
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error in PostgREST listItems:`, error); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Error in PostgREST listItems:`, error);
         throw error;
     }
 };
@@ -576,7 +571,7 @@ const _getImageByUuid = async (settings, imageUuid) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!imageUuid) {
-        console.warn(`[${PROVIDER_NAME}]: _getImageByUuid called with no UUID`); // Add prefix
+        console.warn(`[${PROVIDER_NAME}]: _getImageByUuid called with no UUID`);
         return null;
     }
 
@@ -594,7 +589,7 @@ const _getImageByUuid = async (settings, imageUuid) => {
         try {
             await handleResponse(res, 'fetch image by UUID', `image UUID ${imageUuid}`);
         } catch (e) {
-            console.error(`[${PROVIDER_NAME}]: Failed to fetch image by UUID ${imageUuid}: ${e.message}`); // Add prefix
+            console.error(`[${PROVIDER_NAME}]: Failed to fetch image by UUID ${imageUuid}: ${e.message}`);
             throw e; // Or return null if preferred
         }
         return null; // Should be unreachable if handleResponse throws
@@ -626,7 +621,7 @@ export const getImage = async (settings, inputData) => {
         }
         return null;
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error in getImage for PostgREST, UUID ${imageUuid}:`, error); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Error in getImage for PostgREST, UUID ${imageUuid}:`, error);
         return null;
     }
 };
@@ -643,8 +638,7 @@ export const exportData = async (settings) => {
         const locations = await listLocations(settings);
         const categories = await listCategories(settings);
         const owners = await listOwners(settings);
-        // listItems now returns all item metadata without File objects.
-        const itemsMetadata = await listItems(settings); // Changed variable name
+        const itemsMetadata = await listItems(settings);
 
         // Fetch all image metadata separately for images.csv
         const imagesMetaUrl = `${baseUrl}/images?select=image_id,uuid,image_mimetype,image_filename,created_at&order=image_id`;
@@ -699,11 +693,11 @@ export const exportData = async (settings) => {
 
         // 4. Generate ZIP
         const blob = await zip.generateAsync({ type: "blob" });
-        console.log(`[${PROVIDER_NAME}]: Export generated successfully.`); // Add prefix
+        console.log(`[${PROVIDER_NAME}]: Export generated successfully.`);
         return blob;
 
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error during PostgREST export:`, error); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Error during PostgREST export:`, error);
         throw new Error(`Export failed: ${error.message}`);
     }
 };
@@ -722,9 +716,9 @@ async function importDataV1(settings, loadedZip) {
         }
 
         // --- Clear existing data ---
-        console.log(`[${PROVIDER_NAME}]: Clearing existing PostgREST data (Items first)...`); // Add prefix
+        console.log(`[${PROVIDER_NAME}]: Clearing existing PostgREST data (Items first)...`);
         await destroyData(settings); // Use destroyData for thorough cleaning
-        console.log(`[${PROVIDER_NAME}]: Existing data cleared.`); // Add prefix
+        console.log(`[${PROVIDER_NAME}]: Existing data cleared.`);
 
         // --- Parse and Import ---
         const locationMap = {}; // exported_id -> new_postgrest_id
@@ -739,7 +733,7 @@ async function importDataV1(settings, loadedZip) {
             // Preserve timestamps if they exist in the CSV
             // Pass UUID from CSV
             const payload = {
-                uuid: locData.uuid, // Pass UUID
+                uuid: locData.uuid,
                 name: locData.name,
                 description: locData.description,
                 created_at: locData.created_at || undefined, // Let PG handle if null/missing
@@ -756,7 +750,6 @@ async function importDataV1(settings, loadedZip) {
         const categories = parseCSV(await loadedZip.file('categories.csv').async('string'));
         for (const cat of categories) {
             const { category_id: exportedId, ...catData } = cat;
-            // Pass UUID from CSV
             const payload = {
                 uuid: catData.uuid, // Pass UUID
                 name: catData.name,
@@ -774,7 +767,6 @@ async function importDataV1(settings, loadedZip) {
         const owners = parseCSV(await loadedZip.file('owners.csv').async('string'));
         for (const owner of owners) {
             const { owner_id: exportedId, ...ownerData } = owner;
-            // Pass UUID from CSV
             const payload = {
                 uuid: ownerData.uuid, // Pass UUID
                 name: ownerData.name,
@@ -788,7 +780,6 @@ async function importDataV1(settings, loadedZip) {
             else throw new Error(`Failed to import owner: ${owner.name}`);
         }
 
-        // Import Images first to get new IDs mapped to UUIDs
         // Correction: Process images within the item loop using addItem's logic
 
         // Import Items
@@ -819,7 +810,7 @@ async function importDataV1(settings, loadedZip) {
                 uuid: itemUuid, // Pass item UUID from CSV
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
-                owner_id: ownerMap[owner_id],       // Map to new ID
+                owner_id: ownerMap[owner_id], // Map to new ID
                 image_uuid: imageFile ? imageUuidFromCsv : undefined, // <<< ADD THIS LINE: Pass image UUID from CSV if there's an image
                 imageFile: imageFile,               // Pass the File object (addItem will handle base64 conversion)
                 created_at: itemMetadata.created_at || undefined, // Preserve timestamp or let PG handle
@@ -828,7 +819,7 @@ async function importDataV1(settings, loadedZip) {
 
             // Ensure mapped IDs are valid before adding
             if (!newItemData.location_id || !newItemData.category_id || !newItemData.owner_id) {
-                 console.warn(`[${PROVIDER_NAME}]: Skipping item "${item.name}" due to missing mapped ID (Location: ${location_id}=>${newItemData.location_id}, Category: ${category_id}=>${newItemData.category_id}, Owner: ${owner_id}=>${newItemData.owner_id})`); // Add prefix
+                 console.warn(`[${PROVIDER_NAME}]: Skipping item "${item.name}" due to missing mapped ID (Location: ${location_id}=>${newItemData.location_id}, Category: ${category_id}=>${newItemData.category_id}, Owner: ${owner_id}=>${newItemData.owner_id})`);
                  continue; // Skip this item if any mapping failed
             }
 
@@ -837,14 +828,12 @@ async function importDataV1(settings, loadedZip) {
 
             // Use addItem, which now handles UUIDs and image insertion correctly
             const res = await addItem(settings, newItemData);
-            // Check response, throw error if import failed for this item
             // Note: addItem returns { success: true, status: ... }, handleResponse is not needed here
             // We might need a more robust check if addItem's return value changes
             if (!res.success) {
                  throw new Error(`Failed to import item "${item.name}" with status ${res.status}`);
             }
         }
-
         console.log('PostgRESTProvider: Import completed successfully.');
         return {
             success: true,
@@ -857,7 +846,7 @@ async function importDataV1(settings, loadedZip) {
         };
 
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error during PostgREST import:`, error); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Error during PostgREST import:`, error);
         // PostgREST uses transactions implicitly per request, but full rollback is hard here.
         return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
     }
@@ -898,66 +887,63 @@ export const destroyData = async (settings) => {
         // (Reverse dependency order)
 
         // 1. Delete Items (which should trigger image deletion via deleteItem logic)
-        console.log(`[${PROVIDER_NAME}]: Fetching items to delete...`); // Add prefix
+        console.log(`[${PROVIDER_NAME}]: Fetching items to delete...`);
         const itemsMetadataToDelete = await listItems(settings); // Fetches all item metadata
-        console.log(`[${PROVIDER_NAME}]: Deleting ${itemsMetadataToDelete.length} items...`); // Add prefix
-        for (const item of itemsMetadataToDelete) { // Iterate over metadata
+        console.log(`[${PROVIDER_NAME}]: Deleting ${itemsMetadataToDelete.length} items...`);
+        for (const item of itemsMetadataToDelete) {
             await deleteItem(settings, { item_id: item.item_id }); // deleteItem handles image deletion
         }
-        console.log(`[${PROVIDER_NAME}]: Items cleared.`); // Add prefix
+        console.log(`[${PROVIDER_NAME}]: Items cleared.`);
 
         // 2. Delete Owners
-        console.log(`[${PROVIDER_NAME}]: Fetching owners to delete...`);
         const ownersToDelete = await listOwners(settings);
-        console.log(`[${PROVIDER_NAME}]: Deleting ${ownersToDelete.length} owners...`);
+        console.log(`[${PROVIDER_NAME}]: Deleting ${ownersToDelete.length} owners (if any)...`);
         for (const owner of ownersToDelete) {
             // Use direct DELETE here as constraint check is implicitly handled by item deletion above
             const deleteUrl = `${baseUrl}/owners?owner_id=eq.${owner.owner_id}`;
             const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
             if (!res.ok && res.status !== 404) await handleResponse(res, 'delete', `owner ID ${owner.owner_id}`);
         }
-        console.log(`[${PROVIDER_NAME}]: Owners cleared.`);
+        if (ownersToDelete.length > 0) console.log(`[${PROVIDER_NAME}]: Owners cleared.`);
 
         // 3. Delete Categories
-        console.log(`[${PROVIDER_NAME}]: Fetching categories to delete...`);
         const categoriesToDelete = await listCategories(settings);
-        console.log(`[${PROVIDER_NAME}]: Deleting ${categoriesToDelete.length} categories...`);
+        console.log(`[${PROVIDER_NAME}]: Deleting ${categoriesToDelete.length} categories (if any)...`);
         for (const cat of categoriesToDelete) {
             const deleteUrl = `${baseUrl}/categories?category_id=eq.${cat.category_id}`;
             const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
              if (!res.ok && res.status !== 404) await handleResponse(res, 'delete', `category ID ${cat.category_id}`);
         }
-        console.log(`[${PROVIDER_NAME}]: Categories cleared.`);
+        if (categoriesToDelete.length > 0) console.log(`[${PROVIDER_NAME}]: Categories cleared.`);
 
         // 4. Delete Locations
-        console.log(`[${PROVIDER_NAME}]: Fetching locations to delete...`);
         const locationsToDelete = await listLocations(settings);
-        console.log(`[${PROVIDER_NAME}]: Deleting ${locationsToDelete.length} locations...`);
+        console.log(`[${PROVIDER_NAME}]: Deleting ${locationsToDelete.length} locations (if any)...`);
         for (const loc of locationsToDelete) {
             const deleteUrl = `${baseUrl}/locations?location_id=eq.${loc.location_id}`;
             const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
              if (!res.ok && res.status !== 404) await handleResponse(res, 'delete', `location ID ${loc.location_id}`);
         }
-        console.log(`[${PROVIDER_NAME}]: Locations cleared.`);
+        if (locationsToDelete.length > 0) console.log(`[${PROVIDER_NAME}]: Locations cleared.`);
 
         // 5. Verify Images are gone (optional sanity check - they should be gone via item deletion)
         const remainingImagesRes = await fetch(`${baseUrl}/images?select=image_id&limit=1`, { headers: defaultHeaders(settings, false) });
         if (remainingImagesRes.ok) {
             const remainingImages = await remainingImagesRes.json();
             if (remainingImages.length > 0) {
-                console.warn(`[${PROVIDER_NAME}]: Some images might remain after destroy operation. Manual cleanup may be needed.`); // Add prefix
+                console.warn(`[${PROVIDER_NAME}]: Some images might remain after destroy operation. Manual cleanup may be needed.`);
                 // Optionally attempt direct image deletion here if needed
             } else {
-                 console.log(`[${PROVIDER_NAME}]: Image table confirmed empty.`); // Add prefix
+                 console.log(`[${PROVIDER_NAME}]: Image table confirmed empty.`);
             }
         }
 
 
-        console.log(`[${PROVIDER_NAME}]: Data destruction completed successfully.`); // Add prefix
+        console.log(`[${PROVIDER_NAME}]: Data destruction completed successfully.`);
         return { success: true, summary: `All data successfully destroyed.` };
 
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error during PostgREST data destruction:`, error); // Add prefix
+        console.error(`[${PROVIDER_NAME}]: Error during PostgREST data destruction:`, error);
         return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
     }
 };
