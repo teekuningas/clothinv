@@ -84,17 +84,6 @@
     font-size: 0.9em;
 }
 
-/* Responsive stacking for image action buttons */
-@media (width <= 600px) {
-    .form-group-image-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .add-item-form .image-preview {
-        align-self: center;
-    }
-}
 
 .add-item-form .image-preview {
     align-self: center;
