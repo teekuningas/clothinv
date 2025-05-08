@@ -1173,12 +1173,20 @@ const ItemsView = () => {
         !loading &&
         allItemsMetadata.length === 0 && // No items in the source at all
         !error && (
-          <p>
-            {intl.formatMessage({
-              id: "items.list.empty",
-              defaultMessage: "No items found. Add one!",
-            })}
-          </p>
+          <div>
+            <p>
+              {intl.formatMessage({
+                id: "items.list.empty.main",
+                defaultMessage: "Your collection awaits.",
+              })}
+            </p>
+            <p>
+              {intl.formatMessage({
+                id: "items.list.empty.newUserGuidance",
+                defaultMessage: "To add your first item, please begin by creating a Location, Category, and Owner in their respective sections, accessible from the navigation menu.",
+              })}
+            </p>
+          </div>
         )}
       {/* Message for no items matching filters, but there are items in total */}
       {api.isConfigured &&
