@@ -263,7 +263,7 @@
     "items.addItemFAB.label": "Lisää uusi vaate",
     "settings.data.share.title": "Jaa nykyiset asetukset",
     "settings.data.share.description": "Luo jaettava linkki nykyisillä sovellusasetuksillasi. Näin muut voivat helposti käyttää samoja asetuksia, mukaan lukien API-palvelun tiedot. Hyödyllinen yhteistyöhön tai asennukseen uusille laitteille.",
-    "settings.data.share.warning": "Luotu linkki sisältää kaikki nykyiset asetukset, mukaan lukien mahdolliset API-avaimet. Jaa tämä linkki vain luotettaville henkilöille, sillä he saavat samat käyttöoikeudet ja asetukset kuin sinä.",
+    "settings.data.share.warning": "Varoitus: Luotu linkki sisältää kaikki nykyiset asetukset, mukaan lukien mahdolliset API-avaimet. Jaa tämä linkki vain luotettaville henkilöille, sillä he saavat samat käyttöoikeudet ja asetukset kuin sinä.",
     "settings.data.share.button": "Luo jaettava linkki",
     "api.destroy.successSummary": "Kaikki tiedot tuhottu onnistuneesti.",
     "api.import.errorDetailInconsistent": "Tuonti epäonnistui: {detail}. Tiedot saattavat olla epäyhtenäisessä tilassa.",
