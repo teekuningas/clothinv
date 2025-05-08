@@ -195,28 +195,20 @@ export const deleteLocation = async (settings, inputData) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!locationId) throw new Error("Location ID is required for deletion.");
 
-    // Dependency Check: Check if any items use this location
-    const checkUrl = `${baseUrl}/items.json?location_id=eq.${locationId}&_size=1&_shape=array`;
+    // Dependency Check: Fetch all items and check if any use this location
     try {
-        const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!checkRes.ok) {
-            const errorText = await checkRes.text(); // Get error text for logging
-            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for location ${locationId}: ${checkRes.status} ${errorText}`);
-            return { success: false, error: `Failed to check dependencies for location: ${checkRes.status}` };
-        }
-        // If checkRes.ok, try to parse JSON
-        const checkData = await checkRes.json(); // This could throw if not valid JSON
-        if (checkData && checkData.length > 0) {
+        const allItems = await listItems(settings); // listItems fetches all item metadata
+        const isUsed = allItems.some(item => item.location_id === locationId);
+        if (isUsed) {
             console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is used by items.`);
             return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
-        // If we reach here, dependencies are clear or checkData was empty/null
-    } catch (error) { // Catches errors from fetch itself (network) or from await checkRes.json()
-        console.error(`[${PROVIDER_NAME}]: Exception during dependency check for location ${locationId}:`, error);
-        return { success: false, error: `Exception during dependency check for location: ${error.message}` };
+    } catch (error) {
+        console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for location ${locationId}:`, error);
+        return { success: false, error: `Failed to check dependencies for location: ${error.message}` };
     }
 
-    // Proceed with deletion
+    // Proceed with deletion (this part remains the same)
     const deleteUrl = `${baseUrl}/locations/${locationId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
@@ -280,26 +272,20 @@ export const deleteCategory = async (settings, inputData) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!categoryId) throw new Error("Category ID is required for deletion.");
 
-    // Dependency Check: Check if any items use this category
-    const checkUrl = `${baseUrl}/items.json?category_id=eq.${categoryId}&_size=1&_shape=array`;
+    // Dependency Check: Fetch all items and check if any use this category
     try {
-        const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!checkRes.ok) {
-            const errorText = await checkRes.text();
-            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for category ${categoryId}: ${checkRes.status} ${errorText}`);
-            return { success: false, error: `Failed to check dependencies for category: ${checkRes.status}` };
-        }
-        const checkData = await checkRes.json();
-        if (checkData && checkData.length > 0) {
+        const allItems = await listItems(settings);
+        const isUsed = allItems.some(item => item.category_id === categoryId);
+        if (isUsed) {
             console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is used by items.`);
             return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Exception during dependency check for category ${categoryId}:`, error);
-        return { success: false, error: `Exception during dependency check for category: ${error.message}` };
+        console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for category ${categoryId}:`, error);
+        return { success: false, error: `Failed to check dependencies for category: ${error.message}` };
     }
 
-    // Proceed with deletion
+    // Proceed with deletion (this part remains the same)
     const deleteUrl = `${baseUrl}/categories/${categoryId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
@@ -410,26 +396,20 @@ export const deleteOwner = async (settings, inputData) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!ownerId) throw new Error("Owner ID is required for deletion.");
 
-    // Dependency Check: Check if any items use this owner
-    const checkUrl = `${baseUrl}/items.json?owner_id=eq.${ownerId}&_size=1&_shape=array`;
+    // Dependency Check: Fetch all items and check if any use this owner
     try {
-        const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (!checkRes.ok) {
-            const errorText = await checkRes.text();
-            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for owner ${ownerId}: ${checkRes.status} ${errorText}`);
-            return { success: false, error: `Failed to check dependencies for owner: ${checkRes.status}` };
-        }
-        const checkData = await checkRes.json();
-        if (checkData && checkData.length > 0) {
+        const allItems = await listItems(settings);
+        const isUsed = allItems.some(item => item.owner_id === ownerId);
+        if (isUsed) {
             console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is used by items.`);
             return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Exception during dependency check for owner ${ownerId}:`, error);
-        return { success: false, error: `Exception during dependency check for owner: ${error.message}` };
+        console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for owner ${ownerId}:`, error);
+        return { success: false, error: `Failed to check dependencies for owner: ${error.message}` };
     }
 
-    // Proceed with deletion
+    // Proceed with deletion (this part remains the same)
     const deleteUrl = `${baseUrl}/owners/${ownerId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
@@ -737,40 +717,58 @@ const _getImageByUuid = async (settings, imageUuid) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!imageUuid) {
-        console.warn(`[${PROVIDER_NAME}]: _getImageByUuid called with no UUID`);
+        console.warn(`[${PROVIDER_NAME}]: _getImageByUuid called with no UUID.`);
         return null;
     }
 
-    // Query the images table by UUID. Assuming 'images' table has 'uuid', 'image_data', 'image_mimetype', 'image_filename'
-    // Using _shape=array and taking the first element, or _shape=object if your Datasette setup allows direct object fetch by non-PK.
-    // If UUID is unique, _size=1 is good.
-    const queryUrl = `${baseUrl}/images.json?uuid=eq.${imageUuid}&_shape=array&_size=1`;
+    // Explicitly select required columns.
+    const queryUrl = `${baseUrl}/images.json?uuid=eq.${imageUuid}&_shape=array&_size=1&_select=image_data,image_mimetype,image_filename,uuid`;
+    console.log(`[${PROVIDER_NAME}]: Fetching image with query: ${queryUrl}`); // Log the query
+
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
     });
 
     if (!res.ok) {
-        // If image not found (404), return null, otherwise throw error
-        if (res.status === 404) {
-            return null;
-        }
         const errorText = await res.text();
-        console.error(`[${PROVIDER_NAME}]: Failed to fetch image by UUID ${imageUuid}: ${res.status} ${errorText}`, res);
-        throw new Error(`Failed to fetch image by UUID ${imageUuid}: ${res.status}`);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch image by UUID ${imageUuid}. Status: ${res.status}, Response: ${errorText}`);
+        if (res.status === 404) {
+            return null; // Explicitly return null on 404
+        }
+        // For other errors, throw to indicate a more significant problem
+        throw new Error(`Failed to fetch image by UUID ${imageUuid}: ${res.status} ${errorText}`);
     }
 
     const data = await res.json();
-    if (!data || data.length === 0) {
+    if (!data) {
+        console.warn(`[${PROVIDER_NAME}]: Image query for UUID ${imageUuid} returned non-array data (or null/undefined after parse):`, data);
         return null;
     }
-    const imageData = data[0]; // Get the first object from the array
+    if (data.length === 0) {
+        console.warn(`[${PROVIDER_NAME}]: Image query for UUID ${imageUuid} returned an empty array. No image found.`);
+        return null;
+    }
 
-    if (imageData.image_data && imageData.image_mimetype) {
+    const imageData = data[0];
+
+    if (!imageData.image_data) {
+        console.warn(`[${PROVIDER_NAME}]: Image data for UUID ${imageUuid} is missing 'image_data' field. Record:`, imageData);
+        return null;
+    }
+    if (!imageData.image_mimetype) {
+        console.warn(`[${PROVIDER_NAME}]: Image data for UUID ${imageUuid} is missing 'image_mimetype' field. Record:`, imageData);
+        return null;
+    }
+
+    // If we reach here, we should have the necessary data
+    try {
         const blob = base64ToBlob(imageData.image_data, imageData.image_mimetype);
         return { blob, filename: imageData.image_filename || `image_${imageUuid}` };
+    } catch (e) {
+        console.error(`[${PROVIDER_NAME}]: Error converting base64 to Blob for image UUID ${imageUuid}:`, e, "Image Data:", imageData);
+        return null;
     }
-    return null;
 };
 
 // New exported method getImage
