@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
 
@@ -7,6 +7,7 @@ const ConfigureFromUrlView = () => {
   const [searchParams] = useSearchParams();
   const intl = useIntl();
   const { updateSettings } = useSettings(); // Use the generic updateSettings
+  const navigate = useNavigate();
   const [statusMessage, setStatusMessage] = useState(
     intl.formatMessage({
       id: "configure.status.processing",
@@ -56,16 +57,19 @@ const ConfigureFromUrlView = () => {
         }),
       );
       // Use replace: true so the /configure URL isn't in the browser history
+      // Use replace: true so the /configure URL isn't in the browser history
       // import.meta.env.BASE_URL is provided by Vite and corresponds to the 'base' option in vite.config.js
       // It will be '/' if not specified, or e.g., '/my-repo/' if base: '/my-repo/'
       // It correctly ends with a '/' if it's a subpath, or is just '/' for the root.
       // Path join: if BASE_URL is '/', result is '/items'. If BASE_URL is '/app/', result is '/app/items'.
-      const redirectPath = new URL(
-        "items",
-        `${window.location.origin}${import.meta.env.BASE_URL}`,
-      ).pathname;
+      // const redirectPath = new URL(
+      //   "items",
+      //   `${window.location.origin}${import.meta.env.BASE_URL}`,
+      // ).pathname;
       setTimeout(() => {
-        window.location.replace(redirectPath);
+        // window.location.replace(redirectPath);
+        // Navigate to the items view, replacing the current history entry
+        navigate("/items", { replace: true });
       }, 50);
     } catch (error) {
       console.error("Error processing configuration from URL:", error);
