@@ -1,13 +1,13 @@
 # Clothinv
 
-Clothinv is a minimalist application designed for straightforward clothing inventory management. It prioritizes simplicity and a focused user experience, allowing you to catalog and browse your wardrobe with ease. By default, Clothinv operates entirely within your browser, offering a private and configuration-free experience.
+Clothinv is a minimalist application for clothing inventory management. It allows cataloging and browsing your wardrobe. By default, Clothinv operates entirely within your browser, using private, configuration-free local storage.
 
 ## Core Features
 
 *   Catalog clothing items with images and essential metadata (e.g., owner, category, location).
-*   Intuitive interface for browsing and searching your inventory.
+*   Interface for browsing and searching your inventory.
 *   Data export and import functionality (as a ZIP file) for backup and migration.
-*   Flexible data storage options:
+*   Data storage options:
     *   Browser-local IndexedDB (default, zero-configuration).
     *   Self-hosted Datasette backend.
     *   Self-hosted PostgREST backend (with PostgreSQL).
@@ -18,11 +18,11 @@ There are several ways to use Clothinv:
 
 ### 1. Online Version (Recommended)
 
-The easiest way to use Clothinv is via the publicly hosted version:
+Clothinv can be used via the publicly hosted version:
 
 **[https://teekuningas.github.io/clothinv](https://teekuningas.github.io/clothinv)**
 
-No setup is required. All data is stored locally in your web browser's IndexedDB and localStorage. This is a secure, private, and entirely client-side solution, perfect for personal use.
+No setup is required. All data is stored locally in your web browser's IndexedDB and localStorage. This provides a private and client-side solution.
 
 ### 2. Self-Hosting with Docker (Static Files)
 
@@ -85,7 +85,7 @@ The import function allows restoring data from such a `.zip` file. This feature 
 
 ### Sharing Configuration (with a Persistent Backend)
 
-When Clothinv is configured to use a persistent backend (Datasette or PostgREST), you can easily share access to your inventory:
+When Clothinv is configured to use a persistent backend (Datasette or PostgREST), you can share access to your inventory:
 
 1.  Set up Clothinv with your chosen persistent backend.
 2.  Navigate to the "Settings" page.
@@ -94,4 +94,4 @@ When Clothinv is configured to use a persistent backend (Datasette or PostgREST)
 
 Opening this URL will pre-configure their Clothinv instance to connect to the same backend, enabling shared access to the inventory data.
 
-**Note on Simplicity:** Clothinv maintains its design philosophy of simplicity by not implementing user accounts, fine-grained permissions, or user groups. All users accessing a shared backend via the configuration URL will have the same level of access to the data.
+**Note:** Clothinv does not implement user accounts, fine-grained permissions, or user groups. All users accessing a shared backend via the configuration URL will have the same level of access to the data.
