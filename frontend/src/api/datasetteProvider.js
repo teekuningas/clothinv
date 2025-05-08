@@ -12,6 +12,14 @@ import {
 // At the top of the file, for convenience
 const PROVIDER_NAME = "Datasette Provider";
 
+// Helper to extract ID from Datasette's FK object or return as is
+const extractId = (field) => {
+    if (field && typeof field === 'object' && field.hasOwnProperty('value')) {
+        return field.value;
+    }
+    return field; // Return as is if it's already a number, null, or undefined
+};
+
 // Helper to generate headers, extracting token from settings
 // The import block that was here has been removed.
 // The first import at the very top of the file is sufficient.
@@ -597,7 +605,9 @@ export const updateItem = async (settings, inputData) => { // data should NOT co
     const currentItemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object&_select=image_id,image_uuid,uuid`, { headers: { 'Accept': 'application/json' } });
     if (!currentItemRes.ok) throw new Error(`Failed to fetch current item data for update: ${currentItemRes.status}`);
     const currentItemData = await currentItemRes.json();
-    const existingImageId = currentItemData[itemId]?.image_id; // Datasette object shape
+        
+        // Use extractId for image_id
+        const existingImageId = currentItemData[itemId] ? extractId(currentItemData[itemId].image_id) : null;
     let existingImageUuid = currentItemData[itemId]?.image_uuid; // Get existing image UUID
 
     let newImageId = existingImageId; // Assume image doesn't change initially
@@ -670,7 +680,8 @@ export const deleteItem = async (settings, inputData) => {
     const itemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object&_select=image_id`); // Only need image_id
     if (itemRes.ok) {
         const itemData = await itemRes.json();
-        const imageId = itemData[itemId]?.image_id;
+            // Use extractId for image_id
+            const imageId = itemData[itemId] ? extractId(itemData[itemId].image_id) : null;
         if (imageId) await _deleteImage(settings, imageId); // Delete image if it exists (handles its own errors)
     } // Ignore error if item not found
 
@@ -704,8 +715,20 @@ export const listItems = async (settings) => {
             const errorText = await itemsRes.text();
             throw new Error(`Failed to fetch items metadata: ${itemsRes.status} ${errorText}`);
         }
-        const allItemsMetadata = await itemsRes.json();
-        return allItemsMetadata || []; // Return raw metadata array
+        let allItemsMetadata = await itemsRes.json();
+            
+            // Transform FK fields from {value, label} objects to simple IDs
+            if (allItemsMetadata && Array.isArray(allItemsMetadata)) {
+                allItemsMetadata = allItemsMetadata.map(item => ({
+                    ...item,
+                    location_id: extractId(item.location_id),
+                    category_id: extractId(item.category_id),
+                    owner_id: extractId(item.owner_id),
+                    image_id: extractId(item.image_id),
+                    // item_id, uuid, image_uuid, name, description, created_at, updated_at should be direct values
+                }));
+            }
+        return allItemsMetadata || []; // Return transformed metadata array
     } catch (error) {
         console.error("Error in Datasette listItems:", error);
         throw error;
