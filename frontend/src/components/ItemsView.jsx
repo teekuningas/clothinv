@@ -1174,7 +1174,7 @@ const ItemsView = () => {
         allItemsMetadata.length === 0 && // No items in the source at all
         !error && (
           <div>
-            <p>
+            <p style={{marginBottom: "20px"}}>
               {intl.formatMessage({
                 id: "items.list.empty.main",
                 defaultMessage: "Your collection awaits.",
