@@ -531,121 +531,85 @@ export const deleteItem = async (settings, itemId) => {
     return { success: true }; // Return success even if item/image was already gone
 };
 
-export const listItems = async (settings, options) => {
+// listItems: Remove options, pagination, filtering, sorting, and direct image fetching.
+export const listItems = async (settings) => {
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
 
-    const { page, pageSize, sortBy, sortOrder, filters } = options || {}; // Ensure options is an object, provide defaults if needed
-
     try {
-        // 1. Fetch all items metadata (basic data + image_id + uuids)
-        const itemsUrl = `${baseUrl}/items?select=*,image_id,image_uuid&order=created_at.desc`; // Fetch all, initial sort can be simple
+        // Fetch all items metadata, including all relevant IDs and UUIDs
+        // Ensure select includes: item_id, uuid, name, description, location_id, category_id, owner_id, image_id, image_uuid, created_at, updated_at
+        const itemsUrl = `${baseUrl}/items?select=*,image_id,image_uuid&order=created_at.desc`;
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: defaultHeaders(settings, false)
         });
         const itemsResult = await handleResponse(itemsRes, 'list', 'all items metadata');
-        let allItemsMetadata = itemsResult.data || [];
-
-        // 2. Apply Filtering (client-side)
-        let filteredItems = allItemsMetadata.filter(item => {
-            let matches = true;
-            if (filters.name) {
-                const searchTerm = filters.name.toLowerCase();
-                const nameMatch = item.name?.toLowerCase().includes(searchTerm);
-                const descMatch = item.description?.toLowerCase().includes(searchTerm);
-                if (!nameMatch && !descMatch) matches = false;
-            }
-            if (matches && filters.locationIds && !filters.locationIds.includes(item.location_id)) {
-                matches = false;
-            }
-            if (matches && filters.categoryIds && !filters.categoryIds.includes(item.category_id)) {
-                matches = false;
-            }
-            if (matches && filters.ownerIds && !filters.ownerIds.includes(item.owner_id)) {
-                matches = false;
-            }
-            return matches;
-        });
-
-        // 3. Apply Sorting (client-side)
-        filteredItems.sort((a, b) => {
-            const valA = a[sortBy];
-            const valB = b[sortBy];
-            let comparison = 0;
-            if (valA > valB) comparison = 1;
-            else if (valA < valB) comparison = -1;
-            return sortOrder === 'desc' ? comparison * -1 : comparison;
-        });
-
-        // 4. Calculate totalCount (after filtering, before pagination)
-        const totalCount = filteredItems.length;
-
-        // 5. Apply Pagination (client-side)
-        let paginatedItemMetadata = filteredItems; // Default to all filtered items
-        if (page && pageSize) { // Only paginate if page and pageSize are provided and are numbers
-            const numericPage = Number(page);
-            const numericPageSize = Number(pageSize);
-            if (!isNaN(numericPage) && numericPage > 0 && !isNaN(numericPageSize) && numericPageSize > 0) {
-                const startIndex = (numericPage - 1) * numericPageSize;
-                paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + numericPageSize);
-            } else {
-                console.warn("listItems: Invalid page or pageSize provided, returning all filtered items.", { page, pageSize });
-            }
-        }
-
-        // If no items after pagination, return early
-        if (paginatedItemMetadata.length === 0) {
-            return { items: [], totalCount: totalCount };
-        }
-
-        // 6. Fetch images only for the paginated subset
-        const imageIdsForPage = paginatedItemMetadata
-            .map(item => item.image_id)
-            .filter(id => id != null);
-
-        let imageMap = {};
-        if (imageIdsForPage.length > 0) {
-            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIdsForPage.join(',')})&select=image_id,image_data,image_mimetype,image_filename`;
-            const imagesRes = await fetch(imagesUrl, {
-                method: 'GET',
-                headers: defaultHeaders(settings, false)
-            });
-            if (imagesRes.ok) {
-                const imagesPageResult = await handleResponse(imagesRes, 'list page images', 'images for page');
-                const imagesPageData = imagesPageResult.data || [];
-                imageMap = imagesPageData.reduce((map, img) => {
-                    if (img.image_id && img.image_data && img.image_mimetype) {
-                        const blob = base64ToBlob(img.image_data, img.image_mimetype);
-                        if (blob) {
-                            map[img.image_id] = {
-                                blob: blob,
-                                filename: img.image_filename || `image_${img.image_id}`
-                            };
-                        }
-                    }
-                    return map;
-                }, {});
-            } else {
-                console.warn(`Failed to fetch images for page: ${imagesRes.status}. Items will be listed without images.`);
-            }
-        }
-
-        // 7. Merge image File object into paginated items
-        const itemsWithFiles = paginatedItemMetadata.map(item => {
-            let imageFile = null;
-            if (item.image_id && imageMap[item.image_id]) {
-                const { blob, filename } = imageMap[item.image_id];
-                imageFile = new File([blob], filename, { type: blob.type });
-            }
-            return { ...item, imageFile: imageFile };
-        });
-
-        return { items: itemsWithFiles, totalCount: totalCount };
-
+        return itemsResult.data || []; // Return raw metadata array
     } catch (error) {
         console.error("Error in PostgREST listItems:", error);
         throw error;
+    }
+};
+
+// New internal helper to get image by UUID
+const _getImageByUuid = async (settings, imageUuid) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
+    if (!imageUuid) {
+        console.warn("_getImageByUuid called with no UUID");
+        return null;
+    }
+
+    const queryUrl = `${baseUrl}/images?uuid=eq.${imageUuid}&select=image_data,image_mimetype,image_filename&limit=1`;
+    const res = await fetch(queryUrl, {
+        method: 'GET',
+        headers: defaultHeaders(settings, false)
+    });
+
+    if (!res.ok) {
+        if (res.status === 404) {
+            console.log(`Image not found for UUID: ${imageUuid}`);
+            return null;
+        }
+        // For other errors, let handleResponse process it, then catch and re-throw or return null
+        try {
+            await handleResponse(res, 'fetch image by UUID', `image UUID ${imageUuid}`);
+        } catch (e) {
+            console.error(`Failed to fetch image by UUID ${imageUuid}: ${e.message}`);
+            throw e; // Or return null if preferred
+        }
+        return null; // Should be unreachable if handleResponse throws
+    }
+    
+    const result = await res.json(); // handleResponse would do this, but we need more direct control for 404
+    const imageDataArray = result; // PostgREST returns an array
+
+    if (!imageDataArray || imageDataArray.length === 0) {
+        console.log(`Image data not found in response for UUID: ${imageUuid}`);
+        return null;
+    }
+    const imageData = imageDataArray[0];
+
+    if (imageData.image_data && imageData.image_mimetype) {
+        const blob = base64ToBlob(imageData.image_data, imageData.image_mimetype);
+        return { blob, filename: imageData.image_filename || `image_${imageUuid}` };
+    }
+    return null;
+};
+
+// New exported method getImage
+export const getImage = async (settings, imageUuid) => {
+    if (!imageUuid) return null;
+    try {
+        const imageDetails = await _getImageByUuid(settings, imageUuid);
+        if (imageDetails && imageDetails.blob) {
+            return new File([imageDetails.blob], imageDetails.filename, { type: imageDetails.blob.type });
+        }
+        return null;
+    } catch (error) {
+        console.error(`Error in getImage for PostgREST, UUID ${imageUuid}:`, error);
+        return null;
     }
 };
 
@@ -661,10 +625,8 @@ export const exportData = async (settings) => {
         const locations = await listLocations(settings);
         const categories = await listCategories(settings);
         const owners = await listOwners(settings);
-        // Fetch items metadata including UUIDs
-        const itemsRes = await fetch(`${baseUrl}/items?order=created_at.desc`, { headers: defaultHeaders(settings, false) });
-        const itemsResult = await handleResponse(itemsRes, 'list items for export', 'items');
-        const itemsMetadata = itemsResult.data || [];
+        // listItems now returns all item metadata without File objects.
+        const itemsMetadata = await listItems(settings); // Changed variable name
 
         // Fetch all image metadata separately for images.csv
         const imagesMetaUrl = `${baseUrl}/images?select=image_id,uuid,image_mimetype,image_filename,created_at&order=image_id`;
@@ -689,45 +651,20 @@ export const exportData = async (settings) => {
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
-        // Fetch all images needed for the export
-        const imageIds = itemsMetadata.map(item => item.image_id).filter(id => id != null);
-        let imageExportMap = {};
-        if (imageIds.length > 0) {
-            const imagesUrl = `${baseUrl}/images?image_id=in.(${imageIds.join(',')})&select=image_id,image_data,image_mimetype,image_filename`; // Select necessary fields
-            const imagesRes = await fetch(imagesUrl, { headers: defaultHeaders(settings, false) });
-            if (imagesRes.ok) {
-                const imagesResult = await handleResponse(imagesRes, 'list images for export', 'images');
-                const imagesData = imagesResult.data || [];
-                imageExportMap = imagesData.reduce((map, img) => {
-                    if (img.image_id && img.image_data && img.image_mimetype) {
-                        const blob = base64ToBlob(img.image_data, img.image_mimetype);
-                        if (blob) {
-                            map[img.image_id] = {
-                                blob: blob,
-                                filename: img.image_filename || `image_${img.image_id}`
-                            };
-                        }
-                    }
-                    return map;
-                }, {});
-            } else {
-                console.warn(`Failed to fetch images for export: ${imagesRes.status}. Export will not contain images.`);
-            }
-        }
-
-        for (const item of itemsMetadata) {
+        for (const item of itemsMetadata) { // Iterate over metadata
             const itemCsvRow = { ...item };
             itemCsvRow.image_zip_filename = '';
             itemCsvRow.image_original_filename = '';
-            // item_id, uuid, image_id, image_uuid are already in itemCsvRow from the initial fetch
 
-            if (item.image_id && imageExportMap[item.image_id]) {
-                const { blob, filename } = imageExportMap[item.image_id];
-                const fileExtension = filename.split('.').pop() || 'bin';
-                const zipFilename = `${item.item_id}.${fileExtension}`; // Use item_id for unique name in zip
-                itemCsvRow.image_zip_filename = zipFilename;
-                itemCsvRow.image_original_filename = filename;
-                imagesFolder.file(zipFilename, blob); // Add blob to zip
+            if (item.image_uuid) { // Check if there's an associated image UUID
+                const imageFile = await getImage(settings, item.image_uuid); // Fetch the image File object
+                if (imageFile instanceof File) {
+                    const fileExtension = imageFile.name.split('.').pop() || 'bin';
+                    const zipFilename = `${item.item_id}.${fileExtension}`;
+                    itemCsvRow.image_zip_filename = zipFilename;
+                    itemCsvRow.image_original_filename = imageFile.name;
+                    imagesFolder.file(zipFilename, imageFile);
+                }
             }
             itemsForCsv.push(itemCsvRow);
         }
@@ -943,9 +880,9 @@ export const destroyData = async (settings) => {
 
         // 1. Delete Items (which should trigger image deletion via deleteItem logic)
         console.log("Fetching items to delete...");
-        const itemsToDelete = await listItems(settings); // Fetches items with image info
-        console.log(`Deleting ${itemsToDelete.length} items...`);
-        for (const item of itemsToDelete) {
+        const itemsMetadataToDelete = await listItems(settings); // Fetches all item metadata
+        console.log(`Deleting ${itemsMetadataToDelete.length} items...`);
+        for (const item of itemsMetadataToDelete) { // Iterate over metadata
             await deleteItem(settings, item.item_id); // deleteItem handles image deletion
         }
         console.log("Items cleared.");

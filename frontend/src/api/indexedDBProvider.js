@@ -139,7 +139,8 @@ export const exportData = async (settings) => {
         const locations = await getAllFromStore(STORES.locations);
         const categories = await getAllFromStore(STORES.categories);
         const owners = await getAllFromStore(STORES.owners);
-        const itemsMetadata = await getAllFromStore(STORES.items);
+        // listItems now returns all item metadata without File objects.
+        const itemsMetadata = await listItems(settings); // Fetches all item metadata
 
         // 2. Create CSVs
         const locationHeaders = ['location_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
@@ -159,41 +160,37 @@ export const exportData = async (settings) => {
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
-        // Fetch all images first to avoid multiple DB calls per item
-        const allImages = await getAllImagesWithKeys(); // Helper needed
-
-        for (const item of itemsMetadata) {
+        for (const item of itemsMetadata) { // Iterate over metadata
             const itemCsvRow = { ...item };
-            itemCsvRow.image_zip_filename = ''; // Default to empty
-            itemCsvRow.image_original_filename = ''; // Default to empty
-            itemCsvRow.image_uuid = ''; // Default to empty
+            itemCsvRow.image_zip_filename = '';
+            itemCsvRow.image_original_filename = '';
+            // image_uuid is already in item metadata
 
-            const imageFile = allImages[item.item_id]; // Use the map
+            if (item.image_uuid) { // Check if there's an associated image UUID
+                // Fetch the image File object using the new getImage method
+                const imageFile = await getImage(settings, item.image_uuid);
+                if (imageFile instanceof File) {
+                    const fileExtension = imageFile.name.split('.').pop() || 'bin';
+                    const zipFilename = `${item.item_id}.${fileExtension}`; // Use item_id for zip filename
+                    itemCsvRow.image_zip_filename = zipFilename;
+                    itemCsvRow.image_original_filename = imageFile.name;
+                    // itemCsvRow.image_id = item.item_id; // Already part of item
 
-            if (imageFile instanceof File) {
-                const fileExtension = imageFile.name.split('.').pop() || 'bin';
-                const zipFilename = `${item.item_id}.${fileExtension}`;
-                itemCsvRow.image_zip_filename = zipFilename;
-                itemCsvRow.image_original_filename = imageFile.name;
-                itemCsvRow.image_uuid = item.image_uuid; // Get image_uuid from item metadata
-                itemCsvRow.image_id = item.item_id; // Use item_id as the key for the image
+                    imagesFolder.file(zipFilename, imageFile);
 
-                // Add image file to zip
-                imagesFolder.file(zipFilename, imageFile); // JSZip can handle File objects directly
-
-                // Add image metadata to images CSV data
-                imagesForCsv.push({
-                    image_id: item.item_id, // Use item_id as the key
-                    uuid: item.image_uuid, // The UUID of the image itself
-                    image_mimetype: imageFile.type,
-                    image_filename: imageFile.name,
-                    created_at: item.created_at // Use item creation time for image? Or store separately? Let's use item's for now.
-                });
+                    imagesForCsv.push({
+                        image_id: item.item_id, // Use item_id as the key/ID for the image in this context
+                        uuid: item.image_uuid,
+                        image_mimetype: imageFile.type,
+                        image_filename: imageFile.name,
+                        created_at: item.created_at // Or a more specific image creation time if available
+                    });
+                }
             }
             itemsForCsv.push(itemCsvRow);
         }
         zip.file('items.csv', createCSV(itemHeaders, itemsForCsv));
-        zip.file('images.csv', createCSV(imageHeaders, imagesForCsv)); // Add images.csv
+        zip.file('images.csv', createCSV(imageHeaders, imagesForCsv));
 
         // 3. Create Manifest
         const manifest = {
@@ -801,86 +798,48 @@ export const deleteOwner = async (settings, ownerId) => {
 
 
 // Items
-export const listItems = async (settings, options) => {
-    console.log('IndexedDBProvider: listItems called with options:', options);
-    const { page, pageSize, sortBy, sortOrder, filters } = options || {}; // Ensure options is an object
-
+// listItems: Remove options, pagination, filtering, sorting, and direct image fetching.
+export const listItems = async (settings) => { // Remove options parameter
+    console.log('IndexedDBProvider: listItems called');
     try {
-        // 1. Fetch all items metadata
-        let allItemsMetadata = await getAllFromStore(STORES.items);
-
-        // 2. Apply Filtering (client-side)
-        let filteredItems = allItemsMetadata.filter(item => {
-            let matches = true;
-            if (filters.name) {
-                const searchTerm = filters.name.toLowerCase();
-                const nameMatch = item.name?.toLowerCase().includes(searchTerm);
-                const descMatch = item.description?.toLowerCase().includes(searchTerm);
-                if (!nameMatch && !descMatch) matches = false;
-            }
-            if (matches && filters.locationIds && !filters.locationIds.includes(item.location_id)) {
-                matches = false;
-            }
-            if (matches && filters.categoryIds && !filters.categoryIds.includes(item.category_id)) {
-                matches = false;
-            }
-            if (matches && filters.ownerIds && !filters.ownerIds.includes(item.owner_id)) {
-                matches = false;
-            }
-            return matches;
-        });
-
-        // 3. Apply Sorting (client-side)
-        // Ensure properties like 'created_at' and 'name' exist on items for sorting.
-        filteredItems.sort((a, b) => {
-            const valA = a[sortBy];
-            const valB = b[sortBy];
-            let comparison = 0;
-
-            // Handle different data types for sorting
-            if (typeof valA === 'string' && typeof valB === 'string') {
-                // For date strings like created_at, direct string comparison works if ISO format
-                // For general strings, localeCompare is better but simple comparison is fine for now
-                comparison = valA.localeCompare(valB);
-            } else {
-                if (valA > valB) comparison = 1;
-                else if (valA < valB) comparison = -1;
-            }
-            return sortOrder === 'desc' ? comparison * -1 : comparison;
-        });
-
-        // 4. Calculate totalCount
-        const totalCount = filteredItems.length;
-
-        // 5. Apply Pagination
-        let paginatedItemMetadata = filteredItems; // Default to all filtered items
-        if (page && pageSize) { // Only paginate if page and pageSize are provided and are numbers
-            const numericPage = Number(page);
-            const numericPageSize = Number(pageSize);
-            if (!isNaN(numericPage) && numericPage > 0 && !isNaN(numericPageSize) && numericPageSize > 0) {
-                const startIndex = (numericPage - 1) * numericPageSize;
-                paginatedItemMetadata = filteredItems.slice(startIndex, startIndex + numericPageSize);
-            } else {
-                console.warn("listItems (IndexedDB): Invalid page or pageSize provided, returning all filtered items.", { page, pageSize });
-            }
-        }
-
-        // 6. Fetch images (File objects) for the paginated subset
-        const itemsWithFiles = [];
-        for (const item of paginatedItemMetadata) {
-            const imageFile = await getFromStore(STORES.images, item.item_id); // item_id is the key for image
-            itemsWithFiles.push({
-                ...item,
-                imageFile: imageFile || null
-            });
-        }
-
-        console.log(`IndexedDBProvider: listed ${itemsWithFiles.length} items for page ${page}, total filtered: ${totalCount}.`);
-        return { items: itemsWithFiles, totalCount: totalCount };
-
+        // Fetch all items metadata
+        const allItemsMetadata = await getAllFromStore(STORES.items);
+        console.log(`IndexedDBProvider: listed ${allItemsMetadata.length} items metadata.`);
+        return allItemsMetadata; // Return raw metadata array
     } catch (error) {
         console.error("Error in IndexedDB listItems:", error);
         throw error;
+    }
+};
+
+// New exported method getImage
+export const getImage = async (settings, imageUuid) => {
+    console.log(`IndexedDBProvider: getImage called for image UUID: ${imageUuid}`);
+    if (!imageUuid) {
+        console.warn("IndexedDBProvider: getImage called with no imageUuid.");
+        return null;
+    }
+    try {
+        // To get the image, we first need to find which item it belongs to,
+        // as images are keyed by item_id in the STORES.images.
+        const allItems = await getAllFromStore(STORES.items);
+        const itemWithImage = allItems.find(item => item.image_uuid === imageUuid);
+
+        if (itemWithImage && itemWithImage.item_id) {
+            const imageFile = await getFromStore(STORES.images, itemWithImage.item_id);
+            if (imageFile instanceof File) {
+                return imageFile;
+            } else {
+                console.warn(`IndexedDBProvider: Image data found for item_id ${itemWithImage.item_id} (uuid: ${imageUuid}) was not a File object.`);
+                return null;
+            }
+        } else {
+            console.log(`IndexedDBProvider: No item found with image_uuid ${imageUuid}.`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error in IndexedDB getImage for UUID ${imageUuid}:`, error);
+        return null;
     }
 };
 
