@@ -835,22 +835,20 @@ const ItemsView = () => {
           ),
         );
 
-        // If the image was part of the update, clear its cached state to force a re-fetch.
-        // This is true if a new file was sent, an existing image was marked for removal,
-        // or the backend might have changed the image_uuid.
-        if (fileToSend || imageMarkedForRemoval) {
-          const updatedItemId = editingItemId; // Capture for use in state updaters
+        const updatedItemId = editingItemId; // Capture for use in state updaters
 
-          // Clear from itemImageFiles to ensure it's re-fetched
+        // If an image file was part of the update payload (sent or marked for removal),
+        // or if the API result includes an image_uuid (which it should on success),
+        // we need to update local state accordingly.
+        if (fileToSend || imageMarkedForRemoval || typeof result.image_uuid !== 'undefined') {
+          // Clear client-side File object and Blob URL caches for this item.
+          // This forces the image fetching useEffect to re-evaluate.
           setItemImageFiles(prevFiles => {
             const newFiles = { ...prevFiles };
-            // Deleting the key makes itemImageFiles[updatedItemId] === undefined,
-            // which triggers the image fetching useEffect.
             delete newFiles[updatedItemId];
             return newFiles;
           });
 
-          // Clear and revoke from displayedItemImageUrls
           setDisplayedItemImageUrls(prevUrls => {
             const newUrls = { ...prevUrls };
             if (newUrls[updatedItemId]) {
@@ -861,8 +859,33 @@ const ItemsView = () => {
           });
         }
 
+        // Immediately update the item's metadata in allItemsMetadata.
+        // This ensures that any subsequent processing (like image fetching)
+        // uses the most current data, especially the image_uuid returned by the API.
+        // It also provides immediate UI feedback for changed text fields.
+        setAllItemsMetadata(prevItems =>
+          prevItems.map(item =>
+            item.item_id === updatedItemId
+              ? {
+                  ...item,
+                  // Update fields from the edit form for immediate UI reflection
+                  name: editName.trim(),
+                  description: editDescription.trim() || null,
+                  location_id: parseInt(editLocationId, 10),
+                  category_id: parseInt(editCategoryId, 10),
+                  owner_id: parseInt(editOwnerId, 10),
+                  // Crucially, use image_uuid from the API call's result.
+                  // result.image_uuid is the definitive UUID (new, old, or null if removed).
+                  image_uuid: result.image_uuid,
+                  // updated_at will be refreshed by the subsequent fetchAllItemsMetadata call
+                }
+              : item
+          )
+        );
+
         handleCancelEdit(); // Close edit modal
-        fetchAllItemsMetadata(); // Refresh all metadata
+        fetchAllItemsMetadata(); // Refresh all metadata from the backend to ensure full consistency.
+                                 // The local updates above handle immediate UI needs.
       } else {
         setUpdateError(
           intl.formatMessage(
