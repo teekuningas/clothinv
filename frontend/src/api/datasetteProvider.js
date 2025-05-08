@@ -783,8 +783,6 @@ export const exportData = async (settings) => {
                 const imageFile = await getImage(settings, item.image_uuid); // Fetch the image File object
                 if (imageFile instanceof File) {
                     const fileExtension = imageFile.name.split('.').pop() || 'bin';
-                    // Use item.item_id for zip filename to ensure uniqueness if multiple items somehow shared an image_uuid (though unlikely)
-                    // Or, stick to image_uuid if that's preferred for the zip structure. Let's use item_id for consistency with previous logic.
                     const zipFilename = `${item.item_id}.${fileExtension}`;
                     itemCsvRow.image_zip_filename = zipFilename;
                     itemCsvRow.image_original_filename = imageFile.name;
