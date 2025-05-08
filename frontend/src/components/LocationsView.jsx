@@ -318,7 +318,9 @@ const LocationsView = () => {
 
     try {
       // Proceed with deletion - provider will check if in use
-      const result = await api.deleteLocation({ location_id: deleteCandidateId });
+      const result = await api.deleteLocation({
+        location_id: deleteCandidateId,
+      });
       if (result.success) {
         setSuccess(
           intl.formatMessage({
@@ -330,8 +332,10 @@ const LocationsView = () => {
         handleCancelEdit(); // Close edit modal as well if open
         fetchLocations(); // Refresh list
       } else {
-        if (result.errorCode === 'ENTITY_IN_USE') {
-          setDeleteError(intl.formatMessage({ id: "locations.error.deleteInUse" }));
+        if (result.errorCode === "ENTITY_IN_USE") {
+          setDeleteError(
+            intl.formatMessage({ id: "locations.error.deleteInUse" }),
+          );
         } else {
           setDeleteError(
             intl.formatMessage(
@@ -353,13 +357,15 @@ const LocationsView = () => {
       }
     } catch (err) {
       console.error("Failed to delete location:", err);
-      setDeleteError(intl.formatMessage(
-            {
-              id: "locations.error.delete",
-              defaultMessage: "Failed to delete location: {error}",
-            },
-            { error: err.message },
-          ));
+      setDeleteError(
+        intl.formatMessage(
+          {
+            id: "locations.error.delete",
+            defaultMessage: "Failed to delete location: {error}",
+          },
+          { error: err.message },
+        ),
+      );
     } finally {
       // Add a small delay before resetting loading state if successful
       const wasSuccessful = !!success; // Capture success state before potential async delay

@@ -89,7 +89,3 @@
     color: var(--color-primary); /* Darken or use primary color on hover */
     background-color: var(--color-bg-subtle); /* Optional: slight background on hover for feedback */
 }
-
-/* Note: .item-card p.item-description and .item-card p.item-meta styles were in ItemsView.css
-   but not used by the item card structure. They can be omitted here or kept if planned for future use.
-   For this refactor, they are omitted as the current card structure doesn't use them. */

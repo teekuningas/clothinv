@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import "./Gallery.css"; // Import the new CSS file
 
 const Gallery = ({
@@ -39,14 +38,15 @@ const Gallery = ({
                 : ""
             }
           >
-            {loadingImages[item.image_uuid] && !displayedItemImageUrls[item.item_id] && (
-              <div className="item-image-loading">
-                {intl.formatMessage({
-                  id: "items.card.imageLoading",
-                  defaultMessage: "Loading image...",
-                })}
-              </div>
-            )}
+            {loadingImages[item.image_uuid] &&
+              !displayedItemImageUrls[item.item_id] && (
+                <div className="item-image-loading">
+                  {intl.formatMessage({
+                    id: "items.card.imageLoading",
+                    defaultMessage: "Loading image...",
+                  })}
+                </div>
+              )}
             {displayedItemImageUrls[item.item_id] ? (
               <img
                 src={displayedItemImageUrls[item.item_id]}
@@ -79,25 +79,4 @@ const Gallery = ({
     </div>
   );
 };
-
-Gallery.propTypes = {
-  items: PropTypes.arrayOf(
-    PropTypes.shape({
-      item_id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      image_uuid: PropTypes.string, // Can be null
-    }),
-  ).isRequired,
-  onEditItem: PropTypes.func.isRequired,
-  onImageClick: PropTypes.func.isRequired,
-  displayedItemImageUrls: PropTypes.object.isRequired,
-  itemImageFiles: PropTypes.object.isRequired,
-  loadingImages: PropTypes.object.isRequired,
-  isLoading: PropTypes.bool.isRequired,
-  isUpdating: PropTypes.bool.isRequired,
-  isDeleting: PropTypes.bool.isRequired,
-  canUpdateItem: PropTypes.bool.isRequired,
-  intl: PropTypes.object.isRequired,
-};
-
 export default Gallery;

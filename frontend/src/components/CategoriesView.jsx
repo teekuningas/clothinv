@@ -319,7 +319,9 @@ const CategoriesView = () => {
 
     try {
       // Proceed with deletion - provider will check if in use
-      const result = await api.deleteCategory({ category_id: deleteCandidateId });
+      const result = await api.deleteCategory({
+        category_id: deleteCandidateId,
+      });
       if (result.success) {
         setSuccess(
           intl.formatMessage({
@@ -331,8 +333,10 @@ const CategoriesView = () => {
         handleCancelEdit(); // Close edit modal as well if open
         fetchCategories(); // Refresh list
       } else {
-        if (result.errorCode === 'ENTITY_IN_USE') {
-          setDeleteError(intl.formatMessage({ id: "categories.error.deleteInUse" }));
+        if (result.errorCode === "ENTITY_IN_USE") {
+          setDeleteError(
+            intl.formatMessage({ id: "categories.error.deleteInUse" }),
+          );
         } else {
           setDeleteError(
             intl.formatMessage(
@@ -354,13 +358,15 @@ const CategoriesView = () => {
       }
     } catch (err) {
       console.error("Failed to delete category:", err);
-      setDeleteError(intl.formatMessage(
-            {
-              id: "categories.error.delete",
-              defaultMessage: "Failed to delete category: {error}",
-            },
-            { error: err.message },
-          ));
+      setDeleteError(
+        intl.formatMessage(
+          {
+            id: "categories.error.delete",
+            defaultMessage: "Failed to delete category: {error}",
+          },
+          { error: err.message },
+        ),
+      );
     } finally {
       // Add a small delay before resetting loading state if successful
       const wasSuccessful = !!success; // Capture success state before potential async delay

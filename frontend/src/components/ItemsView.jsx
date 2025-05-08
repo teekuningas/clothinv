@@ -111,53 +111,51 @@ const ItemsView = () => {
   }, []); // Empty dependency array for unmount cleanup only
 
   const fetchAllItemsMetadata = useCallback(async () => {
-      if (!api.isConfigured || typeof api.listItems !== "function") {
-        setError(
-          api.isConfigured
-            ? intl.formatMessage({
-                id: "items.list.notSupported",
-                defaultMessage:
-                  "Listing items is not supported by the current API Provider.",
-              })
-            : intl.formatMessage({ id: "common.status.apiNotConfigured" }),
-        );
-        setAllItemsMetadata([]);
-        setTotalItemsCount(0);
-        setHasMoreItems(false);
-        setLoading(false);
-        return;
-      }
+    if (!api.isConfigured || typeof api.listItems !== "function") {
+      setError(
+        api.isConfigured
+          ? intl.formatMessage({
+              id: "items.list.notSupported",
+              defaultMessage:
+                "Listing items is not supported by the current API Provider.",
+            })
+          : intl.formatMessage({ id: "common.status.apiNotConfigured" }),
+      );
+      setAllItemsMetadata([]);
+      setTotalItemsCount(0);
+      setHasMoreItems(false);
+      setLoading(false);
+      return;
+    }
 
-      setLoading(true);
-      setError(null);
-      // Success messages are intentionally not cleared here to let them persist.
+    setLoading(true);
+    setError(null);
+    // Success messages are intentionally not cleared here to let them persist.
 
-      try {
-        const result = await api.listItems(); // No options passed
-        setAllItemsMetadata(result || []);
-        // Client-side processing useEffect will handle totalItemsCount, hasMoreItems, displayedItems, and currentPage reset.
-        setCurrentPage(0); // Reset to first page for new full dataset
-      } catch (err) {
-        console.error("Failed to fetch items:", err);
-        setError(
-          intl.formatMessage(
-            {
-              id: "items.error.fetch",
-              defaultMessage: "Failed to fetch items: {error}",
-            },
-            { error: err.message },
-          ),
-        );
-        setAllItemsMetadata([]);
-        setTotalItemsCount(0);
-        setHasMoreItems(false);
-        setCurrentPage(0);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [api, intl],
-  );
+    try {
+      const result = await api.listItems(); // No options passed
+      setAllItemsMetadata(result || []);
+      // Client-side processing useEffect will handle totalItemsCount, hasMoreItems, displayedItems, and currentPage reset.
+      setCurrentPage(0); // Reset to first page for new full dataset
+    } catch (err) {
+      console.error("Failed to fetch items:", err);
+      setError(
+        intl.formatMessage(
+          {
+            id: "items.error.fetch",
+            defaultMessage: "Failed to fetch items: {error}",
+          },
+          { error: err.message },
+        ),
+      );
+      setAllItemsMetadata([]);
+      setTotalItemsCount(0);
+      setHasMoreItems(false);
+      setCurrentPage(0);
+    } finally {
+      setLoading(false);
+    }
+  }, [api, intl]);
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
@@ -206,7 +204,10 @@ const ItemsView = () => {
       setAllItemsMetadata([]);
       setDisplayedItems([]);
       setItemImageFiles({});
-      setDisplayedItemImageUrls(prev => { Object.values(prev).forEach(URL.revokeObjectURL); return {}; });
+      setDisplayedItemImageUrls((prev) => {
+        Object.values(prev).forEach(URL.revokeObjectURL);
+        return {};
+      });
       setTotalItemsCount(0);
       setHasMoreItems(false);
       setLocations([]);
@@ -214,7 +215,12 @@ const ItemsView = () => {
       setOwners([]);
       setCurrentPage(0);
     }
-  }, [api.isConfigured, api.listItems, fetchAncillaryData, fetchAllItemsMetadata]);
+  }, [
+    api.isConfigured,
+    api.listItems,
+    fetchAncillaryData,
+    fetchAllItemsMetadata,
+  ]);
 
   // Effect for client-side filtering, sorting, and pagination
   useEffect(() => {
@@ -235,21 +241,30 @@ const ItemsView = () => {
       allItemsMetadata,
       filterCriteria,
       sortCriteria, // Pass the sortCriteria string directly
-      paginationCriteria
+      paginationCriteria,
     );
 
     setDisplayedItems(result.displayedItems);
     // totalItemsCount now reflects the count *after* filtering, before pagination
     setTotalItemsCount(result.totalFilteredItemsCount);
     setHasMoreItems(result.hasMoreItems);
-
-  }, [allItemsMetadata, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, sortCriteria, currentPage, pageSize, loading]);
+  }, [
+    allItemsMetadata,
+    filterName,
+    filterLocationIds,
+    filterCategoryIds,
+    filterOwnerIds,
+    sortCriteria,
+    currentPage,
+    pageSize,
+    loading,
+  ]);
 
   // Effect for Intersection Observer to load more items on scroll
   useEffect(() => {
     // Do not set up observer if API isn't configured, or if listItems isn't supported
-    if (!api.isConfigured || typeof api.listItems !== 'function') {
-        return;
+    if (!api.isConfigured || typeof api.listItems !== "function") {
+      return;
     }
 
     const observer = new IntersectionObserver(
@@ -260,7 +275,7 @@ const ItemsView = () => {
           setCurrentPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 1.0 } // Trigger when 100% of the loader is visible
+      { threshold: 1.0 }, // Trigger when 100% of the loader is visible
     );
 
     const currentLoaderRef = loaderRef.current;
@@ -277,31 +292,50 @@ const ItemsView = () => {
 
   // Effect to fetch images for displayed items
   useEffect(() => {
-    if (!api.isConfigured || typeof api.getImage !== 'function') {
+    if (!api.isConfigured || typeof api.getImage !== "function") {
       return;
     }
 
-    displayedItems.forEach(item => {
+    displayedItems.forEach((item) => {
       // Fetch if UUID exists, entry for item_id is undefined in itemImageFiles (meaning not fetched or marked as null/failed), and not currently loading
-      if (item.image_uuid && itemImageFiles[item.item_id] === undefined && !loadingImages[item.image_uuid]) {
-        setLoadingImages(prev => ({ ...prev, [item.image_uuid]: true }));
-        api.getImage({ image_uuid: item.image_uuid })
-          .then(imageFile => {
+      if (
+        item.image_uuid &&
+        itemImageFiles[item.item_id] === undefined &&
+        !loadingImages[item.image_uuid]
+      ) {
+        setLoadingImages((prev) => ({ ...prev, [item.image_uuid]: true }));
+        api
+          .getImage({ image_uuid: item.image_uuid })
+          .then((imageFile) => {
             if (imageFile instanceof File) {
-              setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: imageFile }));
+              setItemImageFiles((prevFiles) => ({
+                ...prevFiles,
+                [item.item_id]: imageFile,
+              }));
             } else if (imageFile === null) {
-              console.log(`Image not found or null for UUID: ${item.image_uuid}`);
+              console.log(
+                `Image not found or null for UUID: ${item.image_uuid}`,
+              );
               // Store null to indicate it was fetched and not found, preventing re-fetches
-              setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: null }));
+              setItemImageFiles((prevFiles) => ({
+                ...prevFiles,
+                [item.item_id]: null,
+              }));
             }
           })
-          .catch(err => {
-            console.error(`Failed to fetch image for UUID ${item.image_uuid}:`, err);
+          .catch((err) => {
+            console.error(
+              `Failed to fetch image for UUID ${item.image_uuid}:`,
+              err,
+            );
             // Mark as null on error to prevent re-fetch loops
-            setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: null }));
+            setItemImageFiles((prevFiles) => ({
+              ...prevFiles,
+              [item.item_id]: null,
+            }));
           })
           .finally(() => {
-            setLoadingImages(prev => ({ ...prev, [item.image_uuid]: false }));
+            setLoadingImages((prev) => ({ ...prev, [item.image_uuid]: false }));
           });
       }
     });
@@ -312,7 +346,7 @@ const ItemsView = () => {
     const newUrls = {}; // Accumulate URLs for the current displayedItems that have images
 
     // Create URLs for items that are currently displayed and have a File object
-    displayedItems.forEach(item => {
+    displayedItems.forEach((item) => {
       const file = itemImageFiles[item.item_id];
       if (file instanceof File) {
         // Only create a new URL if one doesn't already exist for this item_id,
@@ -326,20 +360,23 @@ const ItemsView = () => {
     // Revoke URLs that were in the previous state of displayedItemImageUrls
     // but are not in the new set (e.g., item removed from display, or its image file was removed/nulled).
     // Also, if a new URL was generated for an item_id that had an old URL, the old one needs revoking.
-    Object.keys(displayedItemImageUrls).forEach(itemIdKey => {
+    Object.keys(displayedItemImageUrls).forEach((itemIdKey) => {
       const numericItemId = parseInt(itemIdKey, 10); // Ensure itemId is treated as a number for lookups
       // If the old URL is not in newUrls OR if newUrls has a DIFFERENT url for the same itemId, revoke the old one.
-      if (!newUrls[numericItemId] || (newUrls[numericItemId] !== displayedItemImageUrls[numericItemId])) {
+      if (
+        !newUrls[numericItemId] ||
+        newUrls[numericItemId] !== displayedItemImageUrls[numericItemId]
+      ) {
         URL.revokeObjectURL(displayedItemImageUrls[numericItemId]);
       }
     });
-    
+
     setDisplayedItemImageUrls(newUrls);
 
     // Cleanup function: when component unmounts or dependencies change,
     // revoke all URLs that were created and set in *this* effect run.
     return () => {
-      Object.values(newUrls).forEach(url => URL.revokeObjectURL(url));
+      Object.values(newUrls).forEach((url) => URL.revokeObjectURL(url));
     };
   }, [displayedItems, itemImageFiles]); // Dependencies: re-run when displayed items or their files change.
 
@@ -581,7 +618,8 @@ const ItemsView = () => {
       if (result.success) {
         // Fetch data, then close modal and show global success message
         handleCloseAddItemModal(); // Close modal first
-        fetchAllItemsMetadata().then(() => { // Refresh all metadata
+        fetchAllItemsMetadata().then(() => {
+          // Refresh all metadata
           setSuccess(
             intl.formatMessage(
               {
@@ -660,7 +698,8 @@ const ItemsView = () => {
   // --- Edit Handlers ---
   const handleEditClick = (item) => {
     // Find the full item from allItemsMetadata to ensure we have the latest, including image_uuid
-    const itemToEdit = allItemsMetadata.find(i => i.item_id === item.item_id) || item;
+    const itemToEdit =
+      allItemsMetadata.find((i) => i.item_id === item.item_id) || item;
 
     setEditingItemId(itemToEdit.item_id);
     setEditName(itemToEdit.name);
@@ -671,7 +710,7 @@ const ItemsView = () => {
 
     // Handle image state for edit modal
     if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous edit preview URL
-    
+
     // If the image for this item is already fetched and available in itemImageFiles, use it for pre-fill
     if (itemToEdit.image_uuid && itemImageFiles[itemToEdit.item_id]) {
       const preFetchedFile = itemImageFiles[itemToEdit.item_id];
@@ -926,14 +965,15 @@ const ItemsView = () => {
   return (
     <div className="items-view">
       {/* Status Messages */}
-      {loading && displayedItems.length === 0 && ( // Show main loading only if nothing is displayed yet
-        <p className="status-loading">
-          {intl.formatMessage({
-            id: "items.loading",
-            defaultMessage: "Loading data...",
-          })}
-        </p>
-      )}
+      {loading &&
+        displayedItems.length === 0 && ( // Show main loading only if nothing is displayed yet
+          <p className="status-loading">
+            {intl.formatMessage({
+              id: "items.loading",
+              defaultMessage: "Loading data...",
+            })}
+          </p>
+        )}
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
 
@@ -1167,19 +1207,22 @@ const ItemsView = () => {
           isLoading={loading} // Pass the main loading state
           isUpdating={isUpdating}
           isDeleting={isDeleting}
-          canUpdateItem={api.isConfigured && typeof api.updateItem === 'function'}
+          canUpdateItem={
+            api.isConfigured && typeof api.updateItem === "function"
+          }
           intl={intl}
         />
       )}
 
-      {loading && displayedItems.length > 0 && ( // Show "loading more" style indicator if loading all but some are already shown
-        <p className="status-loading">
-          {intl.formatMessage({
-            id: "items.loadingMore",
-            defaultMessage: "Loading more items...",
-          })}
-        </p>
-      )}
+      {loading &&
+        displayedItems.length > 0 && ( // Show "loading more" style indicator if loading all but some are already shown
+          <p className="status-loading">
+            {intl.formatMessage({
+              id: "items.loadingMore",
+              defaultMessage: "Loading more items...",
+            })}
+          </p>
+        )}
       <div ref={loaderRef} style={{ height: "1px", margin: "1px" }} />
 
       {api.isConfigured &&
@@ -1514,7 +1557,11 @@ const ItemsView = () => {
                         onClick={() =>
                           handleImageClick(
                             editItemImageFile,
-                            editName || intl.formatMessage({ id: "items.editForm.imagePreviewAlt", defaultMessage: "Item image preview" })
+                            editName ||
+                              intl.formatMessage({
+                                id: "items.editForm.imagePreviewAlt",
+                                defaultMessage: "Item image preview",
+                              }),
                           )
                         }
                         style={{ cursor: "pointer" }}
@@ -1737,8 +1784,11 @@ const ItemsView = () => {
                 },
                 {
                   name:
-                    (allItemsMetadata.find((i) => i.item_id === deleteCandidateId) || {name: ""}).name ||
-                    "",
+                    (
+                      allItemsMetadata.find(
+                        (i) => i.item_id === deleteCandidateId,
+                      ) || { name: "" }
+                    ).name || "",
                 },
               )}
             </p>

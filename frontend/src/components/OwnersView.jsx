@@ -331,8 +331,10 @@ const OwnersView = () => {
         handleCancelEdit(); // Close edit modal as well if open
         fetchOwners(); // Refresh list
       } else {
-        if (result.errorCode === 'ENTITY_IN_USE') {
-          setDeleteError(intl.formatMessage({ id: "owners.error.deleteInUse" }));
+        if (result.errorCode === "ENTITY_IN_USE") {
+          setDeleteError(
+            intl.formatMessage({ id: "owners.error.deleteInUse" }),
+          );
         } else {
           setDeleteError(
             intl.formatMessage(
@@ -354,13 +356,15 @@ const OwnersView = () => {
       }
     } catch (err) {
       console.error("Failed to delete owner:", err);
-      setDeleteError(intl.formatMessage(
-            {
-              id: "owners.error.delete",
-              defaultMessage: "Failed to delete owner: {error}",
-            },
-            { error: err.message },
-          ));
+      setDeleteError(
+        intl.formatMessage(
+          {
+            id: "owners.error.delete",
+            defaultMessage: "Failed to delete owner: {error}",
+          },
+          { error: err.message },
+        ),
+      );
     } finally {
       // Add a small delay before resetting loading state if successful
       const wasSuccessful = !!success; // Capture success state before potential async delay
