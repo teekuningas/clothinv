@@ -12,14 +12,6 @@ import {
 // At the top of the file, for convenience
 const PROVIDER_NAME = "Datasette Provider";
 
-// Helper to extract ID from Datasette's FK object or return as is
-const extractId = (field) => {
-    if (field && typeof field === 'object' && field.hasOwnProperty('value')) {
-        return field.value;
-    }
-    return field; // Return as is if it's already a number, null, or undefined
-};
-
 // Helper to generate headers, extracting token from settings
 // The import block that was here has been removed.
 // The first import at the very top of the file is sufficient.
@@ -71,7 +63,7 @@ export const addCategory = async (settings, data) => {
     }
 
     // After successful insert, fetch the latest category ID
-    // Using _shape=array simplifies getting the row directly
+    // Datasette's /-/insert doesn't return the created row, so we fetch it.
     const queryUrl = `${baseUrl}/categories.json?_sort_desc=category_id&_size=1&_shape=array`; // Use _shape=array
     const queryRes = await fetch(queryUrl, {
          method: 'GET',
@@ -125,7 +117,7 @@ export const addLocation = async (settings, data) => {
     }
 
     // After successful insert, fetch the latest location ID
-    // Using _shape=array simplifies getting the row directly
+    // Datasette's /-/insert doesn't return the created row, so we fetch it.
     const queryUrl = `${baseUrl}/locations.json?_sort_desc=location_id&_size=1&_shape=array`;
     const queryRes = await fetch(queryUrl, {
          method: 'GET',
@@ -203,20 +195,27 @@ export const deleteLocation = async (settings, inputData) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!locationId) throw new Error("Location ID is required for deletion.");
 
-    // Dependency Check: Fetch all items and check if any use this location
+    // Dependency Check: Efficiently check if any item uses this location
+    const checkUrl = `${baseUrl}/items.json?location_id=eq.${locationId}&_size=1&_shape=array`;
     try {
-        const allItems = await listItems(settings); // listItems fetches all item metadata
-        const isUsed = allItems.some(item => item.location_id === locationId);
-        if (isUsed) {
+        const checkRes = await fetch(checkUrl, { headers: { 'Accept': 'application/json' } });
+        if (!checkRes.ok) {
+            // Log error but attempt deletion if check fails, or handle more strictly
+            console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for location ${locationId}: ${checkRes.status} ${await checkRes.text()}`);
+            // Depending on policy, you might throw an error here or allow deletion to proceed cautiously.
+            // For now, let's be strict:
+            return { success: false, error: `Failed to check dependencies for location: ${checkRes.statusText}` };
+        }
+        const usageCheckData = await checkRes.json();
+        if (usageCheckData && usageCheckData.length > 0) {
             console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is used by items.`);
             return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for location ${locationId}:`, error);
-        return { success: false, error: `Failed to check dependencies for location: ${error.message}` };
+        console.error(`[${PROVIDER_NAME}]: Error during dependency check for location ${locationId}:`, error);
+        return { success: false, error: `Error checking dependencies for location: ${error.message}` };
     }
 
-    // Proceed with deletion (this part remains the same)
     const deleteUrl = `${baseUrl}/locations/${locationId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
@@ -280,20 +279,24 @@ export const deleteCategory = async (settings, inputData) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!categoryId) throw new Error("Category ID is required for deletion.");
 
-    // Dependency Check: Fetch all items and check if any use this category
+    // Dependency Check: Efficiently check if any item uses this category
+    const checkUrl = `${baseUrl}/items.json?category_id=eq.${categoryId}&_size=1&_shape=array`;
     try {
-        const allItems = await listItems(settings);
-        const isUsed = allItems.some(item => item.category_id === categoryId);
-        if (isUsed) {
+        const checkRes = await fetch(checkUrl, { headers: { 'Accept': 'application/json' } });
+        if (!checkRes.ok) {
+            console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for category ${categoryId}: ${checkRes.status} ${await checkRes.text()}`);
+            return { success: false, error: `Failed to check dependencies for category: ${checkRes.statusText}` };
+        }
+        const usageCheckData = await checkRes.json();
+        if (usageCheckData && usageCheckData.length > 0) {
             console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is used by items.`);
             return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for category ${categoryId}:`, error);
-        return { success: false, error: `Failed to check dependencies for category: ${error.message}` };
+        console.error(`[${PROVIDER_NAME}]: Error during dependency check for category ${categoryId}:`, error);
+        return { success: false, error: `Error checking dependencies for category: ${error.message}` };
     }
 
-    // Proceed with deletion (this part remains the same)
     const deleteUrl = `${baseUrl}/categories/${categoryId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
@@ -348,7 +351,7 @@ export const addOwner = async (settings, data) => { // Rename to addOwner and ex
     }
 
     // After successful insert, fetch the latest owner ID
-    // Using _shape=array simplifies getting the row directly
+    // Datasette's /-/insert doesn't return the created row, so we fetch it.
     const queryUrl = `${baseUrl}/owners.json?_sort_desc=owner_id&_size=1&_shape=array`; // Use _shape=array
     const queryRes = await fetch(queryUrl, {
          method: 'GET',
@@ -404,20 +407,24 @@ export const deleteOwner = async (settings, inputData) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!ownerId) throw new Error("Owner ID is required for deletion.");
 
-    // Dependency Check: Fetch all items and check if any use this owner
+    // Dependency Check: Efficiently check if any item uses this owner
+    const checkUrl = `${baseUrl}/items.json?owner_id=eq.${ownerId}&_size=1&_shape=array`;
     try {
-        const allItems = await listItems(settings);
-        const isUsed = allItems.some(item => item.owner_id === ownerId);
-        if (isUsed) {
+        const checkRes = await fetch(checkUrl, { headers: { 'Accept': 'application/json' } });
+        if (!checkRes.ok) {
+            console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for owner ${ownerId}: ${checkRes.status} ${await checkRes.text()}`);
+            return { success: false, error: `Failed to check dependencies for owner: ${checkRes.statusText}` };
+        }
+        const usageCheckData = await checkRes.json();
+        if (usageCheckData && usageCheckData.length > 0) {
             console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is used by items.`);
             return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Failed to perform dependency check for owner ${ownerId}:`, error);
-        return { success: false, error: `Failed to check dependencies for owner: ${error.message}` };
+        console.error(`[${PROVIDER_NAME}]: Error during dependency check for owner ${ownerId}:`, error);
+        return { success: false, error: `Error checking dependencies for owner: ${error.message}` };
     }
 
-    // Proceed with deletion (this part remains the same)
     const deleteUrl = `${baseUrl}/owners/${ownerId}/-/delete`;
     const res = await fetch(deleteUrl, {
         method: 'POST',
@@ -456,7 +463,7 @@ const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid 
     });
     await handleResponse(insertRes, 'insert', 'image'); // Check for success
 
-    // Fetch the latest image ID
+    // Datasette's /-/insert doesn't return the created row, so we fetch the latest image ID.
     const queryUrl = `${baseUrl}/images.json?_sort_desc=image_id&_size=1&_shape=array`;
     const queryRes = await fetch(queryUrl, { headers: { 'Accept': 'application/json' } });
     if (!queryRes.ok) throw new Error(`[${PROVIDER_NAME}]: Failed to fetch latest image ID after insert: ${queryRes.status}`);
@@ -556,7 +563,7 @@ export const addItem = async (settings, data) => {
     }
 
     // Fetch the latest item ID and UUID
-    // Using _shape=array simplifies getting the row directly
+    // Datasette's /-/insert doesn't return the created row, so we fetch it.
     const queryUrl = `${baseUrl}/items.json?_sort_desc=item_id&_size=1&_shape=array&_select=item_id,uuid`;
     const queryRes = await fetch(queryUrl, {
          method: 'GET',
@@ -606,8 +613,7 @@ export const updateItem = async (settings, inputData) => { // data should NOT co
     if (!currentItemRes.ok) throw new Error(`Failed to fetch current item data for update: ${currentItemRes.status}`);
     const currentItemData = await currentItemRes.json();
         
-        // Use extractId for image_id
-        const existingImageId = currentItemData[itemId] ? extractId(currentItemData[itemId].image_id) : null;
+        const existingImageId = currentItemData[itemId]?.image_id || null; // Use direct access
     let existingImageUuid = currentItemData[itemId]?.image_uuid; // Get existing image UUID
 
     let newImageId = existingImageId; // Assume image doesn't change initially
@@ -623,8 +629,8 @@ export const updateItem = async (settings, inputData) => { // data should NOT co
             if (existingImageId) {
                 // Update existing image record, pass filename
                 await _updateImage(settings, existingImageId, base64Data, data.imageFile.type, data.imageFile.name);
-                newImageId = existingImageId; // ID remains the same
-                newImageUuid = existingImageUuid; // UUID remains the same
+                // newImageId remains existingImageId
+                // newImageUuid remains existingImageUuid (image content update doesn't change its UUID)
             } else {
                 // Insert new image record, pass filename
                 const imageResult = await _insertImage(settings, base64Data, data.imageFile.type, data.imageFile.name);
@@ -680,10 +686,9 @@ export const deleteItem = async (settings, inputData) => {
     const itemRes = await fetch(`${baseUrl}/items/${itemId}.json?_shape=object&_select=image_id`); // Only need image_id
     if (itemRes.ok) {
         const itemData = await itemRes.json();
-            // Use extractId for image_id
-            const imageId = itemData[itemId] ? extractId(itemData[itemId].image_id) : null;
+            const imageId = itemData[itemId]?.image_id || null; // Use direct access
         if (imageId) await _deleteImage(settings, imageId); // Delete image if it exists (handles its own errors)
-    } // Ignore error if item not found
+    } // Ignore error if item not found, e.g., already deleted or inconsistent data.
 
     const deleteUrl = `${baseUrl}/items/${itemId}/-/delete`;
 
@@ -704,9 +709,8 @@ export const listItems = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     try {
-        // Fetch all items metadata, including all relevant IDs and UUIDs
-        // Ensure select includes: item_id, uuid, name, description, location_id, category_id, owner_id, image_id, image_uuid, created_at, updated_at
-        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`; // Fetches all columns by default with _shape=array
+        // Fetch all items metadata. _shape=array fetches all columns by default.
+        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`;
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -715,22 +719,11 @@ export const listItems = async (settings) => {
             const errorText = await itemsRes.text();
             throw new Error(`Failed to fetch items metadata: ${itemsRes.status} ${errorText}`);
         }
-        let allItemsMetadata = await itemsRes.json();
+        const allItemsMetadata = await itemsRes.json();
             
-            // Transform FK fields from {value, label} objects to simple IDs
-            if (allItemsMetadata && Array.isArray(allItemsMetadata)) {
-                allItemsMetadata = allItemsMetadata.map(item => ({
-                    ...item,
-                    location_id: extractId(item.location_id),
-                    category_id: extractId(item.category_id),
-                    owner_id: extractId(item.owner_id),
-                    image_id: extractId(item.image_id),
-                    // item_id, uuid, image_uuid, name, description, created_at, updated_at should be direct values
-                }));
-            }
-        return allItemsMetadata || []; // Return transformed metadata array
+        return allItemsMetadata || []; // Return metadata array
     } catch (error) {
-        console.error("Error in Datasette listItems:", error);
+        console.error(`[${PROVIDER_NAME}]: Error in Datasette listItems:`, error); // Keep provider prefix
         throw error;
     }
 };
