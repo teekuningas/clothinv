@@ -12,6 +12,7 @@ import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
 import { compressImage, rotateImageFile } from "../helpers/images";
+import { processItems } from "../helpers/filters";
 import Gallery from "./Gallery"; // Import the new Gallery component
 import "./ItemsView.css";
 
@@ -108,16 +109,6 @@ const ItemsView = () => {
       }
     };
   }, []); // Empty dependency array for unmount cleanup only
-
-  const parseSortCriteria = useCallback((criteria) => {
-    if (criteria.endsWith("_asc")) {
-      return { sortBy: criteria.slice(0, -4), sortOrder: "asc" };
-    }
-    if (criteria.endsWith("_desc")) {
-      return { sortBy: criteria.slice(0, -5), sortOrder: "desc" };
-    }
-    return { sortBy: "created_at", sortOrder: "desc" }; // Default
-  }, []); // Empty dependency array as it doesn't depend on component scope
 
   const fetchAllItemsMetadata = useCallback(async () => {
       if (!api.isConfigured || typeof api.listItems !== "function") {
@@ -229,57 +220,30 @@ const ItemsView = () => {
   useEffect(() => {
     if (loading) return; // Don't process if initial metadata is still loading
 
-    let processedItems = [...allItemsMetadata];
+    const filterCriteria = {
+      filterName,
+      filterLocationIds,
+      filterCategoryIds,
+      filterOwnerIds,
+    };
+    const paginationCriteria = {
+      currentPage,
+      pageSize,
+    };
 
-    // Filtering
-    if (filterName.trim()) {
-      const lowerFilterName = filterName.trim().toLowerCase();
-      processedItems = processedItems.filter(item =>
-        item.name.toLowerCase().includes(lowerFilterName) ||
-        (item.description && item.description.toLowerCase().includes(lowerFilterName))
-      );
-    }
-    if (filterLocationIds.length > 0) {
-      processedItems = processedItems.filter(item => filterLocationIds.includes(item.location_id));
-    }
-    if (filterCategoryIds.length > 0) {
-      processedItems = processedItems.filter(item => filterCategoryIds.includes(item.category_id));
-    }
-    if (filterOwnerIds.length > 0) {
-      processedItems = processedItems.filter(item => filterOwnerIds.includes(item.owner_id));
-    }
+    const result = processItems(
+      allItemsMetadata,
+      filterCriteria,
+      sortCriteria, // Pass the sortCriteria string directly
+      paginationCriteria
+    );
 
-    // Sorting
-    const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
-    processedItems.sort((a, b) => {
-      let valA = a[sortBy];
-      let valB = b[sortBy];
+    setDisplayedItems(result.displayedItems);
+    // totalItemsCount now reflects the count *after* filtering, before pagination
+    setTotalItemsCount(result.totalFilteredItemsCount);
+    setHasMoreItems(result.hasMoreItems);
 
-      // Handle date strings for created_at/updated_at
-      if (sortBy.endsWith("_at") && typeof valA === 'string' && typeof valB === 'string') {
-        valA = new Date(valA);
-        valB = new Date(valB);
-      } else if (typeof valA === 'string' && typeof valB === 'string') {
-        valA = valA.toLowerCase();
-        valB = valB.toLowerCase();
-      }
-
-      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
-      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setTotalItemsCount(processedItems.length);
-
-    // Pagination
-    // const startIndex = currentPage * pageSize; // No longer needed for this slicing approach
-    const endIndex = (currentPage + 1) * pageSize; // Calculate end index for current page
-    const paginatedItems = processedItems.slice(0, endIndex); // Slice from start to current end
-
-    setDisplayedItems(paginatedItems);
-    setHasMoreItems(endIndex < processedItems.length); // Check if more items exist beyond the current slice
-
-  }, [allItemsMetadata, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, sortCriteria, currentPage, pageSize, loading, parseSortCriteria]);
+  }, [allItemsMetadata, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, sortCriteria, currentPage, pageSize, loading]);
 
   // Effect for Intersection Observer to load more items on scroll
   useEffect(() => {
