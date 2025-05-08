@@ -16,17 +16,17 @@ import "./ItemsView.css";
 import "./ImageViewModal.css";
 
 const ItemsView = () => {
-  const [items, setItems] = useState([]);
+  const [allItemsMetadata, setAllItemsMetadata] = useState([]);
+  const [displayedItems, setDisplayedItems] = useState([]);
   const [locations, setLocations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [owners, setOwners] = useState([]);
 
   // Pagination and loading state
-  const [currentPage, setCurrentPage] = useState(0); // Tracks the last successfully fetched page number (1-indexed after first fetch)
+  const [currentPage, setCurrentPage] = useState(0); // 0-indexed for client-side pagination
   const [pageSize, setPageSize] = useState(5);
   const [hasMoreItems, setHasMoreItems] = useState(true);
-  const [totalItemsCount, setTotalItemsCount] = useState(0);
-  const [loadingMore, setLoadingMore] = useState(false); // True when loading subsequent pages for infinite scroll
+  const [totalItemsCount, setTotalItemsCount] = useState(0); // Will be count after filtering, before pagination
 
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
@@ -35,7 +35,7 @@ const ItemsView = () => {
   const [newItemImageFile, setNewItemImageFile] = useState(null);
   const [newItemOwnerId, setNewItemOwnerId] = useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For initial all-metadata load
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
@@ -64,7 +64,9 @@ const ItemsView = () => {
   const [isRotatingEdit, setIsRotatingEdit] = useState(false);
 
   // State for managing temporary Blob URLs for display
-  const [itemImageUrls, setItemImageUrls] = useState({});
+  const [displayedItemImageUrls, setDisplayedItemImageUrls] = useState({});
+  const [itemImageFiles, setItemImageFiles] = useState({}); // Stores File objects { [itemId]: File }
+  const [loadingImages, setLoadingImages] = useState({}); // { [imageUuid]: boolean }
   const [addImageUrl, setAddImageUrl] = useState(null);
   const [editImageUrl, setEditImageUrl] = useState(null);
 
@@ -95,8 +97,7 @@ const ItemsView = () => {
     return { sortBy: "created_at", sortOrder: "desc" }; // Default
   };
 
-  const fetchPageOfItems = useCallback(
-    async (pageToFetch, isNewQuery = false) => {
+  const fetchAllItemsMetadata = useCallback(async () => {
       if (!api.isConfigured || typeof api.listItems !== "function") {
         setError(
           api.isConfigured
@@ -107,53 +108,22 @@ const ItemsView = () => {
               })
             : intl.formatMessage({ id: "common.status.apiNotConfigured" }),
         );
-        setItems([]);
+        setAllItemsMetadata([]);
         setTotalItemsCount(0);
         setHasMoreItems(false);
-        if (isNewQuery) setLoading(false);
-        else setLoadingMore(false);
+        setLoading(false);
         return;
       }
 
-      if (isNewQuery) {
-        setLoading(true);
-        // setItems([]); // Clearing items here causes a flicker if the new data is similar. Better to clear on success/error of new query.
-        // setCurrentPage(0); // Reset page for new query, will be incremented by success handler
-      } else {
-        setLoadingMore(true);
-      }
+      setLoading(true);
       setError(null);
       // Success messages are intentionally not cleared here to let them persist.
 
-      const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
-      const fetchOptions = {
-        page: pageToFetch,
-        pageSize: pageSize,
-        sortBy: sortBy,
-        sortOrder: sortOrder,
-        filters: {
-          name: filterName.trim() || undefined,
-          locationIds:
-            filterLocationIds.length > 0 ? filterLocationIds : undefined,
-          categoryIds:
-            filterCategoryIds.length > 0 ? filterCategoryIds : undefined,
-          ownerIds: filterOwnerIds.length > 0 ? filterOwnerIds : undefined,
-        },
-      };
-
       try {
-        const result = await api.listItems(fetchOptions);
-
-        setItems((prevItems) => {
-          const newItems = isNewQuery
-            ? result.items
-            : [...prevItems, ...result.items];
-          // Calculate hasMoreItems based on the actual new items list length
-          setHasMoreItems(newItems.length < result.totalCount);
-          return newItems;
-        });
-        setTotalItemsCount(result.totalCount);
-        setCurrentPage(pageToFetch); // Update current page upon successful fetch
+        const result = await api.listItems(); // No options passed
+        setAllItemsMetadata(result || []);
+        // Client-side processing useEffect will handle totalItemsCount, hasMoreItems, displayedItems, and currentPage reset.
+        setCurrentPage(0); // Reset to first page for new full dataset
       } catch (err) {
         console.error("Failed to fetch items:", err);
         setError(
@@ -165,28 +135,15 @@ const ItemsView = () => {
             { error: err.message },
           ),
         );
-        if (isNewQuery) {
-          setItems([]); // Clear items on error for a new query
-          setTotalItemsCount(0);
-          setHasMoreItems(false);
-          // setCurrentPage(0); // Consider if page should be reset on new query error
-        }
-        // For "load more" errors, existing items are kept, and hasMoreItems might still be true, allowing retry on next scroll.
+        setAllItemsMetadata([]);
+        setTotalItemsCount(0);
+        setHasMoreItems(false);
+        setCurrentPage(0);
       } finally {
-        if (isNewQuery) setLoading(false);
-        else setLoadingMore(false);
+        setLoading(false);
       }
     },
-    [
-      api,
-      sortCriteria,
-      pageSize,
-      filterName,
-      filterLocationIds,
-      filterCategoryIds,
-      filterOwnerIds,
-      intl,
-    ],
+    [api, intl],
   );
 
   // Fetch locations, categories, owners (ancillary data)
@@ -230,109 +187,108 @@ const ItemsView = () => {
   useEffect(() => {
     if (api.isConfigured && api.listItems) {
       fetchAncillaryData(); // Fetch locations, categories, owners
-      fetchPageOfItems(1, true); // Fetch first page of items
+      fetchAllItemsMetadata(); // Fetch all item metadata
     } else {
       // Clear data if API is not configured or listItems is not available
-      setItems([]);
+      setAllItemsMetadata([]);
+      setDisplayedItems([]);
+      setItemImageFiles({});
+      setDisplayedItemImageUrls(prev => { Object.values(prev).forEach(URL.revokeObjectURL); return {}; });
       setTotalItemsCount(0);
       setHasMoreItems(false);
       setLocations([]);
       setCategories([]);
       setOwners([]);
-      setCurrentPage(0);
+      setCurrentPage(0); // Ensure 0-indexed
     }
-  }, [api.isConfigured, api.listItems]); // Removed fetchPageOfItems from deps to avoid loop, it's called internally. Added fetchAncillaryData
+  }, [api.isConfigured, api.listItems, fetchAncillaryData, fetchAllItemsMetadata]);
 
-  // Effect for filter/sort changes
+  // Effect for client-side filtering, sorting, and pagination
   useEffect(() => {
-    // Only run if api.listItems is available, otherwise initial load handles it.
-    // And only if currentPage is not 0 (meaning initial load has happened or tried)
-    if (api.listItems && currentPage !== 0) {
-      fetchPageOfItems(1, true);
+    if (loading) return; // Don't process if initial metadata is still loading
+
+    let processedItems = [...allItemsMetadata];
+
+    // Filtering
+    if (filterName.trim()) {
+      const lowerFilterName = filterName.trim().toLowerCase();
+      processedItems = processedItems.filter(item =>
+        item.name.toLowerCase().includes(lowerFilterName) ||
+        (item.description && item.description.toLowerCase().includes(lowerFilterName))
+      );
     }
-    // This effect should run when sortCriteria or any filter state changes.
-    // The initial load is handled by the previous useEffect.
-  }, [
-    sortCriteria,
-    filterName,
-    filterLocationIds,
-    filterCategoryIds,
-    filterOwnerIds,
-  ]); // Removed api.listItems, fetchPageOfItems from deps
+    if (filterLocationIds.length > 0) {
+      processedItems = processedItems.filter(item => filterLocationIds.includes(item.location_id));
+    }
+    if (filterCategoryIds.length > 0) {
+      processedItems = processedItems.filter(item => filterCategoryIds.includes(item.category_id));
+    }
+    if (filterOwnerIds.length > 0) {
+      processedItems = processedItems.filter(item => filterOwnerIds.includes(item.owner_id));
+    }
 
-  // Infinite Scroll Intersection Observer
+    // Sorting
+    const { sortBy, sortOrder } = parseSortCriteria(sortCriteria);
+    processedItems.sort((a, b) => {
+      let valA = a[sortBy];
+      let valB = b[sortBy];
+
+      // Handle date strings for created_at/updated_at
+      if (sortBy.endsWith("_at") && typeof valA === 'string' && typeof valB === 'string') {
+        valA = new Date(valA);
+        valB = new Date(valB);
+      } else if (typeof valA === 'string' && typeof valB === 'string') {
+        valA = valA.toLowerCase();
+        valB = valB.toLowerCase();
+      }
+
+      if (valA < valB) return sortOrder === "asc" ? -1 : 1;
+      if (valA > valB) return sortOrder === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    setTotalItemsCount(processedItems.length);
+
+    // Pagination
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedItems = processedItems.slice(startIndex, endIndex);
+
+    setDisplayedItems(paginatedItems);
+    setHasMoreItems(endIndex < processedItems.length);
+
+  }, [allItemsMetadata, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, sortCriteria, currentPage, pageSize, loading, parseSortCriteria]);
+
+  // Effect to fetch images for displayed items
   useEffect(() => {
-    if (
-      loading ||
-      loadingMore ||
-      !hasMoreItems ||
-      !loaderRef.current ||
-      currentPage === 0
-    )
+    if (!api.isConfigured || typeof api.getImage !== 'function') {
       return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0].isIntersecting &&
-          !loading &&
-          !loadingMore &&
-          hasMoreItems
-        ) {
-          fetchPageOfItems(currentPage + 1, false);
-        }
-      },
-      { threshold: 1.0 }, // Trigger when 100% of the loader is visible
-    );
-
-    const currentLoaderRef = loaderRef.current;
-    if (currentLoaderRef) {
-      observer.observe(currentLoaderRef);
     }
 
-    return () => {
-      if (currentLoaderRef) {
-        observer.unobserve(currentLoaderRef);
-      }
-    };
-  }, [loading, loadingMore, hasMoreItems, currentPage, fetchPageOfItems]); // loaderRef.current is not a stable dependency
-
-  // Effect to create/revoke Blob URLs for item list display
-  useEffect(() => {
-    const newItemImageUrls = {};
-    items.forEach((item) => {
-      // `items` is the cumulative list of all fetched items
-      if (item.imageFile instanceof File) {
-        newItemImageUrls[item.item_id] = URL.createObjectURL(item.imageFile);
+    displayedItems.forEach(item => {
+      if (item.image_uuid && !itemImageFiles[item.item_id] && !loadingImages[item.image_uuid]) {
+        setLoadingImages(prev => ({ ...prev, [item.image_uuid]: true }));
+        api.getImage(item.image_uuid)
+          .then(imageFile => {
+            if (imageFile instanceof File) {
+              setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: imageFile }));
+            } else if (imageFile === null) {
+              // Image explicitly not found or null, don't try fetching again unless item.image_uuid changes
+              // To prevent re-fetch loops for null images, we can mark it as "attempted"
+              // For now, simply not adding to itemImageFiles means it might be re-attempted if item appears again
+              console.log(`Image not found or null for UUID: ${item.image_uuid}`);
+            }
+          })
+          .catch(err => {
+            console.error(`Failed to fetch image for UUID ${item.image_uuid}:`, err);
+            // Optionally set an error state for this specific image
+          })
+          .finally(() => {
+            setLoadingImages(prev => ({ ...prev, [item.image_uuid]: false }));
+          });
       }
     });
-    setItemImageUrls((prevUrls) => {
-      // Create a mutable copy of previous URLs to track what to revoke
-      const urlsToRevokeMap = { ...prevUrls };
-
-      // Iterate over newly generated URLs
-      Object.keys(newItemImageUrls).forEach((itemId) => {
-        // If a previous URL exists for this item and it's different from the new one,
-        // the old one (prevUrls[itemId]) is already in urlsToRevokeMap and will be revoked.
-        // Remove this item's new URL from the map of URLs to revoke,
-        // as this new URL is now the active one (or it's the same as before).
-        delete urlsToRevokeMap[itemId];
-      });
-
-      // Anything remaining in urlsToRevokeMap needs to be revoked
-      Object.values(urlsToRevokeMap).forEach((url) => URL.revokeObjectURL(url));
-
-      // The new state is simply the fresh set of URLs for the current items
-      return newItemImageUrls;
-    });
-
-    return () => {
-      setItemImageUrls((currentUrls) => {
-        Object.values(currentUrls).forEach((url) => URL.revokeObjectURL(url));
-        return {};
-      });
-    };
-  }, [items]);
+  }, [displayedItems, api, itemImageFiles, loadingImages]); // itemImageFiles and loadingImages to prevent re-fetch if already present/loading
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
@@ -574,8 +530,7 @@ const ItemsView = () => {
       if (result.success) {
         // Fetch data, then close modal and show global success message
         handleCloseAddItemModal(); // Close modal first
-        fetchPageOfItems(1, true).then(() => {
-          // Refresh list from page 1
+        fetchAllItemsMetadata().then(() => { // Refresh all metadata
           setSuccess(
             intl.formatMessage(
               {
@@ -641,6 +596,7 @@ const ItemsView = () => {
     } else if (filterType === "owner") {
       setFilterOwnerIds(updater);
     }
+    setCurrentPage(0); // Reset to first page on filter change
   };
 
   const handleResetFilters = () => {
@@ -648,27 +604,33 @@ const ItemsView = () => {
     setFilterLocationIds([]);
     setFilterCategoryIds([]);
     setFilterOwnerIds([]);
+    setCurrentPage(0); // Reset to first page
   };
 
   // --- Edit Handlers ---
   const handleEditClick = (item) => {
-    setEditingItemId(item.item_id);
-    setEditName(item.name);
-    setEditDescription(item.description || "");
-    setEditLocationId(item.location_id || "");
-    setEditCategoryId(item.category_id || "");
-    setEditOwnerId(item.owner_id || "");
+    // Find the full item from allItemsMetadata to ensure we have the latest, including image_uuid
+    const itemToEdit = allItemsMetadata.find(i => i.item_id === item.item_id) || item;
+
+    setEditingItemId(itemToEdit.item_id);
+    setEditName(itemToEdit.name);
+    setEditDescription(itemToEdit.description || "");
+    setEditLocationId(itemToEdit.location_id || "");
+    setEditCategoryId(itemToEdit.category_id || "");
+    setEditOwnerId(itemToEdit.owner_id || "");
 
     // Handle image state for edit modal
     if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke previous edit preview URL
-    if (item.imageFile instanceof File) {
-      setEditItemImageFile(item.imageFile);
-      setEditImageUrl(URL.createObjectURL(item.imageFile));
+    
+    // If the image for this item is already fetched and available in itemImageFiles, use it for pre-fill
+    if (itemToEdit.image_uuid && itemImageFiles[itemToEdit.item_id]) {
+      const preFetchedFile = itemImageFiles[itemToEdit.item_id];
+      setEditItemImageFile(preFetchedFile);
+      setEditImageUrl(URL.createObjectURL(preFetchedFile));
     } else {
       setEditItemImageFile(null);
       setEditImageUrl(null);
     }
-
     setImageMarkedForRemoval(false); // Reset removal flag
     setUpdateError(null);
     setSuccess(null);
@@ -786,7 +748,7 @@ const ItemsView = () => {
           ),
         );
         handleCancelEdit(); // Close edit modal
-        fetchPageOfItems(1, true); // Refresh list from page 1
+        fetchAllItemsMetadata(); // Refresh all metadata
       } else {
         setUpdateError(
           intl.formatMessage(
@@ -860,7 +822,7 @@ const ItemsView = () => {
         );
         handleCancelDelete(); // Close delete confirm modal
         handleCancelEdit(); // Close edit modal if open
-        fetchPageOfItems(1, true); // Refresh list from page 1
+        fetchAllItemsMetadata(); // Refresh all metadata
       } else {
         setDeleteError(
           intl.formatMessage(
@@ -918,7 +880,7 @@ const ItemsView = () => {
   return (
     <div className="items-view">
       {/* Status Messages */}
-      {loading && !loadingMore && (
+      {loading && displayedItems.length === 0 && ( // Show main loading only if nothing is displayed yet
         <p className="status-loading">
           {intl.formatMessage({
             id: "items.loading",
@@ -929,7 +891,7 @@ const ItemsView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
 
-      {!api.isConfigured && !loading && items.length === 0 && (
+      {!api.isConfigured && !loading && allItemsMetadata.length === 0 && (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
         </p>
@@ -937,7 +899,7 @@ const ItemsView = () => {
       {api.isConfigured &&
         typeof api.listItems !== "function" &&
         !loading &&
-        items.length === 0 && (
+        allItemsMetadata.length === 0 && (
           <p className="status-warning">
             {intl.formatMessage({
               id: "items.list.notSupported",
@@ -956,7 +918,7 @@ const ItemsView = () => {
             className="button-light filter-toggle-button"
             aria-controls="filters-container"
             aria-expanded={isFilterVisible}
-            disabled={loading || loadingMore}
+            disabled={loading}
           >
             {intl.formatMessage({
               id: "items.filter.toggleButton",
@@ -989,7 +951,10 @@ const ItemsView = () => {
               <select
                 id="sort-criteria"
                 value={sortCriteria}
-                onChange={(e) => setSortCriteria(e.target.value)}
+                onChange={(e) => {
+                  setSortCriteria(e.target.value);
+                  setCurrentPage(0); // Reset to first page on sort change
+                }}
                 disabled={loading}
               >
                 <option value="created_at_desc">
@@ -1018,7 +983,10 @@ const ItemsView = () => {
                 type="text"
                 id="filter-text"
                 value={filterName}
-                onChange={(e) => setFilterName(e.target.value)}
+                onChange={(e) => {
+                  setFilterName(e.target.value);
+                  setCurrentPage(0); // Reset to first page
+                }}
                 placeholder={intl.formatMessage({
                   id: "items.filter.textPlaceholder",
                   defaultMessage: "e.g., Blue Shirt",
@@ -1117,9 +1085,7 @@ const ItemsView = () => {
       {api.isConfigured &&
         typeof api.listItems === "function" &&
         !loading &&
-        !loadingMore &&
-        items.length === 0 &&
-        totalItemsCount === 0 &&
+        allItemsMetadata.length === 0 && // No items in the source at all
         !error && (
           <p>
             {intl.formatMessage({
@@ -1132,9 +1098,8 @@ const ItemsView = () => {
       {api.isConfigured &&
         typeof api.listItems === "function" &&
         !loading &&
-        !loadingMore &&
-        items.length === 0 &&
-        totalItemsCount > 0 &&
+        allItemsMetadata.length > 0 && // Items exist in source
+        displayedItems.length === 0 && // But none match filters/pagination
         !error && (
           <p>
             {intl.formatMessage({
@@ -1144,18 +1109,18 @@ const ItemsView = () => {
           </p>
         )}
 
-      {items.length > 0 && (
+      {displayedItems.length > 0 && (
         <div className="items-list">
-          {items.map((item) => (
+          {displayedItems.map((item) => (
             <div key={item.item_id} className="item-card">
               {/* Display image using Blob URL from state */}
               <div
-                className={`item-image-container ${!itemImageUrls[item.item_id] ? "placeholder" : ""} ${itemImageUrls[item.item_id] ? "clickable" : ""}`}
+                className={`item-image-container ${!displayedItemImageUrls[item.item_id] ? "placeholder" : ""} ${displayedItemImageUrls[item.item_id] ? "clickable" : ""}`}
                 onClick={() =>
-                  item.imageFile && handleImageClick(item.imageFile, item.name)
+                  itemImageFiles[item.item_id] && handleImageClick(itemImageFiles[item.item_id], item.name)
                 }
                 title={
-                  itemImageUrls[item.item_id]
+                  displayedItemImageUrls[item.item_id]
                     ? intl.formatMessage({
                         id: "items.card.viewImageTooltip",
                         defaultMessage: "Click to view full image",
@@ -1163,9 +1128,12 @@ const ItemsView = () => {
                     : ""
                 }
               >
-                {itemImageUrls[item.item_id] ? (
+                {loadingImages[item.image_uuid] && !displayedItemImageUrls[item.item_id] && (
+                  <div className="item-image-loading">Loading image...</div> /* Optional: per-image loading indicator */
+                )}
+                {displayedItemImageUrls[item.item_id] ? (
                   <img
-                    src={itemImageUrls[item.item_id]}
+                    src={displayedItemImageUrls[item.item_id]}
                     alt={item.name}
                     className="item-image"
                   />
@@ -1185,7 +1153,7 @@ const ItemsView = () => {
                       { name: item.name },
                     )}
                     disabled={
-                      loading || loadingMore || isUpdating || isDeleting
+                      loading || isUpdating || isDeleting
                     }
                   >
                     ✏️
@@ -1197,8 +1165,8 @@ const ItemsView = () => {
         </div>
       )}
 
-      {loadingMore && (
-        <p className="status-loading">
+      {loading && displayedItems.length > 0 && ( // Show "loading more" style indicator if loading all but some are already shown
+        <p className="status-loading"> 
           {intl.formatMessage({
             id: "items.loadingMore",
             defaultMessage: "Loading more items...",
@@ -1220,7 +1188,7 @@ const ItemsView = () => {
               id: "items.addItemFAB.label",
               defaultMessage: "Add new item",
             })}
-            disabled={loading || loadingMore || isUpdating || isDeleting}
+            disabled={loading || isUpdating || isDeleting}
           >
             +
           </button>
@@ -1766,7 +1734,7 @@ const ItemsView = () => {
                 },
                 {
                   name:
-                    items.find((i) => i.item_id === deleteCandidateId)?.name ||
+                    (allItemsMetadata.find((i) => i.item_id === deleteCandidateId) || {name: ""}).name ||
                     "",
                 },
               )}
