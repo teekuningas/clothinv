@@ -348,18 +348,17 @@ const SettingsView = () => {
         // Use summary if provided by API, otherwise format using counts, fallback to default
         const refreshRecommendation = intl.formatMessage({
           id: "settings.data.refreshRecommendation",
-          defaultMessage:
-            "It is recommended to refresh the application or navigate to another view and back to see all changes.",
         });
         let summaryMessage;
-        if (result.summary) {
-          summaryMessage = result.summary;
+        // Import success messages are typically detailed with counts,
+        // so we don't expect a simple summaryKey from the API for success here.
+        // The existing logic for constructing summaryMessage based on result.counts is appropriate.
+        if (result.summary) { // If API provides a direct summary string (less common now)
+            summaryMessage = result.summary;
         } else if (result.counts) {
           summaryMessage = intl.formatMessage(
             {
-              id: "settings.data.importSuccessSummary", // New ID
-              defaultMessage:
-                "Import successful. Replaced data with {locCount} locations, {catCount} categories, {ownerCount} owners, {itemCount} items.",
+              id: "settings.data.importSuccessSummary",
             },
             {
               locCount: result.counts.locations,
@@ -371,8 +370,6 @@ const SettingsView = () => {
         } else {
           summaryMessage = intl.formatMessage({
             id: "settings.data.importSuccessDefault",
-            defaultMessage:
-              "Import completed successfully. Data has been replaced.",
           });
         }
         setImportSummary(`${summaryMessage} ${refreshRecommendation}`);
@@ -380,26 +377,33 @@ const SettingsView = () => {
         // Clear the actual input element value
         const fileInput = document.getElementById("import-file-input");
         if (fileInput) fileInput.value = "";
-        // Consider forcing a refresh or notifying user to refresh other views
+        setImportError(null); // Clear any previous error
       } else {
-        throw new Error(
-          result.error ||
-            intl.formatMessage({
-              id: "settings.data.importFailedUnknown",
-              defaultMessage: "Import failed for an unknown reason.",
-            }),
-        );
+        // Handle { success: false, errorKey: ..., errorValues: ... } from API
+        setImportStatus("error");
+        if (result.errorKey) {
+          setImportError(intl.formatMessage({ id: result.errorKey }, result.errorValues ));
+        } else {
+          // Fallback for older error format or generic error from API result
+          setImportError(result.error || intl.formatMessage({ id: "settings.data.importFailedUnknown" }));
+        }
+        setImportSummary(""); // Clear summary on error
       }
-    } catch (error) {
+    } catch (error) { // Catches errors thrown by api.importData or other unexpected errors
       console.error("Import failed:", error);
-      setImportError(
-        error.message ||
-          intl.formatMessage({
-            id: "settings.data.importUnexpectedError",
-            defaultMessage: "An unexpected error occurred during import.",
-          }),
-      );
       setImportStatus("error");
+      // If the caught error object itself has an errorKey (e.g. if provider throws a structured error)
+      if (error.errorKey) {
+          setImportError(intl.formatMessage({ id: error.errorKey }, error.errorValues ));
+      } else {
+          setImportError(
+            error.message || // Standard Error object message
+            intl.formatMessage({
+              id: "settings.data.importUnexpectedError",
+            }),
+          );
+      }
+      setImportSummary("");
     }
   }, [api, importFile, intl]); // Removed updateAppSettings
 
@@ -446,40 +450,43 @@ const SettingsView = () => {
       if (result.success) {
         setDestroyStatus("success");
         const refreshRecommendation = intl.formatMessage({
-          id: "settings.data.refreshRecommendation", // Reuse the same ID
-          defaultMessage:
-            "It is recommended to refresh the application or navigate to another view and back to see all changes.",
+          id: "settings.data.refreshRecommendation",
         });
-        setDestroySummary(
-          `${
-            result.summary ||
-            intl.formatMessage({
-              id: "settings.data.destroySuccessDefault",
-              defaultMessage: "All data destroyed successfully.",
-            })
-          } ${refreshRecommendation}`,
-        );
-        // Consider forcing a refresh or notifying user to refresh other views
+        let summaryMessage;
+        if (result.summaryKey) { // API provides a key for the success message
+          summaryMessage = intl.formatMessage({ id: result.summaryKey }, result.summaryValues);
+        } else {
+          // Fallback if API doesn't provide summaryKey (e.g. older provider version or direct summary)
+          summaryMessage = result.summary || intl.formatMessage({ id: "settings.data.destroySuccessDefault" });
+        }
+        setDestroySummary(`${summaryMessage} ${refreshRecommendation}`);
+        setDestroyError(null); // Clear any previous error
       } else {
-        throw new Error(
-          result.error ||
-            intl.formatMessage({
-              id: "settings.data.destroyFailedUnknown",
-              defaultMessage: "Data destruction failed for an unknown reason.",
-            }),
-        );
+        // Handle { success: false, errorKey: ..., errorValues: ... } from API
+        setDestroyStatus("error");
+        if (result.errorKey) {
+          setDestroyError(intl.formatMessage({ id: result.errorKey }, result.errorValues));
+        } else {
+          // Fallback for older error format or generic error from API result
+          setDestroyError(result.error || intl.formatMessage({ id: "settings.data.destroyFailedUnknown" }));
+        }
+        setDestroySummary(""); // Clear summary on error
       }
-    } catch (error) {
+    } catch (error) { // Catches errors thrown by api.destroyData or other unexpected errors
       console.error("Data destruction failed:", error);
-      setDestroyError(
-        error.message ||
-          intl.formatMessage({
-            id: "settings.data.destroyUnexpectedError",
-            defaultMessage:
-              "An unexpected error occurred during data destruction.",
-          }),
-      );
       setDestroyStatus("error");
+      // If the caught error object itself has an errorKey
+      if (error.errorKey) {
+          setDestroyError(intl.formatMessage({ id: error.errorKey }, error.errorValues));
+      } else {
+          setDestroyError(
+            error.message || // Standard Error object message
+            intl.formatMessage({
+              id: "settings.data.destroyUnexpectedError",
+            }),
+          );
+      }
+      setDestroySummary("");
     }
   }, [api, appSettings.apiProviderType, providerDisplayNames, intl]); // Removed updateAppSettings
 

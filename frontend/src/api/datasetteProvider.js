@@ -1008,7 +1008,7 @@ async function importDataV1(settings, loadedZip) {
     } catch (error) { // TODO: Improve error handling and potential rollback/cleanup
         console.error(`[${PROVIDER_NAME}]: Error during Datasette import:`, error);
         // Datasette rollback is complex, data might be partially imported/deleted.
-        return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
+        return { success: false, errorKey: "api.import.errorDetailInconsistent", errorValues: { detail: error.message } };
     }
 }
 
@@ -1061,10 +1061,10 @@ export const destroyData = async (settings) => {
         console.log(`[${PROVIDER_NAME}]: Owners (${existingOwners.length}) cleared.`);
 
         console.log(`[${PROVIDER_NAME}]: Existing data cleared.`);
-        return { success: true, summary: `All data successfully destroyed.` };
+        return { success: true, summaryKey: "api.destroy.successSummary" };
 
     } catch (error) {
         console.error(`[${PROVIDER_NAME}]: Error during Datasette data destruction:`, error);
-        return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
+        return { success: false, errorKey: "api.destroy.errorDetailInconsistent", errorValues: { detail: error.message } };
     }
 };

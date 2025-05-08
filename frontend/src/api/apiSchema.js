@@ -183,8 +183,10 @@ export const ImportDataInputSchema = FileObject; // zipFile is the param
  * @typedef {object} ImportDataOutput
  * @property {boolean} success
  * @property {{ locations?: number, categories?: number, owners?: number, items?: number }=} counts
- * @property {string=} message - Success summary or general info.
- * @property {string=} error - Error details if success is false.
+ * @property {string=} message - General success summary or info (UI might construct more detailed messages using counts).
+ * @property {string=} errorKey - Translation key for an error message.
+ * @property {object=} errorValues - Values for the errorKey template.
+ * @property {string=} error - Fallback error message if errorKey is not available.
  */
 export const ImportDataOutputSchema = Object;
 
@@ -192,7 +194,11 @@ export const DestroyDataInputSchema = undefined;
 /**
  * @typedef {object} DestroyDataOutput
  * @property {boolean} success
- * @property {string=} summary - Summary message on success.
- * @property {string=} error - Error details if success is false.
+ * @property {string=} summaryKey - Translation key for a success message.
+ * @property {object=} summaryValues - Values for the summaryKey template.
+ * @property {string=} summary - Fallback success summary if summaryKey is not available.
+ * @property {string=} errorKey - Translation key for an error message.
+ * @property {object=} errorValues - Values for the errorKey template.
+ * @property {string=} error - Fallback error message if errorKey is not available.
  */
 export const DestroyDataOutputSchema = Object;

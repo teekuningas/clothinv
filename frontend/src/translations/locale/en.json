@@ -264,5 +264,10 @@
     "settings.data.share.title": "Share Current Configuration",
     "settings.data.share.description": "Create a shareable link containing your current application settings. This allows others to easily use the same settings, including API provider details. Useful for collaboration or setting up on different devices.",
     "settings.data.share.warning": "The generated link contains all current settings, including any API tokens. Share this link only with trusted individuals, as they will get the same access and settings as you.",
-    "settings.data.share.button": "Create Shareable Link"
+    "settings.data.share.button": "Create Shareable Link",
+    "api.destroy.successSummary": "All data successfully destroyed.",
+    "api.import.errorDetailInconsistent": "Import failed: {detail}. Data might be in an inconsistent state.",
+    "api.import.errorDetail": "Import failed: {detail}.",
+    "api.destroy.errorDetailInconsistent": "Data destruction failed: {detail}. Data might be in an inconsistent state.",
+    "api.destroy.errorDetail": "Data destruction failed: {detail}."
 }

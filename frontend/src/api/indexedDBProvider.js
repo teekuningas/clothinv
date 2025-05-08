@@ -123,11 +123,11 @@ export const destroyData = async (settings) => {
         await Promise.all(promises); // Wait for all counters to be reset
         console.log(`[${PROVIDER_NAME}]: ID counters reset in IndexedDB.`); // Keep
         console.log(`[${PROVIDER_NAME}]: Data destruction completed successfully.`); // Keep
-        return { success: true, summary: `All data successfully destroyed.` };
+        return { success: true, summaryKey: "api.destroy.successSummary" };
 
     } catch (error) {
         console.error(`[${PROVIDER_NAME}]: Error during IndexedDB data destruction:`, error); // Add prefix
-        return { success: false, error: `Data destruction failed: ${error.message}` };
+        return { success: false, errorKey: "api.destroy.errorDetail", errorValues: { detail: error.message } };
     }
 };
 
@@ -399,7 +399,7 @@ async function importDataV1(settings, loadedZip) {
     } catch (error) {
         console.error(`[${PROVIDER_NAME}]: Error during IndexedDB import:`, error); // Add prefix
         // Attempt to clean up partially imported data? Difficult in IndexedDB.
-        return { success: false, error: `Import failed: ${error.message}` };
+        return { success: false, errorKey: "api.import.errorDetail", errorValues: { detail: error.message } };
     }
 }
 
