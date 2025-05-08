@@ -6,11 +6,13 @@ Clothinv is a minimalist application for clothing inventory management. It allow
 
 *   Catalog clothing items with images and essential metadata (e.g., owner, category, location).
 *   Interface for browsing and searching your inventory.
+*   Responsive design for desktop and mobile screen sizes.
 *   Data export and import functionality (as a ZIP file) for backup and migration.
 *   Data storage options:
     *   Browser-local IndexedDB (default, zero-configuration).
     *   Self-hosted Datasette backend.
     *   Self-hosted PostgREST backend (with PostgreSQL).
+    *   Modular data provider architecture, designed to facilitate the integration of additional backend systems.
 
 ## Getting Started
 
