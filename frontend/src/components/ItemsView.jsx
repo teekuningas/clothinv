@@ -272,14 +272,44 @@ const ItemsView = () => {
     setTotalItemsCount(processedItems.length);
 
     // Pagination
-    const startIndex = currentPage * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedItems = processedItems.slice(startIndex, endIndex);
+    // const startIndex = currentPage * pageSize; // No longer needed for this slicing approach
+    const endIndex = (currentPage + 1) * pageSize; // Calculate end index for current page
+    const paginatedItems = processedItems.slice(0, endIndex); // Slice from start to current end
 
     setDisplayedItems(paginatedItems);
-    setHasMoreItems(endIndex < processedItems.length);
+    setHasMoreItems(endIndex < processedItems.length); // Check if more items exist beyond the current slice
 
   }, [allItemsMetadata, filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, sortCriteria, currentPage, pageSize, loading, parseSortCriteria]);
+
+  // Effect for Intersection Observer to load more items on scroll
+  useEffect(() => {
+    // Do not set up observer if API isn't configured, or if listItems isn't supported
+    if (!api.isConfigured || typeof api.listItems !== 'function') {
+        return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const firstEntry = entries[0];
+        if (firstEntry.isIntersecting && hasMoreItems && !loading) {
+          // Not the main 'loading' for fetchAllItemsMetadata, but general readiness
+          setCurrentPage((prevPage) => prevPage + 1);
+        }
+      },
+      { threshold: 1.0 } // Trigger when 100% of the loader is visible
+    );
+
+    const currentLoaderRef = loaderRef.current;
+    if (currentLoaderRef) {
+      observer.observe(currentLoaderRef);
+    }
+
+    return () => {
+      if (currentLoaderRef) {
+        observer.unobserve(currentLoaderRef);
+      }
+    };
+  }, [hasMoreItems, loading, api.isConfigured, api.listItems, loaderRef]); // Add loaderRef to dependencies
 
   // Effect to fetch images for displayed items
   useEffect(() => {
