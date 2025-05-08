@@ -904,15 +904,15 @@ async function importDataV1(settings, loadedZip) {
         console.log("Clearing existing Datasette data (Items first)...");
         const existingItems = await listItems(settings);
         for (const item of existingItems) {
-            await deleteItem(settings, item.item_id); // deleteItem also handles image deletion
+            await deleteItem(settings, { item_id: item.item_id }); // deleteItem also handles image deletion
         }
         console.log("Items cleared. Clearing Locations, Categories, Owners...");
         const existingLocations = await listLocations(settings);
-        for (const loc of existingLocations) await deleteLocation(settings, loc.location_id);
+        for (const loc of existingLocations) await deleteLocation(settings, { location_id: loc.location_id });
         const existingCategories = await listCategories(settings);
-        for (const cat of existingCategories) await deleteCategory(settings, cat.category_id);
+        for (const cat of existingCategories) await deleteCategory(settings, { category_id: cat.category_id });
         const existingOwners = await listOwners(settings);
-        for (const owner of existingOwners) await deleteOwner(settings, owner.owner_id);
+        for (const owner of existingOwners) await deleteOwner(settings, { owner_id: owner.owner_id });
         console.log("Existing data cleared.");
 
         // --- Parse and Import ---
@@ -1065,20 +1065,20 @@ export const destroyData = async (settings) => {
         const existingItemsMetadata = await listItems(settings); // Gets all item metadata
         // Delete items first to handle associated images
         for (const item of existingItemsMetadata) { // Iterate over metadata
-            await deleteItem(settings, item.item_id); // deleteItem also handles image deletion
+            await deleteItem(settings, { item_id: item.item_id }); // deleteItem also handles image deletion
         }
         console.log(`Items (${existingItemsMetadata.length}) cleared. Clearing Locations, Categories, Owners...`);
 
         const existingLocations = await listLocations(settings);
-        for (const loc of existingLocations) await deleteLocation(settings, loc.location_id);
+        for (const loc of existingLocations) await deleteLocation(settings, { location_id: loc.location_id });
         console.log(`Locations (${existingLocations.length}) cleared.`);
 
         const existingCategories = await listCategories(settings);
-        for (const cat of existingCategories) await deleteCategory(settings, cat.category_id);
+        for (const cat of existingCategories) await deleteCategory(settings, { category_id: cat.category_id });
         console.log(`Categories (${existingCategories.length}) cleared.`);
 
         const existingOwners = await listOwners(settings);
-        for (const owner of existingOwners) await deleteOwner(settings, owner.owner_id);
+        for (const owner of existingOwners) await deleteOwner(settings, { owner_id: owner.owner_id });
         console.log(`Owners (${existingOwners.length}) cleared.`);
 
         console.log("Existing data cleared.");
