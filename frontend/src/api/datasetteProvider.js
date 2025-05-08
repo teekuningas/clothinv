@@ -196,7 +196,7 @@ export const deleteLocation = async (settings, inputData) => {
     if (!locationId) throw new Error("Location ID is required for deletion.");
 
     // Dependency Check: Efficiently check if any item uses this location
-    const checkUrl = `${baseUrl}/items.json?location_id=eq.${locationId}&_size=1&_shape=array`;
+    const checkUrl = `${baseUrl}/items.json?location_id=${locationId}&_size=1&_shape=array`;
     try {
         const checkRes = await fetch(checkUrl, { headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
@@ -280,7 +280,7 @@ export const deleteCategory = async (settings, inputData) => {
     if (!categoryId) throw new Error("Category ID is required for deletion.");
 
     // Dependency Check: Efficiently check if any item uses this category
-    const checkUrl = `${baseUrl}/items.json?category_id=eq.${categoryId}&_size=1&_shape=array`;
+    const checkUrl = `${baseUrl}/items.json?category_id=${categoryId}&_size=1&_shape=array`;
     try {
         const checkRes = await fetch(checkUrl, { headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
@@ -408,7 +408,7 @@ export const deleteOwner = async (settings, inputData) => {
     if (!ownerId) throw new Error("Owner ID is required for deletion.");
 
     // Dependency Check: Efficiently check if any item uses this owner
-    const checkUrl = `${baseUrl}/items.json?owner_id=eq.${ownerId}&_size=1&_shape=array`;
+    const checkUrl = `${baseUrl}/items.json?owner_id=${ownerId}&_size=1&_shape=array`;
     try {
         const checkRes = await fetch(checkUrl, { headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
