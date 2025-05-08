@@ -1174,25 +1174,29 @@ const ItemsView = () => {
         allItemsMetadata.length === 0 && // No items in the source at all
         !error && (
           <div>
-            <p style={{marginBottom: "20px"}}>
+            <p style={{ marginBottom: "20px" }}>
               {intl.formatMessage({
                 id: "items.list.empty.main",
                 defaultMessage: "Your collection awaits.",
               })}
             </p>
             {/* Check if all prerequisites (Locations, Categories, Owners) are populated */}
-            {(locations.length === 0 || categories.length === 0 || owners.length === 0) ? (
+            {locations.length === 0 ||
+            categories.length === 0 ||
+            owners.length === 0 ? (
               <p>
                 {intl.formatMessage({
                   id: "items.list.empty.newUserGuidance",
-                  defaultMessage: "To add your first item, please begin by creating a Location, Category, and Owner in their respective sections, accessible from the navigation menu.",
+                  defaultMessage:
+                    "To add your first item, please begin by creating a Location, Category, and Owner in their respective sections, accessible from the navigation menu.",
                 })}
               </p>
             ) : (
               <p>
                 {intl.formatMessage({
                   id: "items.list.empty.addViaFAB",
-                  defaultMessage: "No items found. Click the '+' button to add one.",
+                  defaultMessage:
+                    "No items found. Click the '+' button to add one.",
                 })}
               </p>
             )}
