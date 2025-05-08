@@ -39,6 +39,58 @@ const handleResponse = async (res, operation, entityDescription) => {
     return { success: true, status: res.status };
 };
 
+// Add this helper function near the top of datasetteProvider.js
+const fetchRecordByUuidWithRetry = async (settings, tableName, uuidToFetch, selectFields = "*", entityName = "record") => {
+    const baseUrl = settings?.datasetteBaseUrl;
+    if (!baseUrl) throw new Error(`[${PROVIDER_NAME}]: Datasette Base URL is not configured for fetchRecordByUuidWithRetry.`);
+
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS_BASE = 250; // Initial delay, increases with retries
+    let fetchedRecord = null;
+
+    for (let i = 0; i < MAX_RETRIES; i++) {
+        // Query by UUID, select specific fields, bypass cache, expect one record
+        const queryUrl = `${baseUrl}/${tableName}.json?uuid=eq.${uuidToFetch}&_shape=array&_select=${selectFields}&_ttl=0&_size=1`;
+        
+        if (i > 0) { // Log if retrying
+            console.log(`[${PROVIDER_NAME}]: Retrying fetch for ${entityName} UUID ${uuidToFetch}, attempt ${i + 1}. URL: ${queryUrl}`);
+        }
+
+        const queryRes = await fetch(queryUrl, {
+             method: 'GET',
+             headers: { 'Accept': 'application/json' }
+        });
+
+        if (queryRes.ok) {
+            const queryData = await queryRes.json();
+            // Ensure we got an array, it's not empty, the record exists, and the UUID matches
+            if (queryData && queryData.length > 0 && queryData[0] && queryData[0].uuid === uuidToFetch) {
+                fetchedRecord = queryData[0];
+                break; // Success!
+            } else if (queryData && queryData.length > 0 && queryData[0] && queryData[0].uuid !== uuidToFetch) {
+                 // This is unexpected if UUIDs are truly unique and the insert succeeded.
+                 console.warn(`[${PROVIDER_NAME}]: Fetched ${entityName} UUID ${queryData[0].uuid} but expected ${uuidToFetch} on attempt ${i + 1}.`);
+            } else {
+                // queryData was empty or malformed, will retry if attempts remain.
+                 console.log(`[${PROVIDER_NAME}]: Fetch for ${entityName} UUID ${uuidToFetch} (attempt ${i+1}) returned no matching record or malformed data. Retrying if possible.`);
+            }
+        } else {
+            console.warn(`[${PROVIDER_NAME}]: Attempt ${i + 1} to fetch ${entityName} for UUID ${uuidToFetch} (URL: ${queryUrl}) failed with status ${queryRes.status}.`);
+        }
+
+        if (i < MAX_RETRIES - 1) {
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS_BASE * (i + 1))); // Incremental backoff
+        }
+    }
+
+    if (!fetchedRecord) {
+        const errorMessage = `Failed to retrieve ${entityName} with UUID ${uuidToFetch} after ${MAX_RETRIES} retries. The record might not have been created or become available in time.`;
+        console.error(`[${PROVIDER_NAME}]: ${errorMessage}`);
+        throw new Error(errorMessage);
+    }
+    return fetchedRecord; // Return the successfully fetched record object
+};
+
 // --- Internal Helper Functions (Not Exported Directly to Context) ---
 // These now accept the 'settings' object instead of individual config parameters.
 
@@ -62,28 +114,10 @@ export const addCategory = async (settings, data) => {
          throw new Error(`Category insert failed with status ${insertRes.status}`);
     }
 
-    // After successful insert, fetch the latest category ID
-    // Datasette's /-/insert doesn't return the created row, so we fetch it.
-    const queryUrl = `${baseUrl}/categories.json?_sort_desc=category_id&_size=1&_shape=array`; // Use _shape=array
-    const queryRes = await fetch(queryUrl, {
-         method: 'GET',
-         headers: { 'Accept': 'application/json' }
-    });
-
-    if (!queryRes.ok) {
-        const errorText = await queryRes.text();
-        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest category ID: ${queryRes.status} ${errorText}`, queryRes);
-        throw new Error(`Failed to fetch latest category ID after insert: ${queryRes.status}`);
-    }
-
-    const queryData = await queryRes.json();
-    // With _shape=array, response is an array of objects. Check the first object.
-    if (!queryData || queryData.length === 0 || !queryData[0].category_id) { // Adjust check for array shape
-         console.error(`[${PROVIDER_NAME}]: Could not find category_id in query response:`, queryData);
-         throw new Error("Failed to retrieve category_id after insert.");
-    }
-
-    const newCategoryId = queryData[0].category_id; // Adjust access for array shape
+    // Fetch the newly created category by its UUID to get its ID and confirm creation
+    const fetchedCategory = await fetchRecordByUuidWithRetry(settings, "categories", newUuid, "category_id,uuid", "category");
+    const newCategoryId = fetchedCategory.category_id;
+    // newUuid is already known. fetchedCategory.uuid should match newUuid.
 
     // Return success status, the new ID, and the UUID
     return { success: true, newId: newCategoryId, uuid: newUuid };
@@ -116,28 +150,9 @@ export const addLocation = async (settings, data) => {
          throw new Error(`Location insert failed with status ${insertRes.status}`);
     }
 
-    // After successful insert, fetch the latest location ID
-    // Datasette's /-/insert doesn't return the created row, so we fetch it.
-    const queryUrl = `${baseUrl}/locations.json?_sort_desc=location_id&_size=1&_shape=array`;
-    const queryRes = await fetch(queryUrl, {
-         method: 'GET',
-         headers: { 'Accept': 'application/json' } // Ensure we get JSON
-    });
-
-    if (!queryRes.ok) {
-        const errorText = await queryRes.text();
-        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest location ID: ${queryRes.status} ${errorText}`, queryRes);
-        throw new Error(`Failed to fetch latest location ID after insert: ${queryRes.status}`);
-    }
-
-    const queryData = await queryRes.json();
-    // With _shape=array, response is an array of objects. Check the first object.
-    if (!queryData || queryData.length === 0 || !queryData[0].location_id) {
-         console.error(`[${PROVIDER_NAME}]: Could not find location_id in query response:`, queryData);
-         throw new Error("Failed to retrieve location_id after insert.");
-    }
-
-    const newLocationId = queryData[0].location_id;
+    // Fetch the newly created location by its UUID to get its ID and confirm creation
+    const fetchedLocation = await fetchRecordByUuidWithRetry(settings, "locations", locationData.row.uuid, "location_id,uuid", "location");
+    const newLocationId = fetchedLocation.location_id;
 
     // Return success status, the new ID, and the UUID
     // Assuming addLocation was called with data containing the UUID or it was generated before calling
@@ -350,28 +365,10 @@ export const addOwner = async (settings, data) => { // Rename to addOwner and ex
          throw new Error(`Owner insert failed with status ${insertRes.status}`);
     }
 
-    // After successful insert, fetch the latest owner ID
-    // Datasette's /-/insert doesn't return the created row, so we fetch it.
-    const queryUrl = `${baseUrl}/owners.json?_sort_desc=owner_id&_size=1&_shape=array`; // Use _shape=array
-    const queryRes = await fetch(queryUrl, {
-         method: 'GET',
-         headers: { 'Accept': 'application/json' }
-    });
-
-    if (!queryRes.ok) {
-        const errorText = await queryRes.text();
-        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest owner ID: ${queryRes.status} ${errorText}`, queryRes);
-        throw new Error(`Failed to fetch latest owner ID after insert: ${queryRes.status}`);
-    }
-
-    const queryData = await queryRes.json();
-    // With _shape=array, response is an array of objects. Check the first object.
-    if (!queryData || queryData.length === 0 || !queryData[0].owner_id) { // Adjust check for array shape
-         console.error(`[${PROVIDER_NAME}]: Could not find owner_id in query response:`, queryData);
-         throw new Error("Failed to retrieve owner_id after insert.");
-    }
-
-    const newOwnerId = queryData[0].owner_id; // Adjust access for array shape
+    // Fetch the newly created owner by its UUID to get its ID and confirm creation
+    const fetchedOwner = await fetchRecordByUuidWithRetry(settings, "owners", newUuid, "owner_id,uuid", "owner");
+    const newOwnerId = fetchedOwner.owner_id;
+    // newUuid is already known. fetchedOwner.uuid should match newUuid.
 
     // Return success status, the new ID, and the UUID
     return { success: true, newId: newOwnerId, uuid: newUuid };
@@ -463,14 +460,10 @@ const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid 
     });
     await handleResponse(insertRes, 'insert', 'image'); // Check for success
 
-    // Datasette's /-/insert doesn't return the created row, so we fetch the latest image ID.
-    const queryUrl = `${baseUrl}/images.json?_sort_desc=image_id&_size=1&_shape=array`;
-    const queryRes = await fetch(queryUrl, { headers: { 'Accept': 'application/json' } });
-    if (!queryRes.ok) throw new Error(`[${PROVIDER_NAME}]: Failed to fetch latest image ID after insert: ${queryRes.status}`);
-    const queryData = await queryRes.json();
-    if (!queryData || queryData.length === 0 || !queryData[0].image_id) throw new Error(`[${PROVIDER_NAME}]: Failed to retrieve image_id after insert.`);
+    // Fetch the newly created image by its UUID to get its ID and confirm creation
+    const fetchedImage = await fetchRecordByUuidWithRetry(settings, "images", newUuid, "image_id,uuid", "image");
 
-    return { imageId: queryData[0].image_id, imageUuid: newUuid }; // Return both ID and UUID
+    return { imageId: fetchedImage.image_id, imageUuid: newUuid }; // Return imageId and the original newUuid used for insert
 };
 
 /**
@@ -562,34 +555,13 @@ export const addItem = async (settings, data) => {
         throw new Error("Failed to add item, initial insert failed.");
     }
 
-    // Fetch the latest item ID and UUID
-    // Datasette's /-/insert doesn't return the created row, so we fetch it.
-    const queryUrl = `${baseUrl}/items.json?_sort_desc=item_id&_size=1&_shape=array&_select=item_id,uuid`;
-    const queryRes = await fetch(queryUrl, {
-         method: 'GET',
-         headers: { 'Accept': 'application/json' }
-    });
+    // Fetch the newly created item by its UUID to get its ID and confirm creation details
+    // newItemUuid was generated earlier. imageUuid was determined from _insertImage or was null.
+    const fetchedItem = await fetchRecordByUuidWithRetry(settings, "items", newItemUuid, "item_id,uuid,image_uuid", "item");
 
-    if (!queryRes.ok) {
-        const errorText = await queryRes.text();
-        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest item ID/UUID after insert: ${queryRes.status} ${errorText}`, queryRes);
-        // Return success true but without ID/UUID if fetching fails, or throw
-        // For consistency, let's assume the add was successful but we couldn't confirm ID/UUID.
-        // The frontend might need to re-fetch. Or, consider this a partial failure.
-        // Given the schema, newId and uuid are optional on output.
-        return { success: true, image_uuid: imageUuid }; // imageUuid is from earlier in the function
-    }
-
-    const queryData = await queryRes.json();
-    if (!queryData || queryData.length === 0 || !queryData[0].item_id || !queryData[0].uuid) {
-         console.error(`[${PROVIDER_NAME}]: Could not find item_id/uuid in query response for new item:`, queryData);
-         return { success: true, image_uuid: imageUuid };
-    }
-
-    const newItemId = queryData[0].item_id;
-    const fetchedItemUuid = queryData[0].uuid;
-
-    return { success: true, newId: newItemId, uuid: fetchedItemUuid, image_uuid: imageUuid };
+    // fetchedItem.uuid should match newItemUuid.
+    // fetchedItem.image_uuid is the actual image_uuid associated in the DB.
+    return { success: true, newId: fetchedItem.item_id, uuid: newItemUuid, image_uuid: fetchedItem.image_uuid };
 };
 
 
