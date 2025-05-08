@@ -39,4 +39,6 @@ jobs:
         context: ./frontend
         file: ./frontend/Containerfile
         push: true
-        tags: ghcr.io/${{ github.repository }}:${{ env.IMAGE_TAG }}
+        tags: |
+          ghcr.io/${{ github.repository }}:${{ env.IMAGE_TAG }}
+          ghcr.io/${{ github.repository }}:latest
