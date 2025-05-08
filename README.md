@@ -31,11 +31,9 @@ For users who prefer to host their own instance, Clothinv is available as a Dock
 1.  **Pull the Docker image:**
     *   The official image is hosted on GitHub Container Registry (ghcr.io). You can use the `latest` tag for the most recent version or a specific version tag.
     *   Example: `docker pull ghcr.io/teekuningas/clothinv:latest`
-    *   Specific version example: `docker pull ghcr.io/teekuningas/clothinv:0.2.0` (Replace `0.2.0` with the desired version)
-    *   You can find all available tags on the [GitHub Packages page of this repository](https://github.com/teekuningas/clothinv/pkgs/container/clothinv) or under the [Releases section](https://github.com/teekuningas/clothinv/releases).
 
 2.  **Run the container:**
-    *   `docker run -d -p 8080:80 ghcr.io/teekuningas/clothinv:latest`
+    *   Example: `docker run -d -p 8080:80 ghcr.io/teekuningas/clothinv:latest`
     *   Access Clothinv at `http://localhost:8080`.
 
 By default, this self-hosted version also uses browser-local storage (IndexedDB). For advanced local development or building the image yourself, refer to the `Makefile`.
@@ -66,7 +64,7 @@ PostgREST serves a RESTful API directly from a PostgreSQL database.
     ```
 *   This command performs the following:
     1.  Starts a PostgreSQL Docker container.
-    2.  Initializes the database (e.g., `inventory_db_dev`) with the required schema from `backend/schema_postgres.sql`. This schema defines tables for items, locations, categories, owners, images, and image blobs.
+    2.  Initializes the database (e.g., `inventory_db_dev`) with the required schema from `backend/schema_postgres.sql`. This schema defines tables for items, locations, categories, owners, and images.
     3.  Starts a PostgREST Docker container connected to the PostgreSQL database.
     4.  Outputs the PostgREST API URL (e.g., `http://localhost:4000`) and a JWT token for authentication.
 *   Enter the provided PostgREST API URL and JWT Token into Clothinv's settings page under the "PostgREST" provider.
@@ -79,7 +77,7 @@ PostgREST serves a RESTful API directly from a PostgreSQL database.
 Clothinv allows you to export your entire inventory (metadata and images) as a single `.zip` file. This file can be used for:
 
 *   Backing up your data.
-*   Migrating your inventory to another ClothInv instance or a different backend.
+*   Migrating your inventory to another Clothinv instance or a different backend.
 
 The import function allows restoring data from such a `.zip` file. This feature is available regardless of the chosen storage backend.
 
@@ -89,7 +87,7 @@ When Clothinv is configured to use a persistent backend (Datasette or PostgREST)
 
 1.  Set up Clothinv with your chosen persistent backend.
 2.  Navigate to the "Settings" page.
-3.  Under the "Share Configuration" section, a shareable URL will be displayed.
+3.  Under the "Share Configuration" section, a shareable URL can be generated.
 4.  Copy this URL and open it on another device, or share it with others.
 
 Opening this URL will pre-configure their Clothinv instance to connect to the same backend, enabling shared access to the inventory data.
