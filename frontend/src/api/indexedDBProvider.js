@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import {
     createCSV,
     parseCSV,
+    getMimeTypeFromFilename,
     // No image helpers needed directly here as we store File objects
 } from './providerUtils'; // Import shared utilities
 
@@ -318,11 +319,37 @@ async function importDataV1(settings, loadedZip) {
 
             if (image_zip_filename && loadedZip.file(`images/${image_zip_filename}`)) {
                 const imageBlob = await loadedZip.file(`images/${image_zip_filename}`).async('blob');
-                imageFile = new File([imageBlob], image_original_filename || image_zip_filename, { type: imageBlob.type });
+                const originalFilenameToUse = image_original_filename || image_zip_filename;
+
+                let mimeType = '';
+                // 1. Try image_mimetype from images.csv (parsed into imagesMetadata)
+                //    images.csv uses 'image_id' which corresponds to 'itemId' (item.item_id) here.
+                const imgMetaForItem = imagesMetadata.find(img => parseInt(img.image_id, 10) === itemId);
+                if (imgMetaForItem && imgMetaForItem.image_mimetype) {
+                    mimeType = imgMetaForItem.image_mimetype;
+                }
+
+                // 2. If not found or empty, try imageBlob.type (browser-inferred from blob content)
+                if (!mimeType && imageBlob.type) {
+                    mimeType = imageBlob.type;
+                }
+
+                // 3. If still no MIME type, try to guess from filename
+                if (!mimeType) {
+                    mimeType = getMimeTypeFromFilename(originalFilenameToUse);
+                }
+
+                // 4. As a last resort, default to 'application/octet-stream' if still empty
+                if (!mimeType) {
+                    mimeType = 'application/octet-stream';
+                }
+
+                imageFile = new File([imageBlob], originalFilenameToUse, { type: mimeType });
+
                 // If image_uuid was missing in items.csv, try finding it in images.csv (fallback)
                 if (!imageUuid) {
-                    const imgMeta = imagesMetadata.find(img => img.image_id === itemId); // Find image meta by ID
-                    imageUuid = imgMeta?.uuid || uuidv4(); // Use found UUID or generate
+                    // Use imgMetaForItem if already found, otherwise generate UUID
+                    imageUuid = (imgMetaForItem && imgMetaForItem.uuid) ? imgMetaForItem.uuid : uuidv4();
                 }
             }
             // Preserve timestamps or set defaults
