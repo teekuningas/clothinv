@@ -34,11 +34,12 @@ const ShareConfigurationLinkView = () => {
 
       // import.meta.env.BASE_URL is provided by Vite.
       // It correctly ends with a '/' if it's a subpath, or is just '/' for the root.
-      // We construct the path ensuring no double slashes.
-      const basePath = import.meta.env.BASE_URL;
-      const configurePath = `${basePath}configure`.replace(/\/+/g, '/'); // Ensure single slash if basePath is '/'
-      const configureUrl = `${window.location.origin}${configurePath}?settingsPayload=${base64String}`;
-
+      // Construct the full base URL for the 'configure' path.
+      // If BASE_URL is '/', new URL('configure', 'http://host/').href is 'http://host/configure'
+      // If BASE_URL is '/app/', new URL('configure', 'http://host/app/').href is 'http://host/app/configure'
+      const baseAppUrl = new URL(import.meta.env.BASE_URL, window.location.origin).href;
+      const configureUrl = new URL(`configure?settingsPayload=${base64String}`, baseAppUrl).href;
+      
       setGeneratedUrl(configureUrl);
       console.log("ShareConfig: Generated URL:", configureUrl);
     } catch (e) {

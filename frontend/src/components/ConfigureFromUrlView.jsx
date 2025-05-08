@@ -59,7 +59,8 @@ const ConfigureFromUrlView = () => {
       // import.meta.env.BASE_URL is provided by Vite and corresponds to the 'base' option in vite.config.js
       // It will be '/' if not specified, or e.g., '/my-repo/' if base: '/my-repo/'
       // It correctly ends with a '/' if it's a subpath, or is just '/' for the root.
-      const redirectPath = `${import.meta.env.BASE_URL}items`.replace(/\/+/g, '/'); // Ensure single slash
+      // Path join: if BASE_URL is '/', result is '/items'. If BASE_URL is '/app/', result is '/app/items'.
+      const redirectPath = new URL('items', `${window.location.origin}${import.meta.env.BASE_URL}`).pathname;
       setTimeout(() => {
         window.location.replace(redirectPath);
       }, 50);
