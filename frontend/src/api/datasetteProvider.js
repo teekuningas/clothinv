@@ -13,15 +13,9 @@ import {
 const PROVIDER_NAME = "Datasette Provider";
 
 // Helper to generate headers, extracting token from settings
-import {
-    getMimeTypeFromFilename,
-    readFileAsBase64,
-    createCSV,
-    parseCSV,
-    base64ToBlob // Needed for listItems
-} from './providerUtils'; // Import shared utilities
+// The import block that was here has been removed.
+// The first import at the very top of the file is sufficient.
 
-// Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings) => {
     const headers = {
         'Content-Type': 'application/json',
