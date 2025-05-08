@@ -285,7 +285,7 @@ const ItemsView = () => {
       // Fetch if UUID exists, entry for item_id is undefined in itemImageFiles (meaning not fetched or marked as null/failed), and not currently loading
       if (item.image_uuid && itemImageFiles[item.item_id] === undefined && !loadingImages[item.image_uuid]) {
         setLoadingImages(prev => ({ ...prev, [item.image_uuid]: true }));
-        api.getImage(item.image_uuid)
+        api.getImage({ image_uuid: item.image_uuid })
           .then(imageFile => {
             if (imageFile instanceof File) {
               setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: imageFile }));
@@ -774,7 +774,8 @@ const ItemsView = () => {
           "Image compression disabled or not applicable, using original file for update.",
         );
       }
-      const result = await api.updateItem(editingItemId, {
+      const result = await api.updateItem({
+        item_id: editingItemId,
         name: editName.trim(),
         description: editDescription.trim() || null,
         location_id: parseInt(editLocationId, 10),
@@ -857,7 +858,7 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
-      const result = await api.deleteItem(deleteCandidateId);
+      const result = await api.deleteItem({ item_id: deleteCandidateId });
       if (result.success) {
         setSuccess(
           intl.formatMessage({

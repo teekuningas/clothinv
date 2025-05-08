@@ -108,7 +108,8 @@ export const addLocation = async (settings, data) => {
     return { success: true, newId: newLocationId, uuid: newUuid };
 };
 
-export const updateLocation = async (settings, locationId, data) => {
+export const updateLocation = async (settings, inputData) => {
+    const { location_id: locationId, ...data } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!locationId) throw new Error("Location ID is required for update.");
@@ -127,7 +128,8 @@ export const updateLocation = async (settings, locationId, data) => {
     return { success: true };
 };
 
-export const deleteLocation = async (settings, locationId) => {
+export const deleteLocation = async (settings, inputData) => {
+    const { location_id: locationId } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!locationId) throw new Error("Location ID is required for deletion.");
@@ -183,7 +185,8 @@ export const addCategory = async (settings, data) => {
     return { success: true, newId: newCategoryId, uuid: newUuid };
 };
 
-export const updateCategory = async (settings, categoryId, data) => {
+export const updateCategory = async (settings, inputData) => {
+    const { category_id: categoryId, ...data } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!categoryId) throw new Error("Category ID is required for update.");
@@ -198,7 +201,8 @@ export const updateCategory = async (settings, categoryId, data) => {
     return { success: true };
 };
 
-export const deleteCategory = async (settings, categoryId) => {
+export const deleteCategory = async (settings, inputData) => {
+    const { category_id: categoryId } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!categoryId) throw new Error("Category ID is required for deletion.");
@@ -249,7 +253,8 @@ export const addOwner = async (settings, data) => {
     return { success: true, newId: newOwnerId, uuid: newUuid };
 };
 
-export const updateOwner = async (settings, ownerId, data) => {
+export const updateOwner = async (settings, inputData) => {
+    const { owner_id: ownerId, ...data } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!ownerId) throw new Error("Owner ID is required for update.");
@@ -264,7 +269,8 @@ export const updateOwner = async (settings, ownerId, data) => {
     return { success: true };
 };
 
-export const deleteOwner = async (settings, ownerId) => {
+export const deleteOwner = async (settings, inputData) => {
+    const { owner_id: ownerId } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!ownerId) throw new Error("Owner ID is required for deletion.");
@@ -427,7 +433,8 @@ export const addItem = async (settings, data) => {
  * Updates an item's details, including potentially the image.
  * Expects itemId and data like { name, description, location_id, category_id, owner_id, imageFile?, removeImage? }
  */
-export const updateItem = async (settings, itemId, data) => { // data should NOT contain uuid
+export const updateItem = async (settings, inputData) => { // data should NOT contain uuid
+    const { item_id: itemId, ...data } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!itemId) throw new Error("Item ID is required for update.");
@@ -506,7 +513,8 @@ export const updateItem = async (settings, itemId, data) => { // data should NOT
 /**
  * Deletes an item record.
  */
-export const deleteItem = async (settings, itemId) => {
+export const deleteItem = async (settings, inputData) => {
+    const { item_id: itemId } = inputData;
     const baseUrl = settings?.postgrestApiUrl;
     if (!baseUrl) throw new Error("PostgREST API URL is not configured.");
     if (!itemId) throw new Error("Item ID is required for deletion.");
@@ -615,7 +623,8 @@ const _getImageByUuid = async (settings, imageUuid) => {
 };
 
 // New exported method getImage
-export const getImage = async (settings, imageUuid) => {
+export const getImage = async (settings, inputData) => {
+    const { image_uuid: imageUuid } = inputData;
     if (!imageUuid) return null;
     try {
         const imageDetails = await _getImageByUuid(settings, imageUuid);
@@ -673,7 +682,7 @@ export const exportData = async (settings) => {
             itemCsvRow.image_original_filename = '';
 
             if (item.image_uuid) { // Check if there's an associated image UUID
-                const imageFile = await getImage(settings, item.image_uuid); // Fetch the image File object
+                const imageFile = await getImage(settings, { image_uuid: item.image_uuid }); // Fetch the image File object
                 if (imageFile instanceof File) {
                     const fileExtension = imageFile.name.split('.').pop() || 'bin';
                     const zipFilename = `${item.item_id}.${fileExtension}`;

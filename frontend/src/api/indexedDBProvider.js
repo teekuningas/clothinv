@@ -580,7 +580,8 @@ export const addLocation = async (settings, data) => {
     });
 };
 
-export const updateLocation = async (settings, locationId, data) => {
+export const updateLocation = async (settings, inputData) => {
+    const { location_id: locationId, ...data } = inputData;
     console.log(`IndexedDBProvider: updateLocation called for ID ${locationId} with data:`, data);
     const existing = await getFromStore(STORES.locations, locationId);
     if (!existing) return { success: false, message: 'Location not found' };
@@ -594,7 +595,8 @@ export const updateLocation = async (settings, locationId, data) => {
     return { success: true };
 };
 
-export const deleteLocation = async (settings, locationId) => {
+export const deleteLocation = async (settings, inputData) => {
+    const { location_id: locationId } = inputData;
     console.log(`IndexedDBProvider: deleteLocation called for ID ${locationId}`);
     // Check if used by items
     const items = await getAllFromStore(STORES.items);
@@ -676,7 +678,8 @@ export const addCategory = async (settings, data) => {
     });
 };
 
-export const updateCategory = async (settings, categoryId, data) => {
+export const updateCategory = async (settings, inputData) => {
+    const { category_id: categoryId, ...data } = inputData;
     console.log(`IndexedDBProvider: updateCategory called for ID ${categoryId} with data:`, data);
     const existing = await getFromStore(STORES.categories, categoryId);
     if (!existing) return { success: false, message: 'Category not found' };
@@ -690,7 +693,8 @@ export const updateCategory = async (settings, categoryId, data) => {
     return { success: true };
 };
 
-export const deleteCategory = async (settings, categoryId) => {
+export const deleteCategory = async (settings, inputData) => {
+    const { category_id: categoryId } = inputData;
     console.log(`IndexedDBProvider: deleteCategory called for ID ${categoryId}`);
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.category_id === categoryId);
@@ -769,7 +773,8 @@ export const addOwner = async (settings, data) => {
     });
 };
 
-export const updateOwner = async (settings, ownerId, data) => {
+export const updateOwner = async (settings, inputData) => {
+    const { owner_id: ownerId, ...data } = inputData;
     console.log(`IndexedDBProvider: updateOwner called for ID ${ownerId} with data:`, data);
     const existing = await getFromStore(STORES.owners, ownerId);
     if (!existing) return { success: false, message: 'Owner not found' };
@@ -783,7 +788,8 @@ export const updateOwner = async (settings, ownerId, data) => {
     return { success: true };
 };
 
-export const deleteOwner = async (settings, ownerId) => {
+export const deleteOwner = async (settings, inputData) => {
+    const { owner_id: ownerId } = inputData;
     console.log(`IndexedDBProvider: deleteOwner called for ID ${ownerId}`);
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.owner_id === ownerId);
@@ -813,7 +819,8 @@ export const listItems = async (settings) => { // Remove options parameter
 };
 
 // New exported method getImage
-export const getImage = async (settings, imageUuid) => {
+export const getImage = async (settings, inputData) => {
+    const { image_uuid: imageUuid } = inputData;
     console.log(`IndexedDBProvider: getImage called for image UUID: ${imageUuid}`);
     if (!imageUuid) {
         console.warn("IndexedDBProvider: getImage called with no imageUuid.");
@@ -1008,7 +1015,8 @@ export const updateItem = async (settings, itemId, data) => {
 };
 
 
-export const deleteItem = async (settings, itemId) => {
+export const deleteItem = async (settings, inputData) => {
+    const { item_id: itemId } = inputData;
     console.log(`IndexedDBProvider: deleteItem called for ID ${itemId}`);
 
     // Check if item exists before attempting delete (optional)

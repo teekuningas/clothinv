@@ -223,7 +223,8 @@ const OwnersView = () => {
     setSuccess(null);
 
     try {
-      const result = await api.updateOwner(editingOwnerId, {
+      const result = await api.updateOwner({
+        owner_id: editingOwnerId,
         name: editName.trim(),
         description: editDescription.trim() || null,
       });
@@ -334,7 +335,7 @@ const OwnersView = () => {
       }
 
       // 2. Proceed with deletion if not in use
-      const result = await api.deleteOwner(deleteCandidateId);
+      const result = await api.deleteOwner({ owner_id: deleteCandidateId });
       if (result.success) {
         setSuccess(
           intl.formatMessage({

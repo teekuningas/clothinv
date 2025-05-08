@@ -223,7 +223,8 @@ const LocationsView = () => {
     setSuccess(null);
 
     try {
-      const result = await api.updateLocation(editingLocationId, {
+      const result = await api.updateLocation({
+        location_id: editingLocationId,
         name: editName.trim(),
         description: editDescription.trim() || null,
       });
@@ -333,7 +334,7 @@ const LocationsView = () => {
       }
 
       // 2. Proceed with deletion if not in use
-      const result = await api.deleteLocation(deleteCandidateId);
+      const result = await api.deleteLocation({ location_id: deleteCandidateId });
       if (result.success) {
         setSuccess(
           intl.formatMessage({

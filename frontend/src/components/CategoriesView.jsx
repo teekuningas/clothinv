@@ -223,7 +223,8 @@ const CategoriesView = () => {
     setSuccess(null);
 
     try {
-      const result = await api.updateCategory(editingCategoryId, {
+      const result = await api.updateCategory({
+        category_id: editingCategoryId,
         name: editName.trim(),
         description: editDescription.trim() || null,
       });
@@ -334,7 +335,7 @@ const CategoriesView = () => {
       }
 
       // 2. Proceed with deletion if not in use
-      const result = await api.deleteCategory(deleteCandidateId);
+      const result = await api.deleteCategory({ category_id: deleteCandidateId });
       if (result.success) {
         setSuccess(
           intl.formatMessage({

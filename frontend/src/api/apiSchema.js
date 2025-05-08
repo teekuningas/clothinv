@@ -65,12 +65,13 @@ export const AddLocationInputSchema = Object;
 /** @typedef {{ success: boolean, newId: ProviderID, uuid: UUID, message?: string }} AddLocationOutput */
 export const AddLocationOutputSchema = Object;
 
-/** @typedef {{ name: string, description?: string | null }} UpdateLocationInputData */
-export const UpdateLocationInputSchema = Object; // locationId is a separate param
+/** @typedef {{ location_id: ProviderID, name: string, description?: string | null }} UpdateLocationInputData */
+export const UpdateLocationInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} UpdateLocationOutput */
 export const UpdateLocationOutputSchema = Object;
 
-export const DeleteLocationInputSchema = undefined; // locationId is a separate param
+/** @typedef {{ location_id: ProviderID }} DeleteLocationInputData */
+export const DeleteLocationInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} DeleteLocationOutput */
 export const DeleteLocationOutputSchema = Object;
 
@@ -84,12 +85,13 @@ export const AddCategoryInputSchema = Object;
 /** @typedef {{ success: boolean, newId: ProviderID, uuid: UUID, message?: string }} AddCategoryOutput */
 export const AddCategoryOutputSchema = Object;
 
-/** @typedef {{ name: string, description?: string | null }} UpdateCategoryInputData */
-export const UpdateCategoryInputSchema = Object; // categoryId is a separate param
+/** @typedef {{ category_id: ProviderID, name: string, description?: string | null }} UpdateCategoryInputData */
+export const UpdateCategoryInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} UpdateCategoryOutput */
 export const UpdateCategoryOutputSchema = Object;
 
-export const DeleteCategoryInputSchema = undefined; // categoryId is a separate param
+/** @typedef {{ category_id: ProviderID }} DeleteCategoryInputData */
+export const DeleteCategoryInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} DeleteCategoryOutput */
 export const DeleteCategoryOutputSchema = Object;
 
@@ -103,12 +105,13 @@ export const AddOwnerInputSchema = Object;
 /** @typedef {{ success: boolean, newId: ProviderID, uuid: UUID, message?: string }} AddOwnerOutput */
 export const AddOwnerOutputSchema = Object;
 
-/** @typedef {{ name: string, description?: string | null }} UpdateOwnerInputData */
-export const UpdateOwnerInputSchema = Object; // ownerId is a separate param
+/** @typedef {{ owner_id: ProviderID, name: string, description?: string | null }} UpdateOwnerInputData */
+export const UpdateOwnerInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} UpdateOwnerOutput */
 export const UpdateOwnerOutputSchema = Object;
 
-export const DeleteOwnerInputSchema = undefined; // ownerId is a separate param
+/** @typedef {{ owner_id: ProviderID }} DeleteOwnerInputData */
+export const DeleteOwnerInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} DeleteOwnerOutput */
 export const DeleteOwnerOutputSchema = Object;
 
@@ -149,7 +152,7 @@ export const AddItemOutputSchema = Object;
  * @property {(FileObject | null)=} imageFile
  * @property {(boolean)=} removeImage
  */
-export const UpdateItemInputSchema = Object; // itemId is a separate param
+export const UpdateItemInputSchema = Object;
 /**
  * @typedef {object} UpdateItemOutput
  * @property {boolean} success
@@ -158,12 +161,14 @@ export const UpdateItemInputSchema = Object; // itemId is a separate param
  */
 export const UpdateItemOutputSchema = Object;
 
-export const DeleteItemInputSchema = undefined; // itemId is a separate param
+/** @typedef {{ item_id: ProviderID }} DeleteItemInputData */
+export const DeleteItemInputSchema = Object;
 /** @typedef {{ success: boolean, message?: string }} DeleteItemOutput */
 export const DeleteItemOutputSchema = Object;
 
 // --- Image Methods ---
-export const GetImageInputSchema = undefined; // imageUuid is a separate param
+/** @typedef {{ image_uuid: UUID }} GetImageInputData */
+export const GetImageInputSchema = Object;
 /** @typedef {FileObject | null} GetImageOutput */
 export const GetImageOutputSchema = FileObject; // Or null
 
