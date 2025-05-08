@@ -834,6 +834,33 @@ const ItemsView = () => {
             { name: editName.trim() },
           ),
         );
+
+        // If the image was part of the update, clear its cached state to force a re-fetch.
+        // This is true if a new file was sent, an existing image was marked for removal,
+        // or the backend might have changed the image_uuid.
+        if (fileToSend || imageMarkedForRemoval) {
+          const updatedItemId = editingItemId; // Capture for use in state updaters
+
+          // Clear from itemImageFiles to ensure it's re-fetched
+          setItemImageFiles(prevFiles => {
+            const newFiles = { ...prevFiles };
+            // Deleting the key makes itemImageFiles[updatedItemId] === undefined,
+            // which triggers the image fetching useEffect.
+            delete newFiles[updatedItemId];
+            return newFiles;
+          });
+
+          // Clear and revoke from displayedItemImageUrls
+          setDisplayedItemImageUrls(prevUrls => {
+            const newUrls = { ...prevUrls };
+            if (newUrls[updatedItemId]) {
+              URL.revokeObjectURL(newUrls[updatedItemId]);
+              delete newUrls[updatedItemId];
+            }
+            return newUrls;
+          });
+        }
+
         handleCancelEdit(); // Close edit modal
         fetchAllItemsMetadata(); // Refresh all metadata
       } else {
