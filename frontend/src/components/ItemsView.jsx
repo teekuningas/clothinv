@@ -288,8 +288,8 @@ const ItemsView = () => {
     }
 
     displayedItems.forEach(item => {
-      // Fetch if UUID exists, key is not in itemImageFiles (meaning not fetched or marked as null), and not currently loading
-      if (item.image_uuid && !(item.item_id in itemImageFiles) && !loadingImages[item.image_uuid]) {
+      // Fetch if UUID exists, entry for item_id is undefined in itemImageFiles (meaning not fetched or marked as null/failed), and not currently loading
+      if (item.image_uuid && itemImageFiles[item.item_id] === undefined && !loadingImages[item.image_uuid]) {
         setLoadingImages(prev => ({ ...prev, [item.image_uuid]: true }));
         api.getImage(item.image_uuid)
           .then(imageFile => {
@@ -303,6 +303,8 @@ const ItemsView = () => {
           })
           .catch(err => {
             console.error(`Failed to fetch image for UUID ${item.image_uuid}:`, err);
+            // Mark as null on error to prevent re-fetch loops
+            setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: null }));
           })
           .finally(() => {
             setLoadingImages(prev => ({ ...prev, [item.image_uuid]: false }));
@@ -310,6 +312,42 @@ const ItemsView = () => {
       }
     });
   }, [displayedItems, api, itemImageFiles, loadingImages]);
+
+  // Effect to manage Blob URLs for displayed item images
+  useEffect(() => {
+    const newUrls = {}; // Accumulate URLs for the current displayedItems that have images
+
+    // Create URLs for items that are currently displayed and have a File object
+    displayedItems.forEach(item => {
+      const file = itemImageFiles[item.item_id];
+      if (file instanceof File) {
+        // Only create a new URL if one doesn't already exist for this item_id,
+        // or if the file instance might have changed (though direct comparison is hard).
+        // For simplicity, we'll create/recreate if the file exists.
+        // The cleanup logic handles revoking.
+        newUrls[item.item_id] = URL.createObjectURL(file);
+      }
+    });
+
+    // Revoke URLs that were in the previous state of displayedItemImageUrls
+    // but are not in the new set (e.g., item removed from display, or its image file was removed/nulled).
+    // Also, if a new URL was generated for an item_id that had an old URL, the old one needs revoking.
+    Object.keys(displayedItemImageUrls).forEach(itemIdKey => {
+      const numericItemId = parseInt(itemIdKey, 10); // Ensure itemId is treated as a number for lookups
+      // If the old URL is not in newUrls OR if newUrls has a DIFFERENT url for the same itemId, revoke the old one.
+      if (!newUrls[numericItemId] || (newUrls[numericItemId] !== displayedItemImageUrls[numericItemId])) {
+        URL.revokeObjectURL(displayedItemImageUrls[numericItemId]);
+      }
+    });
+    
+    setDisplayedItemImageUrls(newUrls);
+
+    // Cleanup function: when component unmounts or dependencies change,
+    // revoke all URLs that were created and set in *this* effect run.
+    return () => {
+      Object.values(newUrls).forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [displayedItems, itemImageFiles]); // Dependencies: re-run when displayed items or their files change.
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
