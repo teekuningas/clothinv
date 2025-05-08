@@ -14,7 +14,6 @@ import ImageViewModal from "./ImageViewModal";
 import { compressImage, rotateImageFile } from "../helpers/images";
 import Gallery from "./Gallery"; // Import the new Gallery component
 import "./ItemsView.css";
-import "./ImageViewModal.css";
 
 const ItemsView = () => {
   const [allItemsMetadata, setAllItemsMetadata] = useState([]);
