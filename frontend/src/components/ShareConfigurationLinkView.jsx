@@ -32,7 +32,12 @@ const ShareConfigurationLinkView = () => {
 
       const base64String = btoa(settingsJson);
 
-      const configureUrl = `${window.location.origin}/configure?settingsPayload=${base64String}`;
+      // import.meta.env.BASE_URL is provided by Vite.
+      // It correctly ends with a '/' if it's a subpath, or is just '/' for the root.
+      // We construct the path ensuring no double slashes.
+      const basePath = import.meta.env.BASE_URL;
+      const configurePath = `${basePath}configure`.replace(/\/+/g, '/'); // Ensure single slash if basePath is '/'
+      const configureUrl = `${window.location.origin}${configurePath}?settingsPayload=${base64String}`;
 
       setGeneratedUrl(configureUrl);
       console.log("ShareConfig: Generated URL:", configureUrl);

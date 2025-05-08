@@ -56,8 +56,12 @@ const ConfigureFromUrlView = () => {
         }),
       );
       // Use replace: true so the /configure URL isn't in the browser history
+      // import.meta.env.BASE_URL is provided by Vite and corresponds to the 'base' option in vite.config.js
+      // It will be '/' if not specified, or e.g., '/my-repo/' if base: '/my-repo/'
+      // It correctly ends with a '/' if it's a subpath, or is just '/' for the root.
+      const redirectPath = `${import.meta.env.BASE_URL}items`.replace(/\/+/g, '/'); // Ensure single slash
       setTimeout(() => {
-        window.location.replace("/items");
+        window.location.replace(redirectPath);
       }, 50);
     } catch (error) {
       console.error("Error processing configuration from URL:", error);
