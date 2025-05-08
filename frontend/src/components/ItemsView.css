@@ -66,8 +66,9 @@
     margin-top: 8px;
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */ /* Removed as per instruction, stacking vertically now */
     align-items: stretch;
+    flex-direction: column; /* Added to stack vertically by default */
 }
 
 .edit-item-form .form-group {
@@ -93,6 +94,10 @@
     .add-item-form .image-preview {
         align-self: center;
     }
+}
+
+.add-item-form .image-preview {
+    align-self: center;
 }
 
 .edit-item-form .image-preview {
