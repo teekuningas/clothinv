@@ -168,7 +168,7 @@ export const exportData = async (settings) => {
 
             if (item.image_uuid) { // Check if there's an associated image UUID
                 // Fetch the image File object using the new getImage method
-                const imageFile = await getImage(settings, item.image_uuid);
+                const imageFile = await getImage(settings, { image_uuid: item.image_uuid });
                 if (imageFile instanceof File) {
                     const fileExtension = imageFile.name.split('.').pop() || 'bin';
                     const zipFilename = `${item.item_id}.${fileExtension}`; // Use item_id for zip filename
