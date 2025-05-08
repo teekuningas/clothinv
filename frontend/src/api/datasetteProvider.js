@@ -50,8 +50,8 @@ const fetchRecordByUuidWithRetry = async (settings, tableName, uuidToFetch, sele
 
     for (let i = 0; i < MAX_RETRIES; i++) {
         // Query by UUID, select specific fields, bypass cache, expect one record
-        const queryUrl = `${baseUrl}/${tableName}.json?uuid=eq.${uuidToFetch}&_shape=array&_select=${selectFields}&_ttl=0&_size=1`;
-        
+        const queryUrl = `${baseUrl}/${tableName}.json?uuid=${uuidToFetch}&_shape=array&_select=${selectFields}&_ttl=0&_size=1`;
+
         if (i > 0) { // Log if retrying
             console.log(`[${PROVIDER_NAME}]: Retrying fetch for ${entityName} UUID ${uuidToFetch}, attempt ${i + 1}. URL: ${queryUrl}`);
         }
@@ -1068,4 +1068,3 @@ export const destroyData = async (settings) => {
         return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
     }
 };
-// Removed JSZip import - already imported above
