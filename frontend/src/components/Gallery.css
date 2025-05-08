@@ -1,0 +1,95 @@
+/* --- Items List (Gallery) --- */
+.items-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 0;
+    margin-top: 20px;
+}
+
+/* --- Item Card --- */
+.item-card {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg-container);
+    box-shadow: 0 2px 4px rgb(0 0 0 / 8%);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Container for image or placeholder */
+.item-image-container {
+    width: 100%;
+    height: 320px; /* Increased height for portrait feel */
+    border-bottom: 1px solid var(--color-border-divider);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: var(--color-bg-subtle);
+}
+ 
+.item-image-container.placeholder {
+    background-color: var(--color-bg-subtle); /* Base color for placeholder */
+
+    /* Subtle diagonal stripes */
+    background-image: linear-gradient(45deg, rgb(0 0 0 / 4%) 25%, transparent 25%, transparent 50%, rgb(0 0 0 / 4%) 50%, rgb(0 0 0 / 4%) 75%, transparent 75%, transparent);
+    background-size: 28px 28px; /* Adjust size of the stripes */
+}
+ 
+.item-image-container.clickable {
+    cursor: pointer;
+}
+
+.item-image-container img.item-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Loading/Error states (Optional) */
+.item-image-loading,
+.item-image-error { /* .item-image-error is not used in current JSX but good to keep if styles exist */
+    font-size: 0.9em;
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.item-card-content {
+    padding: 8px 12px; /* Reduced padding */
+    flex-grow: 1;
+    display: flex; /* For name and edit button alignment */
+    justify-content: space-between;
+    background-color: var(--color-bg-body); /* Zen-like footer background */
+    align-items: center;
+}
+
+.item-card-content h4 { /* Item Name */
+    flex-grow: 1; /* Takes available space */
+    margin: 0; /* Reset margin */
+    font-size: 1em; /* Adjust as needed */
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* Handle long names */
+    margin-right: 8px; /* Space before edit button */
+    color: var(--color-text-base); /* Retain original color */
+}
+
+.item-card-content .edit-button { /* Edit icon button on card */
+    flex-shrink: 0; /* Prevent shrinking */
+    padding: 4px; /* Adjusted padding for icon button */
+    font-size: 1.2em; /* Adjust emoji/icon size */
+    line-height: 1; /* Ensure consistent height */
+    background-color: transparent; /* Remove background */
+    border: none; /* Remove border */
+    color: var(--color-text-muted); /* Subtle icon color */
+}
+
+.item-card-content .edit-button:hover:not(:disabled) {
+    color: var(--color-primary); /* Darken or use primary color on hover */
+    background-color: var(--color-bg-subtle); /* Optional: slight background on hover for feedback */
+}
+
+/* Note: .item-card p.item-description and .item-card p.item-meta styles were in ItemsView.css
+   but not used by the item card structure. They can be omitted here or kept if planned for future use.
+   For this refactor, they are omitted as the current card structure doesn't use them. */

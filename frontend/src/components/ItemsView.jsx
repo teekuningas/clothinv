@@ -12,6 +12,7 @@ import imageCompression from "browser-image-compression";
 import Modal from "./Modal";
 import ImageViewModal from "./ImageViewModal";
 import { compressImage, rotateImageFile } from "../helpers/images";
+import Gallery from "./Gallery"; // Import the new Gallery component
 import "./ItemsView.css";
 import "./ImageViewModal.css";
 
@@ -1160,60 +1161,21 @@ const ItemsView = () => {
           </p>
         )}
 
+      {/* Render the Gallery component */}
       {displayedItems.length > 0 && (
-        <div className="items-list">
-          {displayedItems.map((item) => (
-            <div key={item.item_id} className="item-card">
-              {/* Display image using Blob URL from state */}
-              <div
-                className={`item-image-container ${!displayedItemImageUrls[item.item_id] ? "placeholder" : ""} ${displayedItemImageUrls[item.item_id] ? "clickable" : ""}`}
-                onClick={() =>
-                  itemImageFiles[item.item_id] && handleImageClick(itemImageFiles[item.item_id], item.name)
-                }
-                title={
-                  displayedItemImageUrls[item.item_id]
-                    ? intl.formatMessage({
-                        id: "items.card.viewImageTooltip",
-                        defaultMessage: "Click to view full image",
-                      })
-                    : ""
-                }
-              >
-                {loadingImages[item.image_uuid] && !displayedItemImageUrls[item.item_id] && (
-                  <div className="item-image-loading">Loading image...</div>
-                )}
-                {displayedItemImageUrls[item.item_id] ? (
-                  <img
-                    src={displayedItemImageUrls[item.item_id]}
-                    alt={item.name}
-                    className="item-image"
-                  />
-                ) : null}
-              </div>
-              <div className="item-card-content">
-                <h4 title={item.name}>{item.name}</h4>
-                {api.isConfigured && typeof api.updateItem === "function" && (
-                  <button
-                    onClick={() => handleEditClick(item)}
-                    className="edit-button button-light"
-                    aria-label={intl.formatMessage(
-                      {
-                        id: "items.editButton.label",
-                        defaultMessage: "Edit {name}",
-                      },
-                      { name: item.name },
-                    )}
-                    disabled={
-                      loading || isUpdating || isDeleting
-                    }
-                  >
-                    ✏️
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        <Gallery
+          items={displayedItems}
+          onEditItem={handleEditClick}
+          onImageClick={handleImageClick}
+          displayedItemImageUrls={displayedItemImageUrls}
+          itemImageFiles={itemImageFiles}
+          loadingImages={loadingImages}
+          isLoading={loading} // Pass the main loading state
+          isUpdating={isUpdating}
+          isDeleting={isDeleting}
+          canUpdateItem={api.isConfigured && typeof api.updateItem === 'function'}
+          intl={intl}
+        />
       )}
 
       {loading && displayedItems.length > 0 && ( // Show "loading more" style indicator if loading all but some are already shown
