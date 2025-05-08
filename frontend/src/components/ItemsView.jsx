@@ -143,7 +143,7 @@ const ItemsView = () => {
       // This handles the race condition where listItems (especially for IndexedDB) might be slightly
       // stale for the just-updated item's image_uuid or other fields.
       if (lastUpdatedItemDetails) {
-        newAllItemsMetadata = newAllItemsMetadata.map(item => {
+        newAllItemsMetadata = newAllItemsMetadata.map((item) => {
           if (item.item_id === lastUpdatedItemDetails.itemId) {
             // Preserve fields from listItems (like updated_at) but override edited fields
             // and image_uuid with the definitive values from the update operation.
@@ -868,16 +868,20 @@ const ItemsView = () => {
         // If an image file was part of the update payload (sent or marked for removal),
         // or if the API result includes an image_uuid (which it should on success),
         // we need to update local state accordingly.
-        if (fileToSend || imageMarkedForRemoval || typeof result.image_uuid !== 'undefined') {
+        if (
+          fileToSend ||
+          imageMarkedForRemoval ||
+          typeof result.image_uuid !== "undefined"
+        ) {
           // Clear client-side File object and Blob URL caches for this item.
           // This forces the image fetching useEffect to re-evaluate.
-          setItemImageFiles(prevFiles => {
+          setItemImageFiles((prevFiles) => {
             const newFiles = { ...prevFiles };
             delete newFiles[updatedItemId];
             return newFiles;
           });
 
-          setDisplayedItemImageUrls(prevUrls => {
+          setDisplayedItemImageUrls((prevUrls) => {
             const newUrls = { ...prevUrls };
             if (newUrls[updatedItemId]) {
               URL.revokeObjectURL(newUrls[updatedItemId]);
@@ -901,7 +905,6 @@ const ItemsView = () => {
 
         handleCancelEdit(); // Close edit modal
         fetchAllItemsMetadata(); // Refresh all metadata. It will use lastUpdatedItemDetails.
-
       } else {
         setUpdateError(
           intl.formatMessage(
