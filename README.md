@@ -48,7 +48,7 @@ Clothinv can connect to external database backends via Datasette or PostgREST. T
 
 Datasette provides a web interface and API for SQLite databases.
 
-*   **Important:** Clothinv requires **Datasette version 1.0-alpha or newer**. Earlier versions (0.x) have a JSON API that is not sufficient for Clothinv's needs. The `Makefile` uses `1.0a19` by default.
+*   **Important:** Clothinv requires **Datasette version 1.0-alpha or newer**. Earlier versions (0.x) have a JSON API incompatible with Clothinv's requirements. The `Makefile` uses `1.0a19` by default.
 *   To run a local Datasette instance for development or personal use (refer to the `Makefile` for full command details and configuration):
     ```bash
     make start-backend-datasette ENV=dev
