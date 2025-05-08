@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Or the version specified in your frontend/package.json engines field
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -30,15 +30,11 @@ jobs:
 
       - name: Build for GitHub Pages
         working-directory: ./frontend
-        # The base URL should be the repository name for GitHub Pages
-        # e.g., /my-repo-name/
-        # GITHUB_REPOSITORY is in the format owner/repository-name
         run: |
           REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d'/' -f2)
           echo "VITE_BASE_URL=/$REPO_NAME/" > .env.production
           npm run build
         env:
-          # VITE_BASE_URL will be set in the run step above
           CI: true
 
       - name: Deploy to GitHub Pages
@@ -46,12 +42,3 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./frontend/dist
-          # Optional: if your site is in a subdirectory of the gh-pages branch
-          # publish_branch: gh-pages # Default is gh-pages
-          # user_name: 'github-actions[bot]'
-          # user_email: 'github-actions[bot]@users.noreply.github.com'
-          # commit_message: Automated deployment to GitHub Pages
-          # allow_empty_commit: false
-          # force_orphan: false
-          # cname: example.com # If you have a custom domain
-```
