@@ -12,7 +12,7 @@ Clothinv is a minimalist application for clothing inventory management. It allow
     *   Browser-local IndexedDB (default, zero-configuration).
     *   Self-hosted Datasette backend.
     *   Self-hosted PostgREST backend (with PostgreSQL).
-    *   Modular data provider architecture, designed to facilitate the integration of additional backend systems.
+    *   Modular data provider architecture supporting different backend systems.
 
 ## Getting Started
 
