@@ -1,4 +1,4 @@
-# ClothInv
+# Clothinv
 
 ClothInv is a minimalist application designed for straightforward clothing inventory management. It prioritizes simplicity and a focused user experience, allowing you to catalog and browse your wardrobe with ease. By default, ClothInv operates entirely within your browser, offering a private and configuration-free experience.
 
