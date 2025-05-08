@@ -87,9 +87,6 @@ const OwnersView = () => {
   const handleCloseAddOwnerModal = () => {
     setIsAddOwnerModalOpen(false);
     setAddOwnerError(null); // Clear errors when closing
-    // Optionally reset form fields
-    // setNewOwnerName("");
-    // setNewOwnerDescription("");
   };
 
   // Function to handle adding a new owner
@@ -127,8 +124,6 @@ const OwnersView = () => {
 
     setLoading(true);
     setAddOwnerError(null); // Clear modal error
-    // setError(null); // Main page error cleared on modal open
-    // setSuccess(null); // Main page success cleared on modal open
 
     try {
       const result = await api.addOwner({
@@ -149,8 +144,6 @@ const OwnersView = () => {
               { name: newOwnerName.trim() },
             ),
           );
-          // setNewOwnerName(""); // Already cleared on modal open or close
-          // setNewOwnerDescription("");
         });
       } else {
         // Should ideally not happen if addOwner throws errors, but handle just in case
@@ -712,8 +705,3 @@ const OwnersView = () => {
 };
 
 export default OwnersView;
-
-// Add missing common key to en.json/fi.json if not already present:
-/*
-    "common.error.unknown": "Unknown reason" / "Tuntematon syy"
-*/

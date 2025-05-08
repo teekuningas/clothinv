@@ -87,9 +87,6 @@ const LocationsView = () => {
   const handleCloseAddLocationModal = () => {
     setIsAddLocationModalOpen(false);
     setAddLocationError(null); // Clear errors when closing
-    // Optionally reset form fields if not done elsewhere
-    // setNewLocationName("");
-    // setNewLocationDescription("");
   };
 
   // Function to handle adding a new location
@@ -127,8 +124,6 @@ const LocationsView = () => {
 
     setLoading(true);
     setAddLocationError(null); // Clear modal error
-    // setError(null); // Main page error cleared on modal open
-    // setSuccess(null); // Main page success cleared on modal open
 
     try {
       const result = await api.addLocation({
@@ -149,8 +144,6 @@ const LocationsView = () => {
               { name: newLocationName.trim() },
             ),
           );
-          // setNewLocationName(""); // Already cleared on modal open or close
-          // setNewLocationDescription("");
         });
       } else {
         // Should ideally not happen if addLocation throws errors, but handle just in case

@@ -87,9 +87,6 @@ const CategoriesView = () => {
   const handleCloseAddCategoryModal = () => {
     setIsAddCategoryModalOpen(false);
     setAddCategoryError(null); // Clear errors when closing
-    // Optionally reset form fields
-    // setNewCategoryName("");
-    // setNewCategoryDescription("");
   };
 
   // Function to handle adding a new category
@@ -127,8 +124,6 @@ const CategoriesView = () => {
 
     setLoading(true);
     setAddCategoryError(null); // Clear modal error
-    // setError(null); // Main page error cleared on modal open
-    // setSuccess(null); // Main page success cleared on modal open
 
     try {
       const result = await api.addCategory({
@@ -149,8 +144,6 @@ const CategoriesView = () => {
               { name: newCategoryName.trim() },
             ),
           );
-          // setNewCategoryName(""); // Already cleared on modal open or close
-          // setNewCategoryDescription("");
         });
       } else {
         // Should ideally not happen if addCategory throws errors, but handle just in case
@@ -718,8 +711,3 @@ const CategoriesView = () => {
 };
 
 export default CategoriesView;
-
-// Add missing common key to en.json/fi.json if not already present:
-/*
-    "common.error.unknown": "Unknown reason" / "Tuntematon syy"
-*/
