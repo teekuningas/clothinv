@@ -72,7 +72,7 @@ export const UpdateLocationOutputSchema = Object;
 
 /** @typedef {{ location_id: ProviderID }} DeleteLocationInputData */
 export const DeleteLocationInputSchema = Object;
-/** @typedef {{ success: boolean, message?: string }} DeleteLocationOutput */
+/** @typedef {{ success: boolean, message?: string, errorCode?: string }} DeleteLocationOutput */
 export const DeleteLocationOutputSchema = Object;
 
 // --- Category Methods ---
@@ -92,7 +92,7 @@ export const UpdateCategoryOutputSchema = Object;
 
 /** @typedef {{ category_id: ProviderID }} DeleteCategoryInputData */
 export const DeleteCategoryInputSchema = Object;
-/** @typedef {{ success: boolean, message?: string }} DeleteCategoryOutput */
+/** @typedef {{ success: boolean, message?: string, errorCode?: string }} DeleteCategoryOutput */
 export const DeleteCategoryOutputSchema = Object;
 
 // --- Owner Methods ---
@@ -112,7 +112,7 @@ export const UpdateOwnerOutputSchema = Object;
 
 /** @typedef {{ owner_id: ProviderID }} DeleteOwnerInputData */
 export const DeleteOwnerInputSchema = Object;
-/** @typedef {{ success: boolean, message?: string }} DeleteOwnerOutput */
+/** @typedef {{ success: boolean, message?: string, errorCode?: string }} DeleteOwnerOutput */
 export const DeleteOwnerOutputSchema = Object;
 
 // --- Item Methods ---
