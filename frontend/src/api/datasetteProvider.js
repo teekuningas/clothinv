@@ -9,6 +9,18 @@ import {
     base64ToBlob // Needed for listItems
 } from './providerUtils'; // Import shared utilities
 
+// At the top of the file, for convenience
+const PROVIDER_NAME = "Datasette Provider";
+
+// Helper to generate headers, extracting token from settings
+import {
+    getMimeTypeFromFilename,
+    readFileAsBase64,
+    createCSV,
+    parseCSV,
+    base64ToBlob // Needed for listItems
+} from './providerUtils'; // Import shared utilities
+
 // Helper to generate headers, extracting token from settings
 const defaultHeaders = (settings) => {
     const headers = {
@@ -25,7 +37,8 @@ const defaultHeaders = (settings) => {
 const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {
         const errorText = await res.text();
-        console.error(`Failed to ${operation} ${entityDescription}: ${res.status} ${errorText}`, res);
+        // Add provider prefix to console.error
+        console.error(`[${PROVIDER_NAME}]: Failed to ${operation} ${entityDescription}: ${res.status} ${errorText}`, res);
         throw new Error(`Failed to ${operation} ${entityDescription}: ${res.status} ${errorText}`);
     }
     // For write operations, just return success status for now
@@ -65,19 +78,18 @@ export const addCategory = async (settings, data) => {
 
     if (!queryRes.ok) {
         const errorText = await queryRes.text();
-        console.error(`Failed to fetch latest category ID: ${queryRes.status} ${errorText}`, queryRes);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest category ID: ${queryRes.status} ${errorText}`, queryRes);
         throw new Error(`Failed to fetch latest category ID after insert: ${queryRes.status}`);
     }
 
     const queryData = await queryRes.json();
     // With _shape=array, response is an array of objects. Check the first object.
     if (!queryData || queryData.length === 0 || !queryData[0].category_id) { // Adjust check for array shape
-         console.error("Could not find category_id in query response:", queryData);
+         console.error(`[${PROVIDER_NAME}]: Could not find category_id in query response:`, queryData);
          throw new Error("Failed to retrieve category_id after insert.");
     }
 
     const newCategoryId = queryData[0].category_id; // Adjust access for array shape
-    console.log("Retrieved new category ID:", newCategoryId);
 
     // Return success status, the new ID, and the UUID
     return { success: true, newId: newCategoryId, uuid: newUuid };
@@ -120,19 +132,18 @@ export const addLocation = async (settings, data) => {
 
     if (!queryRes.ok) {
         const errorText = await queryRes.text();
-        console.error(`Failed to fetch latest location ID: ${queryRes.status} ${errorText}`, queryRes);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest location ID: ${queryRes.status} ${errorText}`, queryRes);
         throw new Error(`Failed to fetch latest location ID after insert: ${queryRes.status}`);
     }
 
     const queryData = await queryRes.json();
     // With _shape=array, response is an array of objects. Check the first object.
     if (!queryData || queryData.length === 0 || !queryData[0].location_id) {
-         console.error("Could not find location_id in query response:", queryData);
+         console.error(`[${PROVIDER_NAME}]: Could not find location_id in query response:`, queryData);
          throw new Error("Failed to retrieve location_id after insert.");
     }
 
     const newLocationId = queryData[0].location_id;
-    console.log("Retrieved new location ID:", newLocationId);
 
     // Return success status, the new ID, and the UUID
     // Assuming addLocation was called with data containing the UUID or it was generated before calling
@@ -152,12 +163,11 @@ export const listLocations = async (settings) => {
 
     if (!res.ok) {
         const errorText = await res.text();
-        console.error(`Failed to fetch locations: ${res.status} ${errorText}`, res);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch locations: ${res.status} ${errorText}`, res);
         throw new Error(`Failed to fetch locations: ${res.status}`);
     }
 
     const data = await res.json();
-    console.log("Fetched locations:", data);
     return data; // Returns array like [{location_id: 1, uuid: '...', name: 'Closet', ...}, ...]
 };
 
@@ -197,18 +207,18 @@ export const deleteLocation = async (settings, inputData) => {
         const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
             // Handle error during check, but don't necessarily block deletion unless it's a server error
-            console.error(`Failed to check item dependencies for location ${locationId}: ${checkRes.status}`);
+            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for location ${locationId}: ${checkRes.status}`);
             // Optionally throw an error here if the check must succeed
         } else {
             const checkData = await checkRes.json();
             if (checkData && checkData.count > 0) {
-                console.warn(`Attempted to delete location ${locationId} which is used by ${checkData.count} items.`);
+                console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is used by ${checkData.count} items.`);
                 // Use the specific error message expected by LocationsView
                 return { success: false, errorCode: 'ENTITY_IN_USE' };
             }
         }
     } catch (error) {
-        console.error(`Error checking dependencies for location ${locationId}:`, error);
+        console.error(`[${PROVIDER_NAME}]: Error checking dependencies for location ${locationId}:`, error);
         // Decide if you want to proceed or throw
         // throw new Error(`Failed to check dependencies: ${error.message}`);
     }
@@ -240,12 +250,11 @@ export const listCategories = async (settings) => {
 
     if (!res.ok) {
         const errorText = await res.text();
-        console.error(`Failed to fetch categories: ${res.status} ${errorText}`, res);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch categories: ${res.status} ${errorText}`, res);
         throw new Error(`Failed to fetch categories: ${res.status}`);
     }
 
     const data = await res.json();
-    console.log("Fetched categories:", data);
     return data; // Returns array like [{category_id: 1, uuid: '...', name: 'Tops', ...}, ...]
 };
 
@@ -284,17 +293,17 @@ export const deleteCategory = async (settings, inputData) => {
     try {
         const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
-            console.error(`Failed to check item dependencies for category ${categoryId}: ${checkRes.status}`);
+            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for category ${categoryId}: ${checkRes.status}`);
         } else {
             const checkData = await checkRes.json();
             if (checkData && checkData.count > 0) {
-                console.warn(`Attempted to delete category ${categoryId} which is used by ${checkData.count} items.`);
+                console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is used by ${checkData.count} items.`);
                 // Use the specific error message expected by CategoriesView
                 return { success: false, errorCode: 'ENTITY_IN_USE' };
             }
         }
     } catch (error) {
-        console.error(`Error checking dependencies for category ${categoryId}:`, error);
+        console.error(`[${PROVIDER_NAME}]: Error checking dependencies for category ${categoryId}:`, error);
         // throw new Error(`Failed to check dependencies: ${error.message}`);
     }
 
@@ -324,12 +333,11 @@ export const listOwners = async (settings) => {
 
     if (!res.ok) {
         const errorText = await res.text();
-        console.error(`Failed to fetch owners: ${res.status} ${errorText}`, res);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch owners: ${res.status} ${errorText}`, res);
         throw new Error(`Failed to fetch owners: ${res.status}`);
     }
 
     const data = await res.json();
-    console.log("Fetched owners:", data);
     return data; // Returns array like [{owner_id: 1, uuid: '...', name: 'Alice', ...}, ...]
 };
 
@@ -363,19 +371,18 @@ export const addOwner = async (settings, data) => { // Rename to addOwner and ex
 
     if (!queryRes.ok) {
         const errorText = await queryRes.text();
-        console.error(`Failed to fetch latest owner ID: ${queryRes.status} ${errorText}`, queryRes);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest owner ID: ${queryRes.status} ${errorText}`, queryRes);
         throw new Error(`Failed to fetch latest owner ID after insert: ${queryRes.status}`);
     }
 
     const queryData = await queryRes.json();
     // With _shape=array, response is an array of objects. Check the first object.
     if (!queryData || queryData.length === 0 || !queryData[0].owner_id) { // Adjust check for array shape
-         console.error("Could not find owner_id in query response:", queryData);
+         console.error(`[${PROVIDER_NAME}]: Could not find owner_id in query response:`, queryData);
          throw new Error("Failed to retrieve owner_id after insert.");
     }
 
     const newOwnerId = queryData[0].owner_id; // Adjust access for array shape
-    console.log("Retrieved new owner ID:", newOwnerId);
 
     // Return success status, the new ID, and the UUID
     return { success: true, newId: newOwnerId, uuid: newUuid };
@@ -416,17 +423,17 @@ export const deleteOwner = async (settings, inputData) => {
     try {
         const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
-            console.error(`Failed to check item dependencies for owner ${ownerId}: ${checkRes.status}`);
+            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for owner ${ownerId}: ${checkRes.status}`);
         } else {
             const checkData = await checkRes.json();
             if (checkData && checkData.count > 0) {
-                console.warn(`Attempted to delete owner ${ownerId} which is used by ${checkData.count} items.`);
+                console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is used by ${checkData.count} items.`);
                 // Use the specific error message expected by OwnersView
                 return { success: false, errorCode: 'ENTITY_IN_USE' };
             }
         }
     } catch (error) {
-        console.error(`Error checking dependencies for owner ${ownerId}:`, error);
+        console.error(`[${PROVIDER_NAME}]: Error checking dependencies for owner ${ownerId}:`, error);
         // throw new Error(`Failed to check dependencies: ${error.message}`);
     }
 
@@ -472,9 +479,9 @@ const _insertImage = async (settings, base64Data, mimeType, filename, imageUuid 
     // Fetch the latest image ID
     const queryUrl = `${baseUrl}/images.json?_sort_desc=image_id&_size=1&_shape=array`;
     const queryRes = await fetch(queryUrl, { headers: { 'Accept': 'application/json' } });
-    if (!queryRes.ok) throw new Error(`Failed to fetch latest image ID after insert: ${queryRes.status}`);
+    if (!queryRes.ok) throw new Error(`[${PROVIDER_NAME}]: Failed to fetch latest image ID after insert: ${queryRes.status}`);
     const queryData = await queryRes.json();
-    if (!queryData || queryData.length === 0 || !queryData[0].image_id) throw new Error("Failed to retrieve image_id after insert.");
+    if (!queryData || queryData.length === 0 || !queryData[0].image_id) throw new Error(`[${PROVIDER_NAME}]: Failed to retrieve image_id after insert.`);
 
     return { imageId: queryData[0].image_id, imageUuid: newUuid }; // Return both ID and UUID
 };
@@ -535,7 +542,7 @@ export const addItem = async (settings, data) => {
             imageId = imageResult.imageId;
             imageUuid = imageResult.imageUuid; // Get the generated or provided image UUID
         } catch (error) {
-            console.error("Failed to process or insert image:", error);
+            console.error(`[${PROVIDER_NAME}]: Failed to process or insert image:`, error);
             throw new Error(`Failed to handle image upload: ${error.message}`);
         }
     }
@@ -578,7 +585,7 @@ export const addItem = async (settings, data) => {
 
     if (!queryRes.ok) {
         const errorText = await queryRes.text();
-        console.error(`Failed to fetch latest item ID/UUID after insert: ${queryRes.status} ${errorText}`, queryRes);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch latest item ID/UUID after insert: ${queryRes.status} ${errorText}`, queryRes);
         // Return success true but without ID/UUID if fetching fails, or throw
         // For consistency, let's assume the add was successful but we couldn't confirm ID/UUID.
         // The frontend might need to re-fetch. Or, consider this a partial failure.
@@ -588,7 +595,7 @@ export const addItem = async (settings, data) => {
 
     const queryData = await queryRes.json();
     if (!queryData || queryData.length === 0 || !queryData[0].item_id || !queryData[0].uuid) {
-         console.error("Could not find item_id/uuid in query response for new item:", queryData);
+         console.error(`[${PROVIDER_NAME}]: Could not find item_id/uuid in query response for new item:`, queryData);
          return { success: true, image_uuid: imageUuid };
     }
 
@@ -738,7 +745,7 @@ const _getImageByUuid = async (settings, imageUuid) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
     if (!imageUuid) {
-        console.warn("_getImageByUuid called with no UUID");
+        console.warn(`[${PROVIDER_NAME}]: _getImageByUuid called with no UUID`);
         return null;
     }
 
@@ -754,17 +761,15 @@ const _getImageByUuid = async (settings, imageUuid) => {
     if (!res.ok) {
         // If image not found (404), return null, otherwise throw error
         if (res.status === 404) {
-            console.log(`Image not found for UUID: ${imageUuid}`);
             return null;
         }
         const errorText = await res.text();
-        console.error(`Failed to fetch image by UUID ${imageUuid}: ${res.status} ${errorText}`, res);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch image by UUID ${imageUuid}: ${res.status} ${errorText}`, res);
         throw new Error(`Failed to fetch image by UUID ${imageUuid}: ${res.status}`);
     }
 
     const data = await res.json();
     if (!data || data.length === 0) {
-        console.log(`Image data not found in response for UUID: ${imageUuid}`);
         return null;
     }
     const imageData = data[0]; // Get the first object from the array
@@ -803,16 +808,12 @@ export const exportData = async (settings) => {
     try {
         // 1. Fetch all data using existing list functions
         const locations = await listLocations(settings);
-        console.log(`Export: Fetched ${locations.length} locations.`);
         const categories = await listCategories(settings);
-        console.log(`Export: Fetched ${categories.length} categories.`);
         const owners = await listOwners(settings);
-        console.log(`Export: Fetched ${owners.length} owners.`);
         // listItems now returns all item metadata without File objects.
         const itemsMetadata = await listItems(settings); // Changed variable name for clarity
-        console.log(`Export: Fetched ${itemsMetadata.length} items metadata.`);
         const allImagesMeta = await listImagesMetadata(settings);
-        console.log(`Export: Fetched ${allImagesMeta.length} image metadata records.`);
+        console.log(`[${PROVIDER_NAME}]: Starting export... Fetched all data.`);
 
         // 2. Create CSVs
         const locationHeaders = ['location_id', 'uuid', 'name', 'description', 'created_at', 'updated_at'];
@@ -860,11 +861,11 @@ export const exportData = async (settings) => {
 
         // 4. Generate ZIP
         const blob = await zip.generateAsync({ type: "blob" });
-        console.log('DatasetteProvider: Export generated successfully.');
+        console.log(`[${PROVIDER_NAME}]: Export generated successfully.`);
         return blob;
 
     } catch (error) {
-        console.error("Error during Datasette export:", error);
+        console.error(`[${PROVIDER_NAME}]: Error during Datasette export:`, error);
         throw new Error(`Export failed: ${error.message}`);
     }
 };
@@ -882,7 +883,7 @@ const listImagesMetadata = async (settings) => {
 
     if (!res.ok) {
         const errorText = await res.text();
-        console.error(`Failed to fetch image metadata: ${res.status} ${errorText}`, res);
+        console.error(`[${PROVIDER_NAME}]: Failed to fetch image metadata: ${res.status} ${errorText}`, res);
         throw new Error(`Failed to fetch image metadata: ${res.status}`);
     }
 
@@ -901,19 +902,19 @@ async function importDataV1(settings, loadedZip) {
         }
 
         // --- Clear existing data ---
-        console.log("Clearing existing Datasette data (Items first)...");
+        console.log(`[${PROVIDER_NAME}]: Clearing existing Datasette data (Items first)...`);
         const existingItems = await listItems(settings);
         for (const item of existingItems) {
             await deleteItem(settings, { item_id: item.item_id }); // deleteItem also handles image deletion
         }
-        console.log("Items cleared. Clearing Locations, Categories, Owners...");
+        console.log(`[${PROVIDER_NAME}]: Items cleared. Clearing Locations, Categories, Owners...`);
         const existingLocations = await listLocations(settings);
         for (const loc of existingLocations) await deleteLocation(settings, { location_id: loc.location_id });
         const existingCategories = await listCategories(settings);
         for (const cat of existingCategories) await deleteCategory(settings, { category_id: cat.category_id });
         const existingOwners = await listOwners(settings);
         for (const owner of existingOwners) await deleteOwner(settings, { owner_id: owner.owner_id });
-        console.log("Existing data cleared.");
+        console.log(`[${PROVIDER_NAME}]: Existing data cleared.`);
 
         // --- Parse and Import ---
         const locationMap = {}; // exported_id -> new_datasette_id
@@ -979,13 +980,13 @@ async function importDataV1(settings, loadedZip) {
 
                     // Optional: Log if the determined type differs from blob type (for debugging)
                     if (imageBlob.type && imageBlob.type !== determinedMimeType) {
-                         console.warn(`Blob type (${imageBlob.type}) differs from determined type (${determinedMimeType}) for file ${originalFilename}`);
+                         console.warn(`[${PROVIDER_NAME}]: Blob type (${imageBlob.type}) differs from determined type (${determinedMimeType}) for file ${originalFilename}`);
                     } else if (!imageBlob.type) {
-                         console.log(`Determined MIME type ${determinedMimeType} for file ${originalFilename} (blob type was empty)`);
+                         console.log(`[${PROVIDER_NAME}]: Determined MIME type ${determinedMimeType} for file ${originalFilename} (blob type was empty)`);
                     }
 
                 } catch (zipError) {
-                     console.error(`Error processing image ${image_zip_filename} from zip:`, zipError);
+                     console.error(`[${PROVIDER_NAME}]: Error processing image ${image_zip_filename} from zip:`, zipError);
                      // Decide if you want to skip the item or throw the error
                      // continue; // Example: skip item if image processing fails
                      throw new Error(`Failed to process image ${image_zip_filename} from zip: ${zipError.message}`);
@@ -1007,7 +1008,7 @@ async function importDataV1(settings, loadedZip) {
 
             // Ensure mapped IDs are valid before adding
             if (!newItemData.location_id || !newItemData.category_id || !newItemData.owner_id) {
-                 console.warn(`Skipping item "${item.name}" due to missing mapped ID (Location: ${location_id}=>${newItemData.location_id}, Category: ${category_id}=>${newItemData.category_id}, Owner: ${owner_id}=>${newItemData.owner_id})`);
+                 console.warn(`[${PROVIDER_NAME}]: Skipping item "${item.name}" due to missing mapped ID (Location: ${location_id}=>${newItemData.location_id}, Category: ${category_id}=>${newItemData.category_id}, Owner: ${owner_id}=>${newItemData.owner_id})`);
                  continue; // Skip this item if any mapping failed
             }
 
@@ -1015,7 +1016,7 @@ async function importDataV1(settings, loadedZip) {
             await addItem(settings, newItemData); // addItem handles image insertion
         }
 
-        console.log('DatasetteProvider: Import completed successfully.');
+        console.log(`[${PROVIDER_NAME}]: Import completed successfully.`);
         return {
             success: true,
             counts: {
@@ -1027,7 +1028,7 @@ async function importDataV1(settings, loadedZip) {
         };
 
     } catch (error) { // TODO: Improve error handling and potential rollback/cleanup
-        console.error("Error during Datasette import:", error);
+        console.error(`[${PROVIDER_NAME}]: Error during Datasette import:`, error);
         // Datasette rollback is complex, data might be partially imported/deleted.
         return { success: false, error: `Import failed: ${error.message}. Data might be in an inconsistent state.` };
     }
@@ -1061,31 +1062,31 @@ export const importData = async (settings, zipFile) => {
 export const destroyData = async (settings) => {
     try {
         // --- Clear existing data ---
-        console.log("Clearing existing Datasette data (Items first)...");
+        console.log(`[${PROVIDER_NAME}]: Clearing existing Datasette data (Items first)...`);
         const existingItemsMetadata = await listItems(settings); // Gets all item metadata
         // Delete items first to handle associated images
         for (const item of existingItemsMetadata) { // Iterate over metadata
             await deleteItem(settings, { item_id: item.item_id }); // deleteItem also handles image deletion
         }
-        console.log(`Items (${existingItemsMetadata.length}) cleared. Clearing Locations, Categories, Owners...`);
+        console.log(`[${PROVIDER_NAME}]: Items (${existingItemsMetadata.length}) cleared. Clearing Locations, Categories, Owners...`);
 
         const existingLocations = await listLocations(settings);
         for (const loc of existingLocations) await deleteLocation(settings, { location_id: loc.location_id });
-        console.log(`Locations (${existingLocations.length}) cleared.`);
+        console.log(`[${PROVIDER_NAME}]: Locations (${existingLocations.length}) cleared.`);
 
         const existingCategories = await listCategories(settings);
         for (const cat of existingCategories) await deleteCategory(settings, { category_id: cat.category_id });
-        console.log(`Categories (${existingCategories.length}) cleared.`);
+        console.log(`[${PROVIDER_NAME}]: Categories (${existingCategories.length}) cleared.`);
 
         const existingOwners = await listOwners(settings);
         for (const owner of existingOwners) await deleteOwner(settings, { owner_id: owner.owner_id });
-        console.log(`Owners (${existingOwners.length}) cleared.`);
+        console.log(`[${PROVIDER_NAME}]: Owners (${existingOwners.length}) cleared.`);
 
-        console.log("Existing data cleared.");
+        console.log(`[${PROVIDER_NAME}]: Existing data cleared.`);
         return { success: true, summary: `All data successfully destroyed.` };
 
     } catch (error) {
-        console.error("Error during Datasette data destruction:", error);
+        console.error(`[${PROVIDER_NAME}]: Error during Datasette data destruction:`, error);
         return { success: false, error: `Data destruction failed: ${error.message}. Data might be in an inconsistent state.` };
     }
 };

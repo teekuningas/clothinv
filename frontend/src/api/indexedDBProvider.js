@@ -6,6 +6,10 @@ import {
     parseCSV,
     // No image helpers needed directly here as we store File objects
 } from './providerUtils'; // Import shared utilities
+
+// At the top of the file, for convenience
+const PROVIDER_NAME = "IndexedDB Provider";
+
 // --- IndexedDB Setup ---
 const DB_NAME    = 'ClothinvInventoryDB';
 const DB_VERSION = 1; // single‐version schema
@@ -27,17 +31,17 @@ const openDB = () => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
         request.onerror = (event) => {
-            console.error("IndexedDB error:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: IndexedDB error:`, event.target.error); // Add prefix
             reject(`IndexedDB error: ${event.target.error}`);
         };
 
         request.onsuccess = (event) => {
-            console.log("IndexedDB opened successfully");
+            console.log(`[${PROVIDER_NAME}]: IndexedDB opened successfully`); // Add prefix
             resolve(event.target.result);
         };
 
         request.onupgradeneeded = (event) => {
-            console.log(`IndexedDB upgrade needed from version ${event.oldVersion} to ${event.newVersion}`);
+            console.log(`[${PROVIDER_NAME}]: IndexedDB upgrade needed from version ${event.oldVersion} to ${event.newVersion}`); // Add prefix
             const db          = event.target.result;
             const transaction = event.target.transaction;
 
@@ -82,25 +86,24 @@ const getAllFromStore = async (storeName) => {
 
         request.onsuccess = () => resolve(request.result || []);
         request.onerror = (event) => {
-            console.error(`Error getting all from ${storeName}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error getting all from ${storeName}:`, event.target.error); // Add prefix
             reject(`Error getting all from ${storeName}: ${event.target.error}`);
         };
     });
 };
 
 export const destroyData = async (settings) => {
-    console.log('IndexedDBProvider: destroyData called');
+    console.log(`[${PROVIDER_NAME}]: destroyData called`); // Keep, significant
     try {
-        console.log("Clearing all IndexedDB object stores...");
+        console.log(`[${PROVIDER_NAME}]: Clearing all IndexedDB object stores...`); // Keep
         await clearStore(STORES.items);
         await clearStore(STORES.images);
         await clearStore(STORES.locations);
         await clearStore(STORES.categories);
         await clearStore(STORES.owners);
         // Don't clear counters store here, reset it below
-        console.log("Main data stores cleared.");
-
-        console.log("Resetting ID counters in IndexedDB...");
+        console.log(`[${PROVIDER_NAME}]: Main data stores cleared.`); // Keep
+        console.log(`[${PROVIDER_NAME}]: Resetting ID counters in IndexedDB...`); // Keep
         const db = await openDB();
         const transaction = db.transaction(STORES.counters, 'readwrite');
         const counterStore = transaction.objectStore(STORES.counters);
@@ -110,20 +113,19 @@ export const destroyData = async (settings) => {
                 const request = counterStore.put({ entity: entity, nextId: 1 });
                 request.onsuccess = resolve;
                 request.onerror = (e) => {
-                    console.error(`Error resetting counter for ${entity}:`, e.target.error);
+                    console.error(`[${PROVIDER_NAME}]: Error resetting counter for ${entity}:`, e.target.error); // Add prefix
                     reject(`Error resetting counter for ${entity}`);
                 };
             });
         });
 
         await Promise.all(promises); // Wait for all counters to be reset
-        console.log("ID counters reset in IndexedDB.");
-
-        console.log('IndexedDBProvider: Data destruction completed successfully.');
+        console.log(`[${PROVIDER_NAME}]: ID counters reset in IndexedDB.`); // Keep
+        console.log(`[${PROVIDER_NAME}]: Data destruction completed successfully.`); // Keep
         return { success: true, summary: `All data successfully destroyed.` };
 
     } catch (error) {
-        console.error("Error during IndexedDB data destruction:", error);
+        console.error(`[${PROVIDER_NAME}]: Error during IndexedDB data destruction:`, error); // Add prefix
         return { success: false, error: `Data destruction failed: ${error.message}` };
     }
 };
@@ -131,11 +133,12 @@ export const destroyData = async (settings) => {
 // --- Export/Import ---
 
 export const exportData = async (settings) => {
-    console.log('IndexedDBProvider: exportData called');
+    console.log(`[${PROVIDER_NAME}]: exportData called`); // Keep
     const zip = new JSZip();
 
     try {
         // 1. Fetch all data
+        console.log(`[${PROVIDER_NAME}]: Starting export... Fetched all data.`);
         const locations = await getAllFromStore(STORES.locations);
         const categories = await getAllFromStore(STORES.categories);
         const owners = await getAllFromStore(STORES.owners);
@@ -202,11 +205,11 @@ export const exportData = async (settings) => {
 
         // 4. Generate ZIP
         const blob = await zip.generateAsync({ type: "blob" });
-        console.log('IndexedDBProvider: Export generated successfully.');
+        console.log(`[${PROVIDER_NAME}]: Export generated successfully.`); // Keep
         return blob;
 
     } catch (error) {
-        console.error("Error during IndexedDB export:", error);
+        console.error(`[${PROVIDER_NAME}]: Error during IndexedDB export:`, error); // Add prefix
         throw new Error(`Export failed: ${error.message}`);
     }
 };
@@ -215,7 +218,7 @@ export const exportData = async (settings) => {
 // --- importData v1 for IndexedDB provider ---
 */
 async function importDataV1(settings, loadedZip) {
-    console.log('IndexedDBProvider: importData called');
+    console.log(`[${PROVIDER_NAME}]: importData called`); // Keep
     try {
         // Validate essential files
         if (!loadedZip.file('manifest.json') || !loadedZip.file('items.csv') || !loadedZip.file('locations.csv') || !loadedZip.file('categories.csv') || !loadedZip.file('owners.csv') || !loadedZip.file('images.csv')) {
@@ -223,14 +226,14 @@ async function importDataV1(settings, loadedZip) {
         }
 
         // Clear existing data (implement this carefully!)
-        console.log("Clearing existing IndexedDB data...");
+        console.log(`[${PROVIDER_NAME}]: Clearing existing IndexedDB data...`); // Keep
         await clearStore(STORES.items);
         await clearStore(STORES.images);
         await clearStore(STORES.locations);
         await clearStore(STORES.categories);
         await clearStore(STORES.owners);
         // Don't reset counters here, do it after parsing below
-        console.log("Existing data cleared.");
+        console.log(`[${PROVIDER_NAME}]: Existing data cleared.`); // Keep
 
         // --- Parse Data ---
         const locations = parseCSV(await loadedZip.file('locations.csv').async('string'));
@@ -240,7 +243,7 @@ async function importDataV1(settings, loadedZip) {
         const items = parseCSV(await loadedZip.file('items.csv').async('string'));
 
         // --- Reset Counters Based on Max Imported IDs ---
-        console.log("Resetting ID counters based on imported data...");
+        console.log(`[${PROVIDER_NAME}]: Resetting ID counters based on imported data...`); // Keep
         const maxLocId = Math.max(0, ...locations.map(l => parseInt(l.location_id, 10) || 0));
         const maxCatId = Math.max(0, ...categories.map(c => parseInt(c.category_id, 10) || 0));
         const maxOwnerId = Math.max(0, ...owners.map(o => parseInt(o.owner_id, 10) || 0));
@@ -260,16 +263,16 @@ async function importDataV1(settings, loadedZip) {
                 const req = counterStore.put(counter);
                 req.onsuccess = resolve;
                 req.onerror = (e) => {
-                    console.error(`Error setting counter for ${counter.entity}:`, e.target.error);
+                    console.error(`[${PROVIDER_NAME}]: Error setting counter for ${counter.entity}:`, e.target.error); // Add prefix
                     reject(`Failed to set counter for ${counter.entity}`);
                 };
             });
         });
         await Promise.all(counterPromises);
-        console.log("ID counters reset based on imported data.");
+        console.log(`[${PROVIDER_NAME}]: ID counters reset based on imported data.`); // Keep
 
         // --- Import Data (using imported IDs) ---
-        console.log("Importing locations...");
+        console.log(`[${PROVIDER_NAME}]: Importing locations...`); // Keep (and for categories, owners, items)
         for (const loc of locations) {
             // Ensure IDs are numbers
             loc.location_id = parseInt(loc.location_id, 10);
@@ -281,9 +284,9 @@ async function importDataV1(settings, loadedZip) {
             // Use putInStore which handles add/update based on key
             await updateInStore(STORES.locations, loc);
         }
-        console.log("Locations imported.");
+        console.log(`[${PROVIDER_NAME}]: Locations imported.`); // Keep (and for categories, owners)
 
-        console.log("Importing categories...");
+        console.log(`[${PROVIDER_NAME}]: Importing categories...`); // Keep (and for categories, owners, items)
         for (const cat of categories) {
             cat.category_id = parseInt(cat.category_id, 10);
             cat.created_at = cat.created_at || new Date().toISOString();
@@ -291,9 +294,9 @@ async function importDataV1(settings, loadedZip) {
             cat.uuid = cat.uuid || uuidv4();
             await updateInStore(STORES.categories, cat);
         }
-        console.log("Categories imported.");
+        console.log(`[${PROVIDER_NAME}]: Categories imported.`); // Keep (and for categories, owners)
 
-        console.log("Importing owners...");
+        console.log(`[${PROVIDER_NAME}]: Importing owners...`); // Keep (and for categories, owners, items)
         for (const owner of owners) {
             owner.owner_id = parseInt(owner.owner_id, 10);
             owner.created_at = owner.created_at || new Date().toISOString();
@@ -301,9 +304,9 @@ async function importDataV1(settings, loadedZip) {
             owner.uuid = owner.uuid || uuidv4();
             await updateInStore(STORES.owners, owner);
         }
-        console.log("Owners imported.");
+        console.log(`[${PROVIDER_NAME}]: Owners imported.`); // Keep (and for categories, owners)
 
-        console.log("Importing items and images...");
+        console.log(`[${PROVIDER_NAME}]: Importing items and images...`); // Keep
         for (const item of items) {
             const { image_zip_filename, image_original_filename, ...itemMetadata } = item;
             const itemId = parseInt(itemMetadata.item_id, 10); // Ensure item_id is number
@@ -334,29 +337,28 @@ async function importDataV1(settings, loadedZip) {
             const imagesStore = itemTx.objectStore(STORES.images);
 
             const itemReq = itemsStore.put(itemMetadata); // Use put for add/update
-            itemReq.onerror = (e) => console.error(`Error importing item ${itemId}:`, e.target.error);
+            itemReq.onerror = (e) => console.error(`[${PROVIDER_NAME}]: Error importing item ${itemId}:`, e.target.error); // Add prefix
 
             if (imageFile) {
                 const imageReq = imagesStore.put(imageFile, itemMetadata.item_id); // Use put for add/update, key is item_id
-                imageReq.onerror = (e) => console.error(`Error importing image for item ${itemId}:`, e.target.error);
+                imageReq.onerror = (e) => console.error(`[${PROVIDER_NAME}]: Error importing image for item ${itemId}:`, e.target.error); // Add prefix
             }
 
             // Wait for transaction to complete for this item
             await new Promise((resolve, reject) => {
                 itemTx.oncomplete = resolve;
                 itemTx.onerror = (e) => {
-                    console.error(`Transaction error importing item ${itemMetadata.item_id}:`, e.target.error);
-                    reject(`Transaction error importing item ${itemMetadata.item_id}: ${e.target.error}`); // Reject if transaction fails
+                    console.error(`[${PROVIDER_NAME}]: Transaction error importing item ${itemMetadata.item_id}:`, e.target.error); // Add prefix
+                    reject(`Transaction error importing item ${itemMetadata.item_id}: ${e.target.error}`); 
                 };
                  itemTx.onabort = (e) => {
-                    console.error(`Transaction aborted importing item ${itemMetadata.item_id}:`, e.target.error);
-                    reject(`Transaction aborted importing item ${itemMetadata.item_id}: ${e.target.error}`); // Reject if transaction aborts
+                    console.error(`[${PROVIDER_NAME}]: Transaction aborted importing item ${itemMetadata.item_id}:`, e.target.error); // Add prefix
+                    reject(`Transaction aborted importing item ${itemMetadata.item_id}: ${e.target.error}`); 
                 };
             });
         }
-        console.log("Items and images imported.");
-
-        console.log('IndexedDBProvider: Import completed successfully.');
+        console.log(`[${PROVIDER_NAME}]: Items and images imported.`); // Keep
+        console.log(`[${PROVIDER_NAME}]: Import completed successfully.`); // Keep
         return {
             success: true,
             counts: {
@@ -368,7 +370,7 @@ async function importDataV1(settings, loadedZip) {
         };
         // Note: Image count isn't explicitly tracked in summary, but they are imported.
     } catch (error) {
-        console.error("Error during IndexedDB import:", error);
+        console.error(`[${PROVIDER_NAME}]: Error during IndexedDB import:`, error); // Add prefix
         // Attempt to clean up partially imported data? Difficult in IndexedDB.
         return { success: false, error: `Import failed: ${error.message}` };
     }
@@ -418,7 +420,7 @@ const getAllImagesWithKeys = async () => {
             }
         };
         cursorRequest.onerror = event => {
-            console.error("Error fetching images with keys:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error fetching images with keys:`, event.target.error); // Add prefix
             reject("Error fetching images with keys");
         };
     });
@@ -434,7 +436,7 @@ const clearStore = async (storeName) => {
 
         request.onsuccess = () => resolve({ success: true });
         request.onerror = (event) => {
-            console.error(`Error clearing store ${storeName}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error clearing store ${storeName}:`, event.target.error); // Add prefix
             reject(`Error clearing store ${storeName}: ${event.target.error}`);
         };
     });
@@ -451,7 +453,7 @@ const addToStore = async (storeName, record, key = undefined) => { // Add option
 
         request.onsuccess = () => resolve({ success: true, id: request.result }); // request.result is the key
         request.onerror = (event) => { // Handle ConstraintError if UUID is not unique (shouldn't happen with v4)
-            console.error(`Error adding to ${storeName}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error adding to ${storeName}:`, event.target.error); // Add prefix
             reject(`Error adding to ${storeName}: ${event.target.error}`);
         };
     });
@@ -467,7 +469,7 @@ const updateInStore = async (storeName, record) => {
 
         request.onsuccess = () => resolve({ success: true });
         request.onerror = (event) => { // Handle ConstraintError if UUID is not unique
-            console.error(`Error updating in ${storeName}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error updating in ${storeName}:`, event.target.error); // Add prefix
             reject(`Error updating in ${storeName}: ${event.target.error}`);
         };
     });
@@ -485,10 +487,10 @@ const deleteFromStore = async (storeName, key) => {
         request.onerror = (event) => {
             // Handle "NotFoundError" gracefully if needed (trying to delete non-existent key)
             if (event.target.error.name === 'NotFoundError') {
-                 console.warn(`Key ${key} not found in ${storeName} for deletion.`);
-                 resolve({ success: true }); // Still consider it a success
+                 console.warn(`[${PROVIDER_NAME}]: Key ${key} not found in ${storeName} for deletion.`); // Add prefix
+                 resolve({ success: true }); 
             } else {
-                console.error(`Error deleting ${key} from ${storeName}:`, event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error deleting ${key} from ${storeName}:`, event.target.error); // Add prefix
                 reject(`Error deleting ${key} from ${storeName}: ${event.target.error}`);
             }
         };
@@ -505,7 +507,7 @@ const getFromStore = async (storeName, key) => {
 
         request.onsuccess = () => resolve(request.result); // Returns the record or undefined
         request.onerror = (event) => {
-            console.error(`Error getting ${key} from ${storeName}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error getting ${key} from ${storeName}:`, event.target.error); // Add prefix
             reject(`Error getting ${key} from ${storeName}: ${event.target.error}`);
         };
     });
@@ -515,12 +517,10 @@ const getFromStore = async (storeName, key) => {
 
 // Locations
 export const listLocations = async (settings) => {
-    console.log('IndexedDBProvider: listLocations called');
     return getAllFromStore(STORES.locations);
 };
 
 export const addLocation = async (settings, data) => {
-    console.log('IndexedDBProvider: addLocation called with data:', data);
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction([STORES.locations, STORES.counters], 'readwrite');
@@ -533,7 +533,7 @@ export const addLocation = async (settings, data) => {
         const counterRequest = counterStore.get(entity);
 
         counterRequest.onerror = (event) => {
-            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error getting counter for ${entity}:`, event.target.error); // Add prefix
             transaction.abort();
             reject(`Error getting counter: ${event.target.error}`);
         };
@@ -545,7 +545,7 @@ export const addLocation = async (settings, data) => {
 
             const updateCounterRequest = counterStore.put(counter);
             updateCounterRequest.onerror = (event) => {
-                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error updating counter for ${entity}:`, event.target.error); // Add prefix
                 transaction.abort();
                 reject(`Error updating counter: ${event.target.error}`);
             };
@@ -559,22 +559,21 @@ export const addLocation = async (settings, data) => {
             };
             const addLocationRequest = locationStore.add(newLocation);
             addLocationRequest.onerror = (event) => {
-                console.error("Error adding location:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error adding location:`, event.target.error); // Add prefix
                 transaction.abort();
                 reject(`Error adding location: ${event.target.error}`);
             };
         };
 
         transaction.oncomplete = () => {
-            console.log(`IndexedDBProvider: Location ${newId} added successfully.`);
             resolve({ success: true, newId: newId, uuid: newUuid }); // Return UUID
         };
         transaction.onerror = (event) => {
-            console.error("Transaction error adding location:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction error adding location:`, event.target.error); // Add prefix
             reject(`Transaction error: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("Transaction aborted adding location:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction aborted adding location:`, event.target.error); // Add prefix
             // Reject is likely already called by specific request error handler
         };
     });
@@ -582,7 +581,6 @@ export const addLocation = async (settings, data) => {
 
 export const updateLocation = async (settings, inputData) => {
     const { location_id: locationId, ...data } = inputData;
-    console.log(`IndexedDBProvider: updateLocation called for ID ${locationId} with data:`, data);
     const existing = await getFromStore(STORES.locations, locationId);
     if (!existing) return { success: false, message: 'Location not found' };
     const { uuid, ...updateData } = data; // Exclude uuid from update data
@@ -597,7 +595,6 @@ export const updateLocation = async (settings, inputData) => {
 
 export const deleteLocation = async (settings, inputData) => {
     const { location_id: locationId } = inputData;
-    console.log(`IndexedDBProvider: deleteLocation called for ID ${locationId}`);
     // Check if used by items
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.location_id === locationId);
@@ -614,12 +611,10 @@ export const deleteLocation = async (settings, inputData) => {
 
 // Categories (similar structure to Locations)
 export const listCategories = async (settings) => {
-    console.log('IndexedDBProvider: listCategories called');
     return getAllFromStore(STORES.categories);
 };
 
 export const addCategory = async (settings, data) => {
-    console.log('IndexedDBProvider: addCategory called with data:', data);
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction([STORES.categories, STORES.counters], 'readwrite');
@@ -632,7 +627,7 @@ export const addCategory = async (settings, data) => {
         const counterRequest = counterStore.get(entity);
 
         counterRequest.onerror = (event) => {
-            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error getting counter for ${entity}:`, event.target.error);
             transaction.abort();
             reject(`Error getting counter: ${event.target.error}`);
         };
@@ -644,7 +639,7 @@ export const addCategory = async (settings, data) => {
 
             const updateCounterRequest = counterStore.put(counter);
             updateCounterRequest.onerror = (event) => {
-                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error updating counter for ${entity}:`, event.target.error);
                 transaction.abort();
                 reject(`Error updating counter: ${event.target.error}`);
             };
@@ -658,29 +653,27 @@ export const addCategory = async (settings, data) => {
             };
             const addCategoryRequest = categoryStore.add(newCategory);
             addCategoryRequest.onerror = (event) => {
-                console.error("Error adding category:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error adding category:`, event.target.error);
                 transaction.abort();
                 reject(`Error adding category: ${event.target.error}`);
             };
         };
 
         transaction.oncomplete = () => {
-            console.log(`IndexedDBProvider: Category ${newId} added successfully.`);
-            resolve({ success: true, newId: newId, uuid: newUuid }); // Return UUID
+            resolve({ success: true, newId: newId, uuid: newUuid });
         };
         transaction.onerror = (event) => {
-            console.error("Transaction error adding category:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction error adding category:`, event.target.error);
             reject(`Transaction error: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("Transaction aborted adding category:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction aborted adding category:`, event.target.error);
         };
     });
 };
 
 export const updateCategory = async (settings, inputData) => {
     const { category_id: categoryId, ...data } = inputData;
-    console.log(`IndexedDBProvider: updateCategory called for ID ${categoryId} with data:`, data);
     const existing = await getFromStore(STORES.categories, categoryId);
     if (!existing) return { success: false, message: 'Category not found' };
     const { uuid, ...updateData } = data; // Exclude uuid from update data
@@ -695,7 +688,6 @@ export const updateCategory = async (settings, inputData) => {
 
 export const deleteCategory = async (settings, inputData) => {
     const { category_id: categoryId } = inputData;
-    console.log(`IndexedDBProvider: deleteCategory called for ID ${categoryId}`);
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.category_id === categoryId);
     if (isUsed) {
@@ -709,12 +701,10 @@ export const deleteCategory = async (settings, inputData) => {
 
 // Owners (similar structure to Locations)
 export const listOwners = async (settings) => {
-    console.log('IndexedDBProvider: listOwners called');
     return getAllFromStore(STORES.owners);
 };
 
 export const addOwner = async (settings, data) => {
-    console.log('IndexedDBProvider: addOwner called with data:', data);
     const db = await openDB();
     return new Promise((resolve, reject) => {
         const transaction = db.transaction([STORES.owners, STORES.counters], 'readwrite');
@@ -727,7 +717,7 @@ export const addOwner = async (settings, data) => {
         const counterRequest = counterStore.get(entity);
 
         counterRequest.onerror = (event) => {
-            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error getting counter for ${entity}:`, event.target.error);
             transaction.abort();
             reject(`Error getting counter: ${event.target.error}`);
         };
@@ -739,7 +729,7 @@ export const addOwner = async (settings, data) => {
 
             const updateCounterRequest = counterStore.put(counter);
             updateCounterRequest.onerror = (event) => {
-                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error updating counter for ${entity}:`, event.target.error);
                 transaction.abort();
                 reject(`Error updating counter: ${event.target.error}`);
             };
@@ -753,29 +743,27 @@ export const addOwner = async (settings, data) => {
             };
             const addOwnerRequest = ownerStore.add(newOwner);
             addOwnerRequest.onerror = (event) => {
-                console.error("Error adding owner:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error adding owner:`, event.target.error);
                 transaction.abort();
                 reject(`Error adding owner: ${event.target.error}`);
             };
         };
 
         transaction.oncomplete = () => {
-            console.log(`IndexedDBProvider: Owner ${newId} added successfully.`);
             resolve({ success: true, newId: newId, uuid: newUuid }); // Return UUID
         };
         transaction.onerror = (event) => {
-            console.error("Transaction error adding owner:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction error adding owner:`, event.target.error);
             reject(`Transaction error: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("Transaction aborted adding owner:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction aborted adding owner:`, event.target.error);
         };
     });
 };
 
 export const updateOwner = async (settings, inputData) => {
     const { owner_id: ownerId, ...data } = inputData;
-    console.log(`IndexedDBProvider: updateOwner called for ID ${ownerId} with data:`, data);
     const existing = await getFromStore(STORES.owners, ownerId);
     if (!existing) return { success: false, message: 'Owner not found' };
     const { uuid, ...updateData } = data; // Exclude uuid from update data
@@ -790,7 +778,6 @@ export const updateOwner = async (settings, inputData) => {
 
 export const deleteOwner = async (settings, inputData) => {
     const { owner_id: ownerId } = inputData;
-    console.log(`IndexedDBProvider: deleteOwner called for ID ${ownerId}`);
     const items = await getAllFromStore(STORES.items);
     const isUsed = items.some(item => item.owner_id === ownerId);
     if (isUsed) {
@@ -806,14 +793,12 @@ export const deleteOwner = async (settings, inputData) => {
 // Items
 // listItems: Remove options, pagination, filtering, sorting, and direct image fetching.
 export const listItems = async (settings) => { // Remove options parameter
-    console.log('IndexedDBProvider: listItems called');
     try {
         // Fetch all items metadata
         const allItemsMetadata = await getAllFromStore(STORES.items);
-        console.log(`IndexedDBProvider: listed ${allItemsMetadata.length} items metadata.`);
         return allItemsMetadata; // Return raw metadata array
     } catch (error) {
-        console.error("Error in IndexedDB listItems:", error);
+        console.error(`[${PROVIDER_NAME}]: Error in IndexedDB listItems:`, error); // Add prefix
         throw error;
     }
 };
@@ -821,9 +806,8 @@ export const listItems = async (settings) => { // Remove options parameter
 // New exported method getImage
 export const getImage = async (settings, inputData) => {
     const { image_uuid: imageUuid } = inputData;
-    console.log(`IndexedDBProvider: getImage called for image UUID: ${imageUuid}`);
     if (!imageUuid) {
-        console.warn("IndexedDBProvider: getImage called with no imageUuid.");
+        console.warn(`[${PROVIDER_NAME}]: getImage called with no imageUuid.`); // Add prefix
         return null;
     }
     try {
@@ -837,21 +821,19 @@ export const getImage = async (settings, inputData) => {
             if (imageFile instanceof File) {
                 return imageFile;
             } else {
-                console.warn(`IndexedDBProvider: Image data found for item_id ${itemWithImage.item_id} (uuid: ${imageUuid}) was not a File object.`);
+                console.warn(`[${PROVIDER_NAME}]: Image data found for item_id ${itemWithImage.item_id} (uuid: ${imageUuid}) was not a File object.`); // Add prefix
                 return null;
             }
         } else {
-            console.log(`IndexedDBProvider: No item found with image_uuid ${imageUuid}.`);
             return null;
         }
     } catch (error) {
-        console.error(`Error in IndexedDB getImage for UUID ${imageUuid}:`, error);
+        console.error(`[${PROVIDER_NAME}]: Error in IndexedDB getImage for UUID ${imageUuid}:`, error); // Add prefix
         return null;
     }
 };
 
 export const addItem = async (settings, data) => {
-    console.log('IndexedDBProvider: addItem called with data:', data);
     const { imageFile, ...restOfData } = data; // Separate image file from metadata
     const db = await openDB();
 
@@ -869,7 +851,7 @@ export const addItem = async (settings, data) => {
         const counterRequest = counterStore.get(entity);
 
         counterRequest.onerror = (event) => {
-            console.error(`Error getting counter for ${entity}:`, event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error getting counter for ${entity}:`, event.target.error);
             transaction.abort();
             reject(`Error getting counter: ${event.target.error}`);
         };
@@ -881,7 +863,7 @@ export const addItem = async (settings, data) => {
 
             const updateCounterRequest = counterStore.put(counter);
             updateCounterRequest.onerror = (event) => {
-                console.error(`Error updating counter for ${entity}:`, event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error updating counter for ${entity}:`, event.target.error);
                 transaction.abort();
                 reject(`Error updating counter: ${event.target.error}`);
             };
@@ -904,7 +886,7 @@ export const addItem = async (settings, data) => {
             // Add item metadata
             const itemAddRequest = itemsStore.add(newItemMetadata);
             itemAddRequest.onerror = (event) => {
-                console.error("Error adding item metadata:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error adding item metadata:`, event.target.error);
                 transaction.abort();
                 reject(`Error adding item metadata: ${event.target.error}`);
             };
@@ -913,7 +895,7 @@ export const addItem = async (settings, data) => {
             if (imageFile instanceof File) {
                 const imageAddRequest = imagesStore.add(imageFile, newId); // Key is newId
                 imageAddRequest.onerror = (event) => {
-                    console.error("Error adding image:", event.target.error);
+                    console.error(`[${PROVIDER_NAME}]: Error adding image:`, event.target.error);
                     transaction.abort();
                     reject(`Error adding image: ${event.target.error}`);
                 };
@@ -921,15 +903,14 @@ export const addItem = async (settings, data) => {
         };
 
         transaction.oncomplete = () => {
-            console.log(`IndexedDBProvider: Item ${newId} added successfully.`);
             resolve({ success: true, newId: newId, uuid: newItemUuid, image_uuid: newImageUuid }); // Return IDs
         };
         transaction.onerror = (event) => {
-            console.error("Transaction error adding item:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction error adding item:`, event.target.error);
             reject(`Transaction error: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("Transaction aborted adding item:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Transaction aborted adding item:`, event.target.error);
         };
     });
 };
@@ -937,7 +918,6 @@ export const addItem = async (settings, data) => {
 
 export const updateItem = async (settings, inputData) => {
     const { item_id: itemId, ...data } = inputData;
-    console.log(`IndexedDBProvider: updateItem called for ID ${itemId} with data:`, data);
 
     // Get existing item metadata first
     const existingItem = await getFromStore(STORES.items, itemId);
@@ -966,25 +946,23 @@ export const updateItem = async (settings, inputData) => {
         let imageRequest; // To track image operation
 
         if (removeImage) {
-            console.log(`IndexedDBProvider: Removing image for item ${itemId}`);
             // Delete image using item_id as key
             newImageUuid = null; // Clear image UUID in metadata
             imageRequest = imagesStore.delete(itemId);
             imageRequest.onerror = (event) => {
                  // Ignore NotFoundError, but reject others
                  if (event.target.error.name !== 'NotFoundError') {
-                    console.error("Error deleting image from IndexedDB:", event.target.error);
+                    console.error(`[${PROVIDER_NAME}]: Error deleting image from IndexedDB:`, event.target.error);
                     transaction.abort();
                     reject(`Error deleting image: ${event.target.error}`);
                  }
             };
         } else if (imageFile instanceof File) {
-            console.log(`IndexedDBProvider: Updating/adding image for item ${itemId}`);
             // Add or update image using item_id as key
             newImageUuid = uuidv4(); // Always generate a new UUID for a new/replaced image file
             imageRequest = imagesStore.put(imageFile, itemId);
             imageRequest.onerror = (event) => {
-                console.error("Error putting image to IndexedDB:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error putting image to IndexedDB:`, event.target.error);
                 transaction.abort();
                 reject(`Error putting image: ${event.target.error}`);
             };
@@ -996,21 +974,20 @@ export const updateItem = async (settings, inputData) => {
         // Update item metadata
         const itemUpdateRequest = itemsStore.put(updatedItemMetadata);
         itemUpdateRequest.onerror = (event) => {
-            console.error("Error updating item metadata in IndexedDB:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: Error updating item metadata in IndexedDB:`, event.target.error);
             transaction.abort();
             reject(`Error updating item metadata: ${event.target.error}`);
         };
 
         transaction.oncomplete = () => {
-            console.log(`IndexedDBProvider: Item ${itemId} updated successfully.`);
             resolve({ success: true, image_uuid: updatedItemMetadata.image_uuid }); // Pass back image_uuid
         };
         transaction.onerror = (event) => {
-            console.error("IndexedDB transaction error on update:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: IndexedDB transaction error on update:`, event.target.error);
             reject(`Transaction error on update: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("IndexedDB transaction aborted on update:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: IndexedDB transaction aborted on update:`, event.target.error);
         };
     });
 };
@@ -1018,7 +995,6 @@ export const updateItem = async (settings, inputData) => {
 
 export const deleteItem = async (settings, inputData) => {
     const { item_id: itemId } = inputData;
-    console.log(`IndexedDBProvider: deleteItem called for ID ${itemId}`);
 
     // Check if item exists before attempting delete (optional)
     const existingItem = await getFromStore(STORES.items, itemId);
@@ -1037,7 +1013,7 @@ export const deleteItem = async (settings, inputData) => {
         const imageDeleteRequest = imagesStore.delete(itemId);
         imageDeleteRequest.onerror = (event) => {
             if (event.target.error.name !== 'NotFoundError') {
-                console.error("Error deleting image during item delete:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error deleting image during item delete:`, event.target.error);
                 transaction.abort();
                 reject(`Error deleting image: ${event.target.error}`);
             }
@@ -1048,22 +1024,21 @@ export const deleteItem = async (settings, inputData) => {
          itemDeleteRequest.onerror = (event) => {
              // Should not happen if we checked existence, but handle anyway
              if (event.target.error.name !== 'NotFoundError') {
-                console.error("Error deleting item metadata:", event.target.error);
+                console.error(`[${PROVIDER_NAME}]: Error deleting item metadata:`, event.target.error);
                 transaction.abort();
                 reject(`Error deleting item metadata: ${event.target.error}`);
              }
         };
 
         transaction.oncomplete = () => {
-            console.log(`IndexedDBProvider: Item ${itemId} deleted successfully.`);
             resolve({ success: true });
         };
         transaction.onerror = (event) => {
-            console.error("IndexedDB transaction error on delete:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: IndexedDB transaction error on delete:`, event.target.error);
             reject(`Transaction error on delete: ${event.target.error}`);
         };
          transaction.onabort = (event) => {
-            console.error("IndexedDB transaction aborted on delete:", event.target.error);
+            console.error(`[${PROVIDER_NAME}]: IndexedDB transaction aborted on delete:`, event.target.error);
         };
     });
 };
