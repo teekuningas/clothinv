@@ -105,7 +105,7 @@ export const addLocation = async (settings, data) => {
     const newLocationId = result.data[0].location_id;
     const newUuid = result.data[0].uuid;
     console.log("Retrieved new location ID:", newLocationId, "UUID:", newUuid);
-    return { success: true, status: result.status, newId: newLocationId, uuid: newUuid };
+    return { success: true, newId: newLocationId, uuid: newUuid };
 };
 
 export const updateLocation = async (settings, locationId, data) => {
@@ -123,7 +123,8 @@ export const updateLocation = async (settings, locationId, data) => {
         body: JSON.stringify(payload),
     });
 
-    return handleResponse(res, 'update', `location ID ${locationId}`);
+    await handleResponse(res, 'update', `location ID ${locationId}`);
+    return { success: true };
 };
 
 export const deleteLocation = async (settings, locationId) => {
@@ -147,7 +148,8 @@ export const deleteLocation = async (settings, locationId) => {
         headers: defaultHeaders(settings, false),
     });
 
-    return handleResponse(res, 'delete', `location ID ${locationId}`);
+    await handleResponse(res, 'delete', `location ID ${locationId}`);
+    return { success: true };
 };
 
 // --- Categories (Mirror Locations structure) ---
@@ -178,7 +180,7 @@ export const addCategory = async (settings, data) => {
     const newCategoryId = result.data[0].category_id;
     const newUuid = result.data[0].uuid;
     console.log("Retrieved new category ID:", newCategoryId, "UUID:", newUuid);
-    return { success: true, status: result.status, newId: newCategoryId, uuid: newUuid };
+    return { success: true, newId: newCategoryId, uuid: newUuid };
 };
 
 export const updateCategory = async (settings, categoryId, data) => {
@@ -192,7 +194,8 @@ export const updateCategory = async (settings, categoryId, data) => {
         headers: defaultHeaders(settings, false),
         body: JSON.stringify(payload),
     });
-    return handleResponse(res, 'update', `category ID ${categoryId}`);
+    await handleResponse(res, 'update', `category ID ${categoryId}`);
+    return { success: true };
 };
 
 export const deleteCategory = async (settings, categoryId) => {
@@ -211,7 +214,8 @@ export const deleteCategory = async (settings, categoryId) => {
 
     const deleteUrl = `${baseUrl}/categories?category_id=eq.${categoryId}`;
     const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
-    return handleResponse(res, 'delete', `category ID ${categoryId}`);
+    await handleResponse(res, 'delete', `category ID ${categoryId}`);
+    return { success: true };
 };
 
 // --- Owners (Mirror Locations structure) ---
@@ -242,7 +246,7 @@ export const addOwner = async (settings, data) => {
     const newOwnerId = result.data[0].owner_id;
     const newUuid = result.data[0].uuid;
     console.log("Retrieved new owner ID:", newOwnerId, "UUID:", newUuid);
-    return { success: true, status: result.status, newId: newOwnerId, uuid: newUuid };
+    return { success: true, newId: newOwnerId, uuid: newUuid };
 };
 
 export const updateOwner = async (settings, ownerId, data) => {
@@ -256,7 +260,8 @@ export const updateOwner = async (settings, ownerId, data) => {
         headers: defaultHeaders(settings, false),
         body: JSON.stringify(payload),
     });
-    return handleResponse(res, 'update', `owner ID ${ownerId}`);
+    await handleResponse(res, 'update', `owner ID ${ownerId}`);
+    return { success: true };
 };
 
 export const deleteOwner = async (settings, ownerId) => {
@@ -275,7 +280,8 @@ export const deleteOwner = async (settings, ownerId) => {
 
     const deleteUrl = `${baseUrl}/owners?owner_id=eq.${ownerId}`;
     const res = await fetch(deleteUrl, { method: 'DELETE', headers: defaultHeaders(settings, false) });
-    return handleResponse(res, 'delete', `owner ID ${ownerId}`);
+    await handleResponse(res, 'delete', `owner ID ${ownerId}`);
+    return { success: true };
 };
 
 // --- Image Handling ---
@@ -482,11 +488,19 @@ export const updateItem = async (settings, itemId, data) => { // data should NOT
 
     const res = await fetch(updateUrl, {
         method: 'PATCH',
-        headers: defaultHeaders(settings, false), // No representation needed
+        headers: defaultHeaders(settings, true), // Request representation
         body: JSON.stringify(payload),
     });
 
-    return handleResponse(res, 'update', `item ID ${itemId}`);
+    const updateOpResult = await handleResponse(res, 'update', `item ID ${itemId}`);
+    if (!updateOpResult.success) {
+         // Should be caught by handleResponse throwing
+        throw new Error(`Update item ${itemId} failed`);
+    }
+    // newImageUuid is determined by the logic within updateItem
+    // If Prefer: return=representation was used, updateOpResult.data[0].image_uuid could be used.
+    // However, newImageUuid is more reliable as it's set based on the logic flow (remove, add new, keep existing).
+    return { success: true, image_uuid: newImageUuid };
 };
 
 /**
@@ -519,7 +533,9 @@ export const deleteItem = async (settings, itemId) => {
 
     // Check item deletion result (ignore 404)
     if (!deleteItemRes.ok && deleteItemRes.status !== 404) {
-        return handleResponse(deleteItemRes, 'delete', `item ID ${itemId}`);
+        await handleResponse(deleteItemRes, 'delete', `item ID ${itemId}`); // This will throw if not ok
+        // If handleResponse doesn't throw (e.g. if it's modified not to), then we need to return failure.
+        // Assuming current handleResponse throws on error:
     }
 
     // 3. If item deletion was successful (or item was already gone) AND we found an image ID, delete the image
@@ -528,7 +544,7 @@ export const deleteItem = async (settings, itemId) => {
     }
 
     console.log(`Deletion process completed for item ID ${itemId}`);
-    return { success: true }; // Return success even if item/image was already gone
+    return { success: true }; // Return success
 };
 
 // listItems: Remove options, pagination, filtering, sorting, and direct image fetching.

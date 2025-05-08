@@ -995,7 +995,7 @@ export const updateItem = async (settings, itemId, data) => {
 
         transaction.oncomplete = () => {
             console.log(`IndexedDBProvider: Item ${itemId} updated successfully.`);
-            resolve({ success: true });
+            resolve({ success: true, image_uuid: updatedItemMetadata.image_uuid }); // Pass back image_uuid
         };
         transaction.onerror = (event) => {
             console.error("IndexedDB transaction error on update:", event.target.error);

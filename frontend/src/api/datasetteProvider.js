@@ -80,7 +80,7 @@ export const addCategory = async (settings, data) => {
     console.log("Retrieved new category ID:", newCategoryId);
 
     // Return success status, the new ID, and the UUID
-    return { success: true, status: insertRes.status, newId: newCategoryId, uuid: newUuid };
+    return { success: true, newId: newCategoryId, uuid: newUuid };
 };
 
 // --- Exported API Methods (Bound by ApiContext) ---
@@ -136,7 +136,7 @@ export const addLocation = async (settings, data) => {
 
     // Return success status, the new ID, and the UUID
     // Assuming addLocation was called with data containing the UUID or it was generated before calling
-    return { success: true, status: insertRes.status, newId: newLocationId, uuid: locationData.row.uuid };
+    return { success: true, newId: newLocationId, uuid: locationData.row.uuid };
 };
 
 export const listLocations = async (settings) => {
@@ -180,7 +180,8 @@ export const updateLocation = async (settings, locationId, data) => {
     });
 
     // Use handleResponse, customizing operation and entity description
-    return handleResponse(res, 'update', `location ID ${locationId}`);
+    await handleResponse(res, 'update', `location ID ${locationId}`);
+    return { success: true };
 };
 
 export const deleteLocation = async (settings, locationId) => {
@@ -220,7 +221,8 @@ export const deleteLocation = async (settings, locationId) => {
     });
 
     // Use handleResponse, customizing operation and entity description
-    return handleResponse(res, 'delete', `location ID ${locationId}`);
+    await handleResponse(res, 'delete', `location ID ${locationId}`);
+    return { success: true };
 };
 
 export const listCategories = async (settings) => {
@@ -264,7 +266,8 @@ export const updateCategory = async (settings, categoryId, data) => {
     });
 
     // Use handleResponse, customizing operation and entity description
-    return handleResponse(res, 'update', `category ID ${categoryId}`);
+    await handleResponse(res, 'update', `category ID ${categoryId}`);
+    return { success: true };
 };
 
 export const deleteCategory = async (settings, categoryId) => {
@@ -300,7 +303,8 @@ export const deleteCategory = async (settings, categoryId) => {
     });
 
     // Use handleResponse, customizing operation and entity description
-    return handleResponse(res, 'delete', `category ID ${categoryId}`);
+    await handleResponse(res, 'delete', `category ID ${categoryId}`);
+    return { success: true };
 };
 
 export const listOwners = async (settings) => {
@@ -370,7 +374,7 @@ export const addOwner = async (settings, data) => { // Rename to addOwner and ex
     console.log("Retrieved new owner ID:", newOwnerId);
 
     // Return success status, the new ID, and the UUID
-    return { success: true, status: insertRes.status, newId: newOwnerId, uuid: newUuid };
+    return { success: true, newId: newOwnerId, uuid: newUuid };
 };
 
 export const updateOwner = async (settings, ownerId, data) => {
@@ -392,7 +396,8 @@ export const updateOwner = async (settings, ownerId, data) => {
     });
 
     // Use handleResponse, customizing operation and entity description
-    return handleResponse(res, 'update', `owner ID ${ownerId}`);
+    await handleResponse(res, 'update', `owner ID ${ownerId}`);
+    return { success: true };
 };
 
 export const deleteOwner = async (settings, ownerId) => {
@@ -428,7 +433,8 @@ export const deleteOwner = async (settings, ownerId) => {
     });
 
     // Use handleResponse, customizing operation and entity description
-    return handleResponse(res, 'delete', `owner ID ${ownerId}`);
+    await handleResponse(res, 'delete', `owner ID ${ownerId}`);
+    return { success: true };
 };
 
 // --- Image Handling ---
@@ -550,7 +556,40 @@ export const addItem = async (settings, data) => {
     });
 
     // Use handleResponse for the item insert result
-    return handleResponse(itemRes, 'add', 'item');
+    const addResult = await handleResponse(itemRes, 'add', 'item');
+    if (!addResult.success) {
+        // This case should ideally be covered by handleResponse throwing an error
+        throw new Error("Failed to add item, initial insert failed.");
+    }
+
+    // Fetch the latest item ID and UUID
+    // Using _shape=array simplifies getting the row directly
+    const queryUrl = `${baseUrl}/items.json?_sort_desc=item_id&_size=1&_shape=array&_select=item_id,uuid`;
+    const queryRes = await fetch(queryUrl, {
+         method: 'GET',
+         headers: { 'Accept': 'application/json' }
+    });
+
+    if (!queryRes.ok) {
+        const errorText = await queryRes.text();
+        console.error(`Failed to fetch latest item ID/UUID after insert: ${queryRes.status} ${errorText}`, queryRes);
+        // Return success true but without ID/UUID if fetching fails, or throw
+        // For consistency, let's assume the add was successful but we couldn't confirm ID/UUID.
+        // The frontend might need to re-fetch. Or, consider this a partial failure.
+        // Given the schema, newId and uuid are optional on output.
+        return { success: true, image_uuid: imageUuid }; // imageUuid is from earlier in the function
+    }
+
+    const queryData = await queryRes.json();
+    if (!queryData || queryData.length === 0 || !queryData[0].item_id || !queryData[0].uuid) {
+         console.error("Could not find item_id/uuid in query response for new item:", queryData);
+         return { success: true, image_uuid: imageUuid };
+    }
+
+    const newItemId = queryData[0].item_id;
+    const fetchedItemUuid = queryData[0].uuid;
+
+    return { success: true, newId: newItemId, uuid: fetchedItemUuid, image_uuid: imageUuid };
 };
 
 
@@ -621,7 +660,15 @@ export const updateItem = async (settings, itemId, data) => { // data should NOT
         body: JSON.stringify(payload),
     });
 
-    return handleResponse(res, 'update', `item ID ${itemId}`);
+    const updateResult = await handleResponse(res, 'update', `item ID ${itemId}`);
+    if (!updateResult.success) {
+        // This case should ideally be covered by handleResponse throwing an error
+        throw new Error(`Failed to update item ID ${itemId}, initial update failed.`);
+    }
+
+    // Fetch the updated image_uuid for the item
+    // newImageUuid is known from the logic within updateItem
+    return { success: true, image_uuid: newImageUuid }; // newImageUuid is determined earlier in the function
 };
 
 /**
@@ -648,7 +695,8 @@ export const deleteItem = async (settings, itemId) => {
         // No body needed
     });
 
-    return handleResponse(res, 'delete', `item ID ${itemId}`);
+    await handleResponse(res, 'delete', `item ID ${itemId}`);
+    return { success: true };
 };
 
 // listItems: Remove options, pagination, filtering, sorting, and direct image fetching.
