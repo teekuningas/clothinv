@@ -810,7 +810,6 @@ const ItemsView = () => {
 
   const handleConfirmDelete = async () => {
     if (!deleteCandidateId || !api.deleteItem) {
-      // Check method existence
       setDeleteError(
         intl.formatMessage({
           id: "items.error.deleteInvalid",
