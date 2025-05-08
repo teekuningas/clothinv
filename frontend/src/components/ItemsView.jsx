@@ -82,12 +82,34 @@ const ItemsView = () => {
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
   const loaderRef = useRef(null);
+  // Refs for modal image URLs to ensure cleanup on unmount
+  const addImageUrlRef = useRef(addImageUrl);
+  const editImageUrlRef = useRef(editImageUrl);
 
   const api = useApi();
   const { settings: appSettings } = useSettings();
   const intl = useIntl();
 
-  const parseSortCriteria = (criteria) => {
+  // Effect to keep refs updated with latest modal image URLs
+  useEffect(() => {
+    addImageUrlRef.current = addImageUrl;
+    editImageUrlRef.current = editImageUrl;
+  }, [addImageUrl, editImageUrl]);
+
+  // General cleanup for any outstanding modal blob URLs on component unmount
+  useEffect(() => {
+    return () => {
+      // displayedItemImageUrls are handled by their own effect's cleanup logic
+      if (addImageUrlRef.current) {
+        URL.revokeObjectURL(addImageUrlRef.current);
+      }
+      if (editImageUrlRef.current) {
+        URL.revokeObjectURL(editImageUrlRef.current);
+      }
+    };
+  }, []); // Empty dependency array for unmount cleanup only
+
+  const parseSortCriteria = useCallback((criteria) => {
     if (criteria.endsWith("_asc")) {
       return { sortBy: criteria.slice(0, -4), sortOrder: "asc" };
     }
@@ -95,7 +117,7 @@ const ItemsView = () => {
       return { sortBy: criteria.slice(0, -5), sortOrder: "desc" };
     }
     return { sortBy: "created_at", sortOrder: "desc" }; // Default
-  };
+  }, []); // Empty dependency array as it doesn't depend on component scope
 
   const fetchAllItemsMetadata = useCallback(async () => {
       if (!api.isConfigured || typeof api.listItems !== "function") {
@@ -199,7 +221,7 @@ const ItemsView = () => {
       setLocations([]);
       setCategories([]);
       setOwners([]);
-      setCurrentPage(0); // Ensure 0-indexed
+      setCurrentPage(0);
     }
   }, [api.isConfigured, api.listItems, fetchAncillaryData, fetchAllItemsMetadata]);
 
@@ -266,29 +288,28 @@ const ItemsView = () => {
     }
 
     displayedItems.forEach(item => {
-      if (item.image_uuid && !itemImageFiles[item.item_id] && !loadingImages[item.image_uuid]) {
+      // Fetch if UUID exists, key is not in itemImageFiles (meaning not fetched or marked as null), and not currently loading
+      if (item.image_uuid && !(item.item_id in itemImageFiles) && !loadingImages[item.image_uuid]) {
         setLoadingImages(prev => ({ ...prev, [item.image_uuid]: true }));
         api.getImage(item.image_uuid)
           .then(imageFile => {
             if (imageFile instanceof File) {
               setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: imageFile }));
             } else if (imageFile === null) {
-              // Image explicitly not found or null, don't try fetching again unless item.image_uuid changes
-              // To prevent re-fetch loops for null images, we can mark it as "attempted"
-              // For now, simply not adding to itemImageFiles means it might be re-attempted if item appears again
               console.log(`Image not found or null for UUID: ${item.image_uuid}`);
+              // Store null to indicate it was fetched and not found, preventing re-fetches
+              setItemImageFiles(prevFiles => ({ ...prevFiles, [item.item_id]: null }));
             }
           })
           .catch(err => {
             console.error(`Failed to fetch image for UUID ${item.image_uuid}:`, err);
-            // Optionally set an error state for this specific image
           })
           .finally(() => {
             setLoadingImages(prev => ({ ...prev, [item.image_uuid]: false }));
           });
       }
     });
-  }, [displayedItems, api, itemImageFiles, loadingImages]); // itemImageFiles and loadingImages to prevent re-fetch if already present/loading
+  }, [displayedItems, api, itemImageFiles, loadingImages]);
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
@@ -475,12 +496,11 @@ const ItemsView = () => {
       return;
     }
 
-    setLoading(true); // Use general loading for add form
+    setLoading(true);
     setAddItemError(null); // Clear previous modal-specific error
-    // setSuccess(null); // Global success, cleared when modal opens or handled globally
 
     try {
-      let fileToSend = null; // Initialize fileToSend
+      let fileToSend = null;
       // Process image before sending if a file exists AND compression is enabled
       if (
         newItemImageFile instanceof File &&
@@ -516,7 +536,6 @@ const ItemsView = () => {
           "Image compression disabled or not applicable, using original file.",
         );
       }
-      // else fileToSend remains null if no file was selected
 
       const result = await api.addItem({
         name: newItemName.trim(),
@@ -559,7 +578,6 @@ const ItemsView = () => {
       }
     } catch (err) {
       console.error("Failed to add item:", err);
-      // Prefer setting modal-specific error if the operation originated from the modal
       setAddItemError(
         intl.formatMessage(
           {
@@ -670,7 +688,7 @@ const ItemsView = () => {
       !editLocationId ||
       !editCategoryId ||
       !editOwnerId ||
-      !api.updateItem // Check method existence
+      !api.updateItem
     ) {
       setUpdateError(
         intl.formatMessage({
@@ -687,7 +705,7 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
-      let fileToSend = null; // Initialize fileToSend
+      let fileToSend = null;
       // Process image before sending if a new file was selected AND compression is enabled
       if (
         editItemImageFile instanceof File &&
@@ -724,9 +742,6 @@ const ItemsView = () => {
           "Image compression disabled or not applicable, using original file for update.",
         );
       }
-      // else fileToSend remains null if no new file selected or image marked for removal
-
-      // The rest of the update logic uses fileToSend and imageMarkedForRemoval
       const result = await api.updateItem(editingItemId, {
         name: editName.trim(),
         description: editDescription.trim() || null,
@@ -811,7 +826,6 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
-      // No need to check usage for items currently
       const result = await api.deleteItem(deleteCandidateId);
       if (result.success) {
         setSuccess(
@@ -1129,7 +1143,7 @@ const ItemsView = () => {
                 }
               >
                 {loadingImages[item.image_uuid] && !displayedItemImageUrls[item.item_id] && (
-                  <div className="item-image-loading">Loading image...</div> /* Optional: per-image loading indicator */
+                  <div className="item-image-loading">Loading image...</div>
                 )}
                 {displayedItemImageUrls[item.item_id] ? (
                   <img
@@ -1166,7 +1180,7 @@ const ItemsView = () => {
       )}
 
       {loading && displayedItems.length > 0 && ( // Show "loading more" style indicator if loading all but some are already shown
-        <p className="status-loading"> 
+        <p className="status-loading">
           {intl.formatMessage({
             id: "items.loadingMore",
             defaultMessage: "Loading more items...",
@@ -1507,11 +1521,7 @@ const ItemsView = () => {
                         onClick={() =>
                           handleImageClick(
                             editItemImageFile,
-                            editName ||
-                              intl.formatMessage({
-                                id: "items.editForm.imagePreviewAlt",
-                                defaultMessage: "Item image preview",
-                              }),
+                            editName || intl.formatMessage({ id: "items.editForm.imagePreviewAlt", defaultMessage: "Item image preview" })
                           )
                         }
                         style={{ cursor: "pointer" }}
