@@ -155,8 +155,6 @@
     border: 1px solid var(--color-border-input); /* Use theme variable for border */
     border-radius: 4px; /* Standardized border radius */
     font-size: 1em; /* Standardized font size */
-    /* background-color: var(--color-bg-input); TODO: Add --color-bg-input to main.css if needed */
-    /* color: var(--color-text-input); TODO: Add --color-text-input to main.css if needed */
     box-sizing: border-box; /* Ensure padding and border are included in the width calculation */
 }
 
