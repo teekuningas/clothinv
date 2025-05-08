@@ -353,8 +353,9 @@ const SettingsView = () => {
         // Import success messages are typically detailed with counts,
         // so we don't expect a simple summaryKey from the API for success here.
         // The existing logic for constructing summaryMessage based on result.counts is appropriate.
-        if (result.summary) { // If API provides a direct summary string (less common now)
-            summaryMessage = result.summary;
+        if (result.summary) {
+          // If API provides a direct summary string (less common now)
+          summaryMessage = result.summary;
         } else if (result.counts) {
           summaryMessage = intl.formatMessage(
             {
@@ -382,26 +383,34 @@ const SettingsView = () => {
         // Handle { success: false, errorKey: ..., errorValues: ... } from API
         setImportStatus("error");
         if (result.errorKey) {
-          setImportError(intl.formatMessage({ id: result.errorKey }, result.errorValues ));
+          setImportError(
+            intl.formatMessage({ id: result.errorKey }, result.errorValues),
+          );
         } else {
           // Fallback for older error format or generic error from API result
-          setImportError(result.error || intl.formatMessage({ id: "settings.data.importFailedUnknown" }));
+          setImportError(
+            result.error ||
+              intl.formatMessage({ id: "settings.data.importFailedUnknown" }),
+          );
         }
         setImportSummary(""); // Clear summary on error
       }
-    } catch (error) { // Catches errors thrown by api.importData or other unexpected errors
+    } catch (error) {
+      // Catches errors thrown by api.importData or other unexpected errors
       console.error("Import failed:", error);
       setImportStatus("error");
       // If the caught error object itself has an errorKey (e.g. if provider throws a structured error)
       if (error.errorKey) {
-          setImportError(intl.formatMessage({ id: error.errorKey }, error.errorValues ));
+        setImportError(
+          intl.formatMessage({ id: error.errorKey }, error.errorValues),
+        );
       } else {
-          setImportError(
-            error.message || // Standard Error object message
+        setImportError(
+          error.message || // Standard Error object message
             intl.formatMessage({
               id: "settings.data.importUnexpectedError",
             }),
-          );
+        );
       }
       setImportSummary("");
     }
@@ -453,11 +462,17 @@ const SettingsView = () => {
           id: "settings.data.refreshRecommendation",
         });
         let summaryMessage;
-        if (result.summaryKey) { // API provides a key for the success message
-          summaryMessage = intl.formatMessage({ id: result.summaryKey }, result.summaryValues);
+        if (result.summaryKey) {
+          // API provides a key for the success message
+          summaryMessage = intl.formatMessage(
+            { id: result.summaryKey },
+            result.summaryValues,
+          );
         } else {
           // Fallback if API doesn't provide summaryKey (e.g. older provider version or direct summary)
-          summaryMessage = result.summary || intl.formatMessage({ id: "settings.data.destroySuccessDefault" });
+          summaryMessage =
+            result.summary ||
+            intl.formatMessage({ id: "settings.data.destroySuccessDefault" });
         }
         setDestroySummary(`${summaryMessage} ${refreshRecommendation}`);
         setDestroyError(null); // Clear any previous error
@@ -465,26 +480,34 @@ const SettingsView = () => {
         // Handle { success: false, errorKey: ..., errorValues: ... } from API
         setDestroyStatus("error");
         if (result.errorKey) {
-          setDestroyError(intl.formatMessage({ id: result.errorKey }, result.errorValues));
+          setDestroyError(
+            intl.formatMessage({ id: result.errorKey }, result.errorValues),
+          );
         } else {
           // Fallback for older error format or generic error from API result
-          setDestroyError(result.error || intl.formatMessage({ id: "settings.data.destroyFailedUnknown" }));
+          setDestroyError(
+            result.error ||
+              intl.formatMessage({ id: "settings.data.destroyFailedUnknown" }),
+          );
         }
         setDestroySummary(""); // Clear summary on error
       }
-    } catch (error) { // Catches errors thrown by api.destroyData or other unexpected errors
+    } catch (error) {
+      // Catches errors thrown by api.destroyData or other unexpected errors
       console.error("Data destruction failed:", error);
       setDestroyStatus("error");
       // If the caught error object itself has an errorKey
       if (error.errorKey) {
-          setDestroyError(intl.formatMessage({ id: error.errorKey }, error.errorValues));
+        setDestroyError(
+          intl.formatMessage({ id: error.errorKey }, error.errorValues),
+        );
       } else {
-          setDestroyError(
-            error.message || // Standard Error object message
+        setDestroyError(
+          error.message || // Standard Error object message
             intl.formatMessage({
               id: "settings.data.destroyUnexpectedError",
             }),
-          );
+        );
       }
       setDestroySummary("");
     }
