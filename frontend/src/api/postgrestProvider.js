@@ -412,14 +412,14 @@ export const addItem = async (settings, data) => {
     });
 
     const result = await handleResponse(res, 'add', 'item');
+    // Even if Prefer: return=representation fails, the item might have been added.
+    // imageUuid is known from _insertImage call.
     if (!result.data || result.data.length === 0 || !result.data[0].item_id || !result.data[0].uuid) {
-        console.error("Could not find item_id in PostgREST response:", result.data);
-        // Don't throw error here, as the operation might have succeeded, just log
-    } else {
-        console.log("Added item with ID:", result.data[0].item_id, "UUID:", result.data[0].uuid);
-        // Optionally return the generated UUID if needed: return { success: true, status: result.status, uuid: result.data[0].uuid };
+        console.error("Could not find item_id/uuid in PostgREST response for new item:", result.data);
+        return { success: true, image_uuid: imageUuid }; // imageUuid is from earlier in the function
     }
-    return { success: true, status: result.status };
+    const newItem = result.data[0];
+    return { success: true, newId: newItem.item_id, uuid: newItem.uuid, image_uuid: newItem.image_uuid };
 };
 
 
