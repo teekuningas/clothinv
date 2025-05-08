@@ -1180,12 +1180,22 @@ const ItemsView = () => {
                 defaultMessage: "Your collection awaits.",
               })}
             </p>
-            <p>
-              {intl.formatMessage({
-                id: "items.list.empty.newUserGuidance",
-                defaultMessage: "To add your first item, please begin by creating a Location, Category, and Owner in their respective sections, accessible from the navigation menu.",
-              })}
-            </p>
+            {/* Check if all prerequisites (Locations, Categories, Owners) are populated */}
+            {(locations.length === 0 || categories.length === 0 || owners.length === 0) ? (
+              <p>
+                {intl.formatMessage({
+                  id: "items.list.empty.newUserGuidance",
+                  defaultMessage: "To add your first item, please begin by creating a Location, Category, and Owner in their respective sections, accessible from the navigation menu.",
+                })}
+              </p>
+            ) : (
+              <p>
+                {intl.formatMessage({
+                  id: "items.list.empty.addViaFAB",
+                  defaultMessage: "No items found. Click the '+' button to add one.",
+                })}
+              </p>
+            )}
           </div>
         )}
       {/* Message for no items matching filters, but there are items in total */}

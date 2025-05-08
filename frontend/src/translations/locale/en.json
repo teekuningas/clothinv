@@ -198,6 +198,7 @@
     "items.error.ownerMissing": "Please select an owner.",
     "items.list.empty.main": "Your collection awaits.",
     "items.list.empty.newUserGuidance": "To add your first item, please begin by creating a Location, Category, and Owner in their respective sections, accessible from the navigation menu.",
+    "items.list.empty.addViaFAB": "No items found. Click the '+' button to add one.",
     "items.list.notSupported": "Listing clothes is not supported by the current API Provider.",
     "items.editForm.imageLabel": "Image:",
     "items.editForm.imagePreviewAlt": "Item image preview",

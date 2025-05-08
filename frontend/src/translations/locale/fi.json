@@ -198,6 +198,7 @@
     "items.error.ownerMissing": "Valitse omistaja.",
     "items.list.empty.main": "Kokoelmasi odottaa.",
     "items.list.empty.newUserGuidance": "Lisätäksesi ensimmäisen vaatteen, aloita luomalla Sijainti, Kategoria ja Omistaja. Löydät nämä osiot navigointivalikosta.",
+    "items.list.empty.addViaFAB": "Vaatteita ei löytynyt. Lisää uusi klikkaamalla '+'-painiketta.",
     "items.list.notSupported": "Vaatteiden listausta ei tueta nykyisellä API-palvelulla.",
     "items.editForm.imageLabel": "Kuva:",
     "items.editForm.imagePreviewAlt": "Vaatteen kuvan esikatselu",
