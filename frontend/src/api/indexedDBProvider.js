@@ -935,7 +935,8 @@ export const addItem = async (settings, data) => {
 };
 
 
-export const updateItem = async (settings, itemId, data) => {
+export const updateItem = async (settings, inputData) => {
+    const { item_id: itemId, ...data } = inputData;
     console.log(`IndexedDBProvider: updateItem called for ID ${itemId} with data:`, data);
 
     // Get existing item metadata first
