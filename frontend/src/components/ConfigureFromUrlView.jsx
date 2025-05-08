@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
@@ -15,11 +15,18 @@ const ConfigureFromUrlView = () => {
     }),
   );
   const [isError, setIsError] = useState(false);
+  const processedPayloadRef = useRef(null); // Ref to track the processed payload
 
   // Extract the specific search parameter value. This string will be stable if the URL param doesn't change.
   const encodedSettingsPayload = searchParams.get("settingsPayload");
 
   useEffect(() => {
+    // If the current payload (or its absence) has already been processed by this effect instance,
+    // skip further execution. This prevents loops if intl or other dependencies change
+    // while the encodedSettingsPayload remains the same.
+    if (processedPayloadRef.current === encodedSettingsPayload) {
+      return;
+    }
     if (!encodedSettingsPayload) {
       setStatusMessage(
         intl.formatMessage({
@@ -28,6 +35,7 @@ const ConfigureFromUrlView = () => {
         }),
       );
       setIsError(true);
+      processedPayloadRef.current = encodedSettingsPayload; // Mark this state (null/undefined payload) as processed
       return;
     }
 
@@ -50,6 +58,7 @@ const ConfigureFromUrlView = () => {
       }
 
       updateSettings(importedSettings);
+      processedPayloadRef.current = encodedSettingsPayload; // Mark as processed before navigation
 
       setStatusMessage(
         intl.formatMessage({
@@ -57,6 +66,7 @@ const ConfigureFromUrlView = () => {
           defaultMessage: "Configuration applied. Redirecting...",
         }),
       );
+      setIsError(false); // Clear any previous error state
 
       // Navigate after settings are updated and status message is set.
       navigate("/items", { replace: true });
@@ -95,10 +105,9 @@ const ConfigureFromUrlView = () => {
         ),
       );
       setIsError(true);
+      processedPayloadRef.current = encodedSettingsPayload; // Mark as processed (even if an error occurred)
     }
-
-  }, [encodedSettingsPayload, updateSettings, navigate]);
-  // }, [encodedSettingsPayload, intl, updateSettings, navigate]);
+  }, [encodedSettingsPayload, intl, updateSettings, navigate]); // Add intl back to dependencies
   return (
     <div className="settings-view" style={{ textAlign: "center" }}>
       <h2>
