@@ -82,6 +82,9 @@ const ItemsView = () => {
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
+  // Add this new state variable
+  const [lastUpdatedItemDetails, setLastUpdatedItemDetails] = useState(null); // { itemId: number, imageUuid: string | null, name: string, description: string | null, locationId: number, categoryId: number, ownerId: number }
+
   const loaderRef = useRef(null);
   // Refs for modal image URLs to ensure cleanup on unmount
   const addImageUrlRef = useRef(addImageUrl);
@@ -133,9 +136,34 @@ const ItemsView = () => {
     // Success messages are intentionally not cleared here to let them persist.
 
     try {
-      const result = await api.listItems(); // No options passed
-      setAllItemsMetadata(result || []);
-      // Client-side processing useEffect will handle totalItemsCount, hasMoreItems, displayedItems, and currentPage reset.
+      const freshMetadataFromApi = await api.listItems(); // No options passed
+      let newAllItemsMetadata = freshMetadataFromApi || [];
+
+      // If there was a recent update, ensure its details are preserved over what listItems might return.
+      // This handles the race condition where listItems (especially for IndexedDB) might be slightly
+      // stale for the just-updated item's image_uuid or other fields.
+      if (lastUpdatedItemDetails) {
+        newAllItemsMetadata = newAllItemsMetadata.map(item => {
+          if (item.item_id === lastUpdatedItemDetails.itemId) {
+            // Preserve fields from listItems (like updated_at) but override edited fields
+            // and image_uuid with the definitive values from the update operation.
+            return {
+              ...item,
+              name: lastUpdatedItemDetails.name,
+              description: lastUpdatedItemDetails.description,
+              location_id: lastUpdatedItemDetails.locationId,
+              category_id: lastUpdatedItemDetails.categoryId,
+              owner_id: lastUpdatedItemDetails.ownerId,
+              image_uuid: lastUpdatedItemDetails.imageUuid,
+            };
+          }
+          return item;
+        });
+        // Clear after applying, so it only affects this one refresh cycle post-update.
+        setLastUpdatedItemDetails(null);
+      }
+
+      setAllItemsMetadata(newAllItemsMetadata);
       setCurrentPage(0); // Reset to first page for new full dataset
     } catch (err) {
       console.error("Failed to fetch items:", err);
@@ -155,7 +183,7 @@ const ItemsView = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, intl]);
+  }, [api, intl, lastUpdatedItemDetails, setLastUpdatedItemDetails]); // Added lastUpdatedItemDetails and its setter
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
@@ -859,33 +887,21 @@ const ItemsView = () => {
           });
         }
 
-        // Immediately update the item's metadata in allItemsMetadata.
-        // This ensures that any subsequent processing (like image fetching)
-        // uses the most current data, especially the image_uuid returned by the API.
-        // It also provides immediate UI feedback for changed text fields.
-        setAllItemsMetadata(prevItems =>
-          prevItems.map(item =>
-            item.item_id === updatedItemId
-              ? {
-                  ...item,
-                  // Update fields from the edit form for immediate UI reflection
-                  name: editName.trim(),
-                  description: editDescription.trim() || null,
-                  location_id: parseInt(editLocationId, 10),
-                  category_id: parseInt(editCategoryId, 10),
-                  owner_id: parseInt(editOwnerId, 10),
-                  // Crucially, use image_uuid from the API call's result.
-                  // result.image_uuid is the definitive UUID (new, old, or null if removed).
-                  image_uuid: result.image_uuid,
-                  // updated_at will be refreshed by the subsequent fetchAllItemsMetadata call
-                }
-              : item
-          )
-        );
+        // Store the definitive details from the successful update operation.
+        // These will be used by fetchAllItemsMetadata to ensure consistency.
+        setLastUpdatedItemDetails({
+          itemId: updatedItemId,
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+          locationId: parseInt(editLocationId, 10),
+          categoryId: parseInt(editCategoryId, 10),
+          ownerId: parseInt(editOwnerId, 10),
+          imageUuid: result.image_uuid,
+        });
 
         handleCancelEdit(); // Close edit modal
-        fetchAllItemsMetadata(); // Refresh all metadata from the backend to ensure full consistency.
-                                 // The local updates above handle immediate UI needs.
+        fetchAllItemsMetadata(); // Refresh all metadata. It will use lastUpdatedItemDetails.
+
       } else {
         setUpdateError(
           intl.formatMessage(
