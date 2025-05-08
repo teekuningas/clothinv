@@ -82,7 +82,6 @@ const ItemsView = () => {
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
-  // Add this new state variable
   const [lastUpdatedItemDetails, setLastUpdatedItemDetails] = useState(null); // { itemId: number, imageUuid: string | null, name: string, description: string | null, locationId: number, categoryId: number, ownerId: number }
 
   const loaderRef = useRef(null);
@@ -183,7 +182,7 @@ const ItemsView = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, intl, lastUpdatedItemDetails, setLastUpdatedItemDetails]); // Added lastUpdatedItemDetails and its setter
+  }, [api, intl, lastUpdatedItemDetails, setLastUpdatedItemDetails]);
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
@@ -316,7 +315,7 @@ const ItemsView = () => {
         observer.unobserve(currentLoaderRef);
       }
     };
-  }, [hasMoreItems, loading, api.isConfigured, api.listItems, loaderRef]); // Add loaderRef to dependencies
+  }, [hasMoreItems, loading, api.isConfigured, api.listItems, loaderRef]);
 
   // Effect to fetch images for displayed items
   useEffect(() => {
