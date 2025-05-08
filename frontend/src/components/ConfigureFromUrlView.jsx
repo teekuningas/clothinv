@@ -17,6 +17,8 @@ const ConfigureFromUrlView = () => {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
+    let navigationTimerId = null;
+
     const encodedSettingsPayload = searchParams.get("settingsPayload");
 
     if (!encodedSettingsPayload) {
@@ -57,9 +59,13 @@ const ConfigureFromUrlView = () => {
         }),
       );
 
-      navigate("/items", { replace: true });
-
+      // Defer navigation to allow current state updates to settle and prevent re-triggering effect
+      navigationTimerId = setTimeout(() => {
+        navigate("/items", { replace: true });
+      }, 0); // Using 0ms delay to push to next event loop tick
+ 
     } catch (error) {
+      // If an error occurs before navigationTimerId is set, it remains null.
       console.error("Error processing configuration from URL:", error);
       let errorMessageId = "configure.error.generic";
       let defaultMessage = "Error processing configuration: {error}";
@@ -94,8 +100,14 @@ const ConfigureFromUrlView = () => {
       );
       setIsError(true);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, intl, updateSettings]); // Add updateSettings to dependencies
+
+    // Cleanup function for the effect
+    return () => {
+      if (navigationTimerId) {
+        clearTimeout(navigationTimerId);
+      }
+    };
+  }, [searchParams, intl, updateSettings, navigate]); // Added navigate to dependencies
   return (
     <div className="settings-view" style={{ textAlign: "center" }}>
       <h2>
