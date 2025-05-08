@@ -908,7 +908,7 @@ export const destroyData = async (settings) => {
         const itemsMetadataToDelete = await listItems(settings); // Fetches all item metadata
         console.log(`Deleting ${itemsMetadataToDelete.length} items...`);
         for (const item of itemsMetadataToDelete) { // Iterate over metadata
-            await deleteItem(settings, item.item_id); // deleteItem handles image deletion
+            await deleteItem(settings, { item_id: item.item_id }); // deleteItem handles image deletion
         }
         console.log("Items cleared.");
 
