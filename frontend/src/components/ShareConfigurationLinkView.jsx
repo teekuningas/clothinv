@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
 
-const ShareConfigurationLink = () => {
+const ShareConfigurationLinkView = () => {
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
@@ -161,4 +161,4 @@ const ShareConfigurationLink = () => {
   );
 };
 
-export default ShareConfigurationLink;
+export default ShareConfigurationLinkView;

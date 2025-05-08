@@ -14,8 +14,8 @@ import LocationsView from "./components/LocationsView";
 import CategoriesView from "./components/CategoriesView";
 import OwnersView from "./components/OwnersView";
 import SettingsView from "./components/SettingsView";
-import ConfigureFromUrl from "./components/ConfigureFromUrl";
-import ShareConfigurationLink from "./components/ShareConfigurationLink";
+import ConfigureFromUrlView from "./components/ConfigureFromUrlView";
+import ShareConfigurationLinkView from "./components/ShareConfigurationLinkView";
 import "./App.css";
 
 function App() {
@@ -198,10 +198,10 @@ function App() {
             <Route path="/categories" element={<CategoriesView />} />
             <Route path="/owners" element={<OwnersView />} />
             <Route path="/settings" element={<SettingsView />} />
-            <Route path="/configure" element={<ConfigureFromUrl />} />
+            <Route path="/configure" element={<ConfigureFromUrlView />} />
             <Route
               path="/share-configuration"
-              element={<ShareConfigurationLink />}
+              element={<ShareConfigurationLinkView />}
             />
           </Routes>
           <div

@@ -261,6 +261,7 @@ button:disabled {
 .items-view,
 .settings-view {
     padding: 20px;
+
     /* Add these lines for max-width and centering */
     max-width: 1400px;
     margin-left: auto;

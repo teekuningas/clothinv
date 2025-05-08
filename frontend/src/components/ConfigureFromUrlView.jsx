@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { useIntl } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
 
-const ConfigureFromUrl = () => {
+const ConfigureFromUrlView = () => {
   const [searchParams] = useSearchParams();
   const intl = useIntl();
   const { updateSettings } = useSettings(); // Use the generic updateSettings
@@ -129,4 +129,4 @@ const ConfigureFromUrl = () => {
   );
 };
 
-export default ConfigureFromUrl;
+export default ConfigureFromUrlView;
