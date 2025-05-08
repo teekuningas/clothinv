@@ -70,7 +70,6 @@ const ConfigureFromUrlView = () => {
 
       // Navigate after settings are updated and status message is set.
       navigate("/items", { replace: true });
-
     } catch (error) {
       console.error("Error processing configuration from URL:", error);
       let errorMessageId = "configure.error.generic";
@@ -107,7 +106,7 @@ const ConfigureFromUrlView = () => {
       setIsError(true);
       processedPayloadRef.current = encodedSettingsPayload; // Mark as processed (even if an error occurred)
     }
-  }, [encodedSettingsPayload, intl, updateSettings, navigate]); // Add intl back to dependencies
+  }, [encodedSettingsPayload, intl, updateSettings, navigate]);
   return (
     <div className="settings-view" style={{ textAlign: "center" }}>
       <h2>
