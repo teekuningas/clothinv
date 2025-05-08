@@ -132,10 +132,6 @@
     color: var(--color-text-base);
 }
 
-.filters-container #sort-criteria {
-    min-width: 250px;
-}
-
 .checkbox-group {
     border: none;
     padding: 0;
@@ -152,14 +148,17 @@
     margin-bottom: 15px;
 }
 
-.filter-group input[type="text"] {
-    width: calc(100% - 22px);
-    padding: 8px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1em;
- }
-
+.filter-group input[type="text"],
+.filter-group select {
+    width: 100%; /* Make input/select take full width of its parent */
+    padding: 8px 10px; /* Standardized padding */
+    border: 1px solid var(--color-border-input); /* Use theme variable for border */
+    border-radius: 4px; /* Standardized border radius */
+    font-size: 1em; /* Standardized font size */
+    /* background-color: var(--color-bg-input); TODO: Add --color-bg-input to main.css if needed */
+    /* color: var(--color-text-input); TODO: Add --color-text-input to main.css if needed */
+    box-sizing: border-box; /* Ensure padding and border are included in the width calculation */
+}
 
 /* Specific width override for text inputs in add/edit forms */
 .add-item-form .form-group input[type="text"],
