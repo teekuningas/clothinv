@@ -164,7 +164,7 @@ export const listLocations = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/locations.json?_shape=array&_sort=location_id`; // Fetch all fields including uuid
+    const queryUrl = `${baseUrl}/locations.json?_shape=array&_sort=location_id&_ttl=0`; // Fetch all fields including uuid, bypass cache
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -248,7 +248,7 @@ export const listCategories = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/categories.json?_shape=array&_sort=category_id`; // Fetch all fields including uuid
+    const queryUrl = `${baseUrl}/categories.json?_shape=array&_sort=category_id&_ttl=0`; // Fetch all fields including uuid, bypass cache
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -329,7 +329,7 @@ export const listOwners = async (settings) => {
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
     // Use _shape=array for a simpler response structure (array of objects)
-    const queryUrl = `${baseUrl}/owners.json?_shape=array&_sort=owner_id`; // Fetch all fields including uuid
+    const queryUrl = `${baseUrl}/owners.json?_shape=array&_sort=owner_id&_ttl=0`; // Fetch all fields including uuid, bypass cache
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
@@ -682,7 +682,7 @@ export const listItems = async (settings) => {
 
     try {
         // Fetch all items metadata. _shape=array fetches all columns by default.
-        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at`;
+        const itemsUrl = `${baseUrl}/items.json?_shape=array&_sort_desc=created_at&_ttl=0`; // Bypass cache
         const itemsRes = await fetch(itemsUrl, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
@@ -853,7 +853,7 @@ const listImagesMetadata = async (settings) => {
     const baseUrl = settings?.datasetteBaseUrl;
     if (!baseUrl) throw new Error("Datasette Base URL is not configured.");
 
-    const queryUrl = `${baseUrl}/images.json?_shape=array&_select=image_id,uuid,image_mimetype,image_filename,created_at&_sort=image_id`;
+    const queryUrl = `${baseUrl}/images.json?_shape=array&_select=image_id,uuid,image_mimetype,image_filename,created_at&_sort=image_id&_ttl=0`; // Bypass cache
     const res = await fetch(queryUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' }
