@@ -196,31 +196,25 @@ export const deleteLocation = async (settings, inputData) => {
     if (!locationId) throw new Error("Location ID is required for deletion.");
 
     // Dependency Check: Check if any items use this location
-    // Change from _shape=count to _size=1&_shape=array
     const checkUrl = `${baseUrl}/items.json?location_id=eq.${locationId}&_size=1&_shape=array`;
     try {
         const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
-            // Handle error during check, but don't necessarily block deletion unless it's a server error
-            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for location ${locationId}: ${checkRes.status} ${await checkRes.text()}`);
-            // Optionally throw an error here if the check must succeed
-        } else {
-            const checkData = await checkRes.json();
-            // Check if the returned array has any elements
-            if (checkData && checkData.length > 0) {
-                // If you need the count for the warning message, you'd have to fetch all or use a different count method.
-                // For now, just indicating it's in use is sufficient for the errorCode.
-                console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is used by items.`);
-                // Use the specific error message expected by LocationsView
-                return { success: false, errorCode: 'ENTITY_IN_USE' };
-            }
+            const errorText = await checkRes.text(); // Get error text for logging
+            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for location ${locationId}: ${checkRes.status} ${errorText}`);
+            return { success: false, error: `Failed to check dependencies for location: ${checkRes.status}` };
         }
-    } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error checking dependencies for location ${locationId}:`, error);
-        // Decide if you want to proceed or throw
-        // throw new Error(`Failed to check dependencies: ${error.message}`);
+        // If checkRes.ok, try to parse JSON
+        const checkData = await checkRes.json(); // This could throw if not valid JSON
+        if (checkData && checkData.length > 0) {
+            console.warn(`[${PROVIDER_NAME}]: Attempted to delete location ${locationId} which is used by items.`);
+            return { success: false, errorCode: 'ENTITY_IN_USE' };
+        }
+        // If we reach here, dependencies are clear or checkData was empty/null
+    } catch (error) { // Catches errors from fetch itself (network) or from await checkRes.json()
+        console.error(`[${PROVIDER_NAME}]: Exception during dependency check for location ${locationId}:`, error);
+        return { success: false, error: `Exception during dependency check for location: ${error.message}` };
     }
-
 
     // Proceed with deletion
     const deleteUrl = `${baseUrl}/locations/${locationId}/-/delete`;
@@ -287,24 +281,22 @@ export const deleteCategory = async (settings, inputData) => {
     if (!categoryId) throw new Error("Category ID is required for deletion.");
 
     // Dependency Check: Check if any items use this category
-    // Change from _shape=count to _size=1&_shape=array
     const checkUrl = `${baseUrl}/items.json?category_id=eq.${categoryId}&_size=1&_shape=array`;
     try {
         const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
-            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for category ${categoryId}: ${checkRes.status} ${await checkRes.text()}`);
-        } else {
-            const checkData = await checkRes.json();
-            // Check if the returned array has any elements
-            if (checkData && checkData.length > 0) {
-                console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is used by items.`);
-                // Use the specific error message expected by CategoriesView
-                return { success: false, errorCode: 'ENTITY_IN_USE' };
-            }
+            const errorText = await checkRes.text();
+            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for category ${categoryId}: ${checkRes.status} ${errorText}`);
+            return { success: false, error: `Failed to check dependencies for category: ${checkRes.status}` };
+        }
+        const checkData = await checkRes.json();
+        if (checkData && checkData.length > 0) {
+            console.warn(`[${PROVIDER_NAME}]: Attempted to delete category ${categoryId} which is used by items.`);
+            return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error checking dependencies for category ${categoryId}:`, error);
-        // throw new Error(`Failed to check dependencies: ${error.message}`);
+        console.error(`[${PROVIDER_NAME}]: Exception during dependency check for category ${categoryId}:`, error);
+        return { success: false, error: `Exception during dependency check for category: ${error.message}` };
     }
 
     // Proceed with deletion
@@ -419,24 +411,22 @@ export const deleteOwner = async (settings, inputData) => {
     if (!ownerId) throw new Error("Owner ID is required for deletion.");
 
     // Dependency Check: Check if any items use this owner
-    // Change from _shape=count to _size=1&_shape=array
     const checkUrl = `${baseUrl}/items.json?owner_id=eq.${ownerId}&_size=1&_shape=array`;
     try {
         const checkRes = await fetch(checkUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (!checkRes.ok) {
-            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for owner ${ownerId}: ${checkRes.status} ${await checkRes.text()}`);
-        } else {
-            const checkData = await checkRes.json();
-            // Check if the returned array has any elements
-            if (checkData && checkData.length > 0) {
-                console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is used by items.`);
-                // Use the specific error message expected by OwnersView
-                return { success: false, errorCode: 'ENTITY_IN_USE' };
-            }
+            const errorText = await checkRes.text();
+            console.error(`[${PROVIDER_NAME}]: Failed to check item dependencies for owner ${ownerId}: ${checkRes.status} ${errorText}`);
+            return { success: false, error: `Failed to check dependencies for owner: ${checkRes.status}` };
+        }
+        const checkData = await checkRes.json();
+        if (checkData && checkData.length > 0) {
+            console.warn(`[${PROVIDER_NAME}]: Attempted to delete owner ${ownerId} which is used by items.`);
+            return { success: false, errorCode: 'ENTITY_IN_USE' };
         }
     } catch (error) {
-        console.error(`[${PROVIDER_NAME}]: Error checking dependencies for owner ${ownerId}:`, error);
-        // throw new Error(`Failed to check dependencies: ${error.message}`);
+        console.error(`[${PROVIDER_NAME}]: Exception during dependency check for owner ${ownerId}:`, error);
+        return { success: false, error: `Exception during dependency check for owner: ${error.message}` };
     }
 
     // Proceed with deletion
