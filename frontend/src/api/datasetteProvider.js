@@ -745,7 +745,7 @@ const _getImageByUuid = async (settings, imageUuid) => {
     }
 
     // Explicitly select required columns.
-    const queryUrl = `${baseUrl}/images.json?uuid=eq.${imageUuid}&_shape=array&_size=1&_select=image_data,image_mimetype,image_filename,uuid`;
+    const queryUrl = `${baseUrl}/images.json?uuid=${imageUuid}&_shape=array&_size=1&_select=image_data,image_mimetype,image_filename,uuid`;
     console.log(`[${PROVIDER_NAME}]: Fetching image with query: ${queryUrl}`); // Log the query
 
     const res = await fetch(queryUrl, {
