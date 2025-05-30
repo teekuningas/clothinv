@@ -360,6 +360,13 @@ async function importDataV1(settings, loadedZip) {
             itemMetadata.updated_at = itemMetadata.updated_at || null;
             itemMetadata.image_uuid = imageUuid; // Store the image's UUID in the item metadata
 
+            // Add price support: parse price as number or null
+            if (itemMetadata.price !== '' && itemMetadata.price != null) {
+                itemMetadata.price = parseFloat(itemMetadata.price);
+            } else {
+                itemMetadata.price = null;
+            }
+
             // Use a transaction to add item and image together
             const dbItem = await openDB();
             const itemTx = dbItem.transaction([STORES.items, STORES.images], 'readwrite');
