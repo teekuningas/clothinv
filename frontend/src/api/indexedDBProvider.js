@@ -16,7 +16,7 @@ const STORES = {
     categories: 'categories', // Stores category metadata, keyed by category_id
     owners: 'owners', // Stores owner metadata, keyed by owner_id
     counters: 'counters', // Stores next available ID for each entity type
-    schema_version: 'schema_version' // Stores unified schema version
+    schema_version: 'schema_version' // Stores schema version
 };
 
 let dbPromise = null;
@@ -543,12 +543,12 @@ const getFromStore = async (storeName, key) => {
     });
 };
 
-// schema‐version is now decoupled from internal IDB version
 export const getDbVersion = async () => {
     try {
         const rec = await getFromStore(STORES.schema_version, 'db_version');
         return rec?.value ?? 1;
     } catch {
+        // With missing version, default to 1
         return 1;
     }
 };

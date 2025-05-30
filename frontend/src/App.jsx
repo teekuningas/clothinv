@@ -26,9 +26,6 @@ function App() {
   const api = useApi();
   const { settings } = useSettings();
 
-  // two flavors of version‐mismatch banners
-  // app ahead → migrate (link), db ahead → update your app
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -71,7 +68,7 @@ function App() {
           <NavLink to="/migrate" className="migrate-link">
             {intl.formatMessage(
               { id: "app.warn.versionMismatch" },
-              { dbVersion: api.dbVersion, appVersion: api.appMajor }
+              { dbVersion: api.dbVersion, appVersion: api.appMajor },
             )}
           </NavLink>
         </div>
@@ -80,7 +77,7 @@ function App() {
         <div className="status-warning">
           {intl.formatMessage(
             { id: "app.warn.appBehind" },
-            { dbVersion: api.dbVersion, appVersion: api.appMajor }
+            { dbVersion: api.dbVersion, appVersion: api.appMajor },
           )}
         </div>
       )}

@@ -756,7 +756,7 @@ const ItemsView = () => {
     setEditItemPrice(
       typeof itemToEdit.price === "number" && itemToEdit.price !== null
         ? itemToEdit.price.toString()
-        : ""
+        : "",
     );
     setEditLocationId(itemToEdit.location_id || "");
     setEditCategoryId(itemToEdit.category_id || "");
@@ -1162,19 +1162,19 @@ const ItemsView = () => {
                     defaultMessage: "Oldest First",
                   })}
                 </option>
-              <option value="price_asc">
-                {intl.formatMessage({
-                  id: "items.sort.priceLowHigh",
-                  defaultMessage: "Price: Low → High",
-                })}
-              </option>
-              <option value="price_desc">
-                {intl.formatMessage({
-                  id: "items.sort.priceHighLow",
-                  defaultMessage: "Price: High → Low",
-                })}
-              </option>
-            </select>
+                <option value="price_asc">
+                  {intl.formatMessage({
+                    id: "items.sort.priceLowHigh",
+                    defaultMessage: "Price: Low → High",
+                  })}
+                </option>
+                <option value="price_desc">
+                  {intl.formatMessage({
+                    id: "items.sort.priceHighLow",
+                    defaultMessage: "Price: High → Low",
+                  })}
+                </option>
+              </select>
             </div>
             {/* Text Filter */}
             <div className="filter-group">
@@ -1292,8 +1292,11 @@ const ItemsView = () => {
                     defaultMessage: "Min",
                   })}
                   value={filterPriceMin ?? ""}
-                  onChange={e => {
-                    const v = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                  onChange={(e) => {
+                    const v =
+                      e.target.value === ""
+                        ? undefined
+                        : parseFloat(e.target.value);
                     setFilterPriceMin(v);
                     setCurrentPage(0);
                   }}
@@ -1309,8 +1312,11 @@ const ItemsView = () => {
                     defaultMessage: "Max",
                   })}
                   value={filterPriceMax ?? ""}
-                  onChange={e => {
-                    const v = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                  onChange={(e) => {
+                    const v =
+                      e.target.value === ""
+                        ? undefined
+                        : parseFloat(e.target.value);
                     setFilterPriceMax(v);
                     setCurrentPage(0);
                   }}
@@ -1487,10 +1493,10 @@ const ItemsView = () => {
               <input
                 type="number"
                 id="item-price-modal"
-                step="0.01"
+                step="0.5"
                 min="0"
                 value={newItemPrice}
-                onChange={e => setNewItemPrice(e.target.value)}
+                onChange={(e) => setNewItemPrice(e.target.value)}
                 placeholder={intl.formatMessage({
                   id: "items.addForm.pricePlaceholder",
                   defaultMessage: "e.g. 3.50",
@@ -1759,7 +1765,7 @@ const ItemsView = () => {
                     step="0.01"
                     min="0"
                     value={editItemPrice}
-                    onChange={e => setEditItemPrice(e.target.value)}
+                    onChange={(e) => setEditItemPrice(e.target.value)}
                     placeholder={intl.formatMessage({
                       id: "items.addForm.pricePlaceholder",
                       defaultMessage: "e.g. 3.50",

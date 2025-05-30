@@ -47,9 +47,9 @@ export const ApiProvider = ({ children }) => {
 
   const appMajor = parseInt(FORMAT_VERSION.split(".")[0], 10);
   // DB behind (app > db) means you need to migrate
-  const isDbBehind   = dbVersion !== null && appMajor > dbVersion;
+  const isDbBehind = dbVersion !== null && appMajor > dbVersion;
   // App behind (db > app) means you need to upgrade your app
-  const isAppBehind  = dbVersion !== null && dbVersion > appMajor;
+  const isAppBehind = dbVersion !== null && dbVersion > appMajor;
   const isVersionMismatch = isDbBehind || isAppBehind;
   const writeAllowed = !isVersionMismatch;
 
