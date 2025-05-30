@@ -1491,7 +1491,10 @@ const ItemsView = () => {
                 min="0"
                 value={newItemPrice}
                 onChange={e => setNewItemPrice(e.target.value)}
-                placeholder="e.g. 3.50"
+                placeholder={intl.formatMessage({
+                  id: "items.addForm.pricePlaceholder",
+                  defaultMessage: "e.g. 3.50",
+                })}
                 disabled={loading}
               />
             </div>
@@ -1757,7 +1760,10 @@ const ItemsView = () => {
                     min="0"
                     value={editItemPrice}
                     onChange={e => setEditItemPrice(e.target.value)}
-                    placeholder="e.g. 3.50"
+                    placeholder={intl.formatMessage({
+                      id: "items.addForm.pricePlaceholder",
+                      defaultMessage: "e.g. 3.50",
+                    })}
                     disabled={isUpdating || isDeleting}
                   />
                 </div>

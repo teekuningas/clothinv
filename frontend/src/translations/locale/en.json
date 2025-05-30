@@ -180,6 +180,7 @@
     "items.addForm.nameLabel": "Name:",
     "items.addForm.descriptionLabel": "Description:",
     "items.addForm.priceLabel":    "Price:",
+    "items.addForm.pricePlaceholder": "e.g. 3.50",
     "items.addForm.locationLabel": "Location:",
     "items.addForm.categoryLabel": "Category:",
     "items.addForm.ownerLabel": "Owner:",
