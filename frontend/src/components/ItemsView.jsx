@@ -88,8 +88,15 @@ const ItemsView = () => {
   // Slider bounds derived from your data
   const sliderMin = 0;
   const sliderMax = useMemo(() => {
-    const prices = allItemsMetadata.map((i) => i.price || 0);
-    return Math.ceil(Math.max(0, ...prices));
+    // collect only valid numbers
+    const prices = allItemsMetadata
+      .map((i) => i.price)
+      .filter((p) => typeof p === 'number' && !isNaN(p));
+    if (prices.length === 0) {
+      return 1;
+    }
+    const maxPrice = Math.ceil(Math.max(...prices));
+    return maxPrice > 0 ? maxPrice : 1;
   }, [allItemsMetadata]);
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
