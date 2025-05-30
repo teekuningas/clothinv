@@ -889,13 +889,15 @@ export const importData = async (settings, zipFile) => {
     }
 
     switch (version) {
-        case FORMAT_VERSION:
-            return importDataV1(settings, loadedZip);
-        default:
-            return {
-                success: false,
-                error: `Unsupported export format version: ${version}`,
-            };
+      case "1.0":
+      case "2.0":
+      case FORMAT_VERSION:
+        return importDataV1(settings, loadedZip);
+      default:
+        return {
+          success: false,
+          error: `Unsupported export format version: ${version}`,
+        };
     }
 };
 
