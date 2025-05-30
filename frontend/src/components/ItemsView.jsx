@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 
-// ── in-file “hook” for infinite loading via IntersectionObserver ──
+ // in-file hook for infinite loading
 function useInfiniteLoader({
   loaderRef,
   loading,
@@ -142,8 +142,49 @@ const ItemsView = () => {
   const prevImageUrlsRef = useRef({});
 
   const api = useApi();
+  const {
+    isConfigured,
+    writeAllowed,
+    listItems,
+    getImage,
+    listLocations,
+    listCategories,
+    listOwners,
+    addItem,
+    updateItem,
+    deleteItem,
+  } = api;
   const { settings: appSettings } = useSettings();
   const intl = useIntl();
+
+  // helper: reset add‐form fields
+  const resetAddForm = () => {
+    setNewItemName("");
+    setNewItemDescription("");
+    setNewItemPrice("");
+    setNewItemLocationId("");
+    setNewItemCategoryId("");
+    setNewItemOwnerId("");
+    if (addImageUrl) URL.revokeObjectURL(addImageUrl);
+    setNewItemImageFile(null);
+    setAddImageUrl(null);
+  };
+
+  // helper: reset edit‐form fields
+  const resetEditForm = () => {
+    setEditingItemId(null);
+    setEditName("");
+    setEditDescription("");
+    setEditItemPrice("");
+    setEditLocationId("");
+    setEditCategoryId("");
+    setEditOwnerId("");
+    setImageMarkedForRemoval(false);
+    setUpdateError(null);
+    if (editImageUrl) URL.revokeObjectURL(editImageUrl);
+    setEditItemImageFile(null);
+    setEditImageUrl(null);
+  };
 
   // Effect to keep refs updated with latest modal image URLs
   useEffect(() => {
@@ -165,9 +206,9 @@ const ItemsView = () => {
   }, []); // Empty dependency array for unmount cleanup only
 
   const fetchAllItemsMetadata = useCallback(async () => {
-    if (!api.isConfigured || typeof api.listItems !== "function") {
+    if (!isConfigured || typeof listItems !== "function") {
       setError(
-        api.isConfigured
+        isConfigured
           ? intl.formatMessage({
               id: "items.list.notSupported",
               defaultMessage:
@@ -184,20 +225,14 @@ const ItemsView = () => {
 
     setLoading(true);
     setError(null);
-    // Success messages are intentionally not cleared here to let them persist.
 
     try {
-      const freshMetadataFromApi = await api.listItems(); // No options passed
+      const freshMetadataFromApi = await listItems();
       let newAllItemsMetadata = freshMetadataFromApi || [];
 
-      // If there was a recent update, ensure its details are preserved over what listItems might return.
-      // This handles the race condition where listItems (especially for IndexedDB) might be slightly
-      // stale for the just-updated item's image_uuid or other fields.
       if (lastUpdatedItemDetails) {
         newAllItemsMetadata = newAllItemsMetadata.map((item) => {
           if (item.item_id === lastUpdatedItemDetails.itemId) {
-            // Preserve fields from listItems (like updated_at) but override edited fields
-            // and image_uuid with the definitive values from the update operation.
             return {
               ...item,
               name: lastUpdatedItemDetails.name,
@@ -210,12 +245,11 @@ const ItemsView = () => {
           }
           return item;
         });
-        // Clear after applying, so it only affects this one refresh cycle post-update.
         setLastUpdatedItemDetails(null);
       }
 
       setAllItemsMetadata(newAllItemsMetadata);
-      setCurrentPage(0); // Reset to first page for new full dataset
+      setCurrentPage(0);
     } catch (err) {
       console.error("Failed to fetch items:", err);
       setError(
@@ -234,25 +268,25 @@ const ItemsView = () => {
     } finally {
       setLoading(false);
     }
-  }, [api, intl, lastUpdatedItemDetails, setLastUpdatedItemDetails]);
+  }, [isConfigured, listItems, intl, lastUpdatedItemDetails, setLastUpdatedItemDetails]);
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
-    if (!api.isConfigured) {
+    if (!isConfigured) {
       setLocations([]);
       setCategories([]);
       setOwners([]);
       return;
     }
     try {
-      const canFetchLocations = typeof api.listLocations === "function";
-      const canFetchCategories = typeof api.listCategories === "function";
-      const canFetchOwners = typeof api.listOwners === "function";
+      const canFetchLocations = typeof listLocations === "function";
+      const canFetchCategories = typeof listCategories === "function";
+      const canFetchOwners = typeof listOwners === "function";
 
       const [locationsData, categoriesData, ownersData] = await Promise.all([
-        canFetchLocations ? api.listLocations() : Promise.resolve([]),
-        canFetchCategories ? api.listCategories() : Promise.resolve([]),
-        canFetchOwners ? api.listOwners() : Promise.resolve([]),
+        canFetchLocations ? listLocations() : Promise.resolve([]),
+        canFetchCategories ? listCategories() : Promise.resolve([]),
+        canFetchOwners ? listOwners() : Promise.resolve([]),
       ]);
       setLocations(locationsData || []);
       setCategories(categoriesData || []);
@@ -262,7 +296,6 @@ const ItemsView = () => {
         "Failed to fetch ancillary data (locations, categories, owners):",
         err,
       );
-      // Optionally set an error state specific to ancillary data or a general one
       setError(
         (prev) =>
           `${prev ? prev + "; " : ""}Failed to load L/C/O: ${err.message}`,
@@ -271,15 +304,14 @@ const ItemsView = () => {
       setCategories([]);
       setOwners([]);
     }
-  }, [api, intl]);
+  }, [isConfigured, listLocations, listCategories, listOwners, intl]);
 
   // Effect for initial data load (items and ancillary) and when API provider changes
   useEffect(() => {
-    if (api.isConfigured && api.listItems) {
-      fetchAncillaryData(); // Fetch locations, categories, owners
-      fetchAllItemsMetadata(); // Fetch all item metadata
+    if (isConfigured && listItems) {
+      fetchAncillaryData();
+      fetchAllItemsMetadata();
     } else {
-      // Clear data if API is not configured or listItems is not available
       setAllItemsMetadata([]);
       setDisplayedItems([]);
       setItemImageFiles({});
@@ -295,8 +327,8 @@ const ItemsView = () => {
       setCurrentPage(0);
     }
   }, [
-    api.isConfigured,
-    api.listItems,
+    isConfigured,
+    listItems,
     fetchAncillaryData,
     fetchAllItemsMetadata,
   ]);
@@ -354,20 +386,18 @@ const ItemsView = () => {
 
   // Effect to fetch images for displayed items
   useEffect(() => {
-    if (!api.isConfigured || typeof api.getImage !== "function") {
+    if (!isConfigured || typeof getImage !== "function") {
       return;
     }
 
     displayedItems.forEach((item) => {
-      // Fetch if UUID exists, entry for item_id is undefined in itemImageFiles (meaning not fetched or marked as null/failed), and not currently loading
       if (
         item.image_uuid &&
         itemImageFiles[item.item_id] === undefined &&
         !loadingImages[item.image_uuid]
       ) {
         setLoadingImages((prev) => ({ ...prev, [item.image_uuid]: true }));
-        api
-          .getImage({ image_uuid: item.image_uuid })
+        getImage({ image_uuid: item.image_uuid })
           .then((imageFile) => {
             if (imageFile instanceof File) {
               setItemImageFiles((prevFiles) => ({
@@ -375,10 +405,6 @@ const ItemsView = () => {
                 [item.item_id]: imageFile,
               }));
             } else if (imageFile === null) {
-              console.log(
-                `Image not found or null for UUID: ${item.image_uuid}`,
-              );
-              // Store null to indicate it was fetched and not found, preventing re-fetches
               setItemImageFiles((prevFiles) => ({
                 ...prevFiles,
                 [item.item_id]: null,
@@ -390,7 +416,6 @@ const ItemsView = () => {
               `Failed to fetch image for UUID ${item.image_uuid}:`,
               err,
             );
-            // Mark as null on error to prevent re-fetch loops
             setItemImageFiles((prevFiles) => ({
               ...prevFiles,
               [item.item_id]: null,
@@ -401,7 +426,7 @@ const ItemsView = () => {
           });
       }
     });
-  }, [displayedItems, api, itemImageFiles, loadingImages]);
+  }, [displayedItems, isConfigured, getImage, itemImageFiles, loadingImages]);
 
   // ─── create/reuse blob URLs & revoke stale ones ───
   useEffect(() => {
@@ -440,25 +465,21 @@ const ItemsView = () => {
     owners.find((owner) => owner.owner_id === id)?.name ||
     intl.formatMessage({ id: "items.card.noOwner", defaultMessage: "N/A" });
 
-  const handleFileChange = (event, type) => {
+  const handleFileChange = useCallback((event, type) => {
     const file = event.target.files[0];
-    if (file instanceof File) {
-      if (type === "add") {
-        // Revoke previous add form blob URL if exists
-        if (addImageUrl) URL.revokeObjectURL(addImageUrl);
-        setNewItemImageFile(file);
-        setAddImageUrl(URL.createObjectURL(file));
-      } else if (type === "edit") {
-        // Revoke previous edit form blob URL if exists
-        if (editImageUrl) URL.revokeObjectURL(editImageUrl);
-        setEditItemImageFile(file);
-        setEditImageUrl(URL.createObjectURL(file));
-        setImageMarkedForRemoval(false); // New file selected, so don't mark for removal
-      }
+    if (!(file instanceof File)) return;
+    if (type === "add") {
+      if (addImageUrl) URL.revokeObjectURL(addImageUrl);
+      setNewItemImageFile(file);
+      setAddImageUrl(URL.createObjectURL(file));
+    } else {
+      if (editImageUrl) URL.revokeObjectURL(editImageUrl);
+      setEditItemImageFile(file);
+      setEditImageUrl(URL.createObjectURL(file));
+      setImageMarkedForRemoval(false);
     }
-    // Clear the input value to allow selecting the same file again
     event.target.value = null;
-  };
+  }, [addImageUrl, editImageUrl]);
 
   const handleRemoveNewImage = () => {
     if (addImageUrl) URL.revokeObjectURL(addImageUrl);
@@ -467,76 +488,42 @@ const ItemsView = () => {
   };
 
   // --- Rotate Image Handler ---
-  const handleRotateImage = async (formType) => {
-    const isAdd = formType === "add";
-    const currentFile = isAdd ? newItemImageFile : editItemImageFile;
-    const setRotating = isAdd ? setIsRotatingAdd : setIsRotatingEdit;
-    const setFile = isAdd ? setNewItemImageFile : setEditItemImageFile;
-    const currentPreviewUrl = isAdd ? addImageUrl : editImageUrl;
-    const setPreviewUrl = isAdd ? setAddImageUrl : setEditImageUrl;
-
-    if (!currentFile) return; // No file to rotate
-
-    setRotating(true);
-    setError(null); // Clear previous errors
-    setUpdateError(null);
-
-    try {
-      console.log(`Rotating image for ${formType}...`);
-      const rotatedFile = await rotateImageFile(currentFile);
-      console.log(
-        `Rotation successful for ${formType}. New file:`,
-        rotatedFile,
-      );
-
-      // Update the file state
-      setFile(rotatedFile);
-
-      // Update the preview URL
-      if (currentPreviewUrl) {
-        URL.revokeObjectURL(currentPreviewUrl); // Revoke the old URL
-        console.log(
-          `Revoked old preview URL for ${formType}: ${currentPreviewUrl}`,
+  const handleRotateImage = useCallback(
+    async (formType) => {
+      const isAdd = formType === "add";
+      const currentFile = isAdd ? newItemImageFile : editItemImageFile;
+      if (!currentFile) return;
+      const setRotating = isAdd ? setIsRotatingAdd : setIsRotatingEdit;
+      const setFile = isAdd ? setNewItemImageFile : setEditItemImageFile;
+      const setPreview = isAdd ? setAddImageUrl : setEditImageUrl;
+      setRotating(true);
+      try {
+        const rotated = await rotateImageFile(currentFile);
+        setFile(rotated);
+        if ((isAdd ? addImageUrl : editImageUrl)) {
+          URL.revokeObjectURL(isAdd ? addImageUrl : editImageUrl);
+        }
+        const newUrl = URL.createObjectURL(rotated);
+        setPreview(newUrl);
+      } catch (e) {
+        console.error("Rotate image failed:", e);
+        const msg = intl.formatMessage(
+          { id: "items.error.rotate", defaultMessage: "Image rotation failed: {error}" },
+          { error: e.message }
         );
+        if (isAdd) setError(msg); else setUpdateError(msg);
+      } finally {
+        setRotating(false);
       }
-      const newPreviewUrl = URL.createObjectURL(rotatedFile);
-      setPreviewUrl(newPreviewUrl); // Create and set the new URL
-      console.log(`Created new preview URL for ${formType}: ${newPreviewUrl}`);
-    } catch (rotationError) {
-      console.error(`Image rotation failed for ${formType}:`, rotationError);
-      const rotationErrorMessage = intl.formatMessage(
-        {
-          id: "items.error.rotate",
-          defaultMessage: "Image rotation failed: {error}",
-        },
-        { error: rotationError.message },
-      );
-      if (isAdd) {
-        setError(rotationErrorMessage);
-      } else {
-        setUpdateError(rotationErrorMessage); // Show error in the modal
-      }
-      // Keep the old file/preview
-    } finally {
-      setRotating(false);
-    }
-  };
+    },
+    [newItemImageFile, editItemImageFile, addImageUrl, editImageUrl, intl]
+  );
 
   const handleOpenAddItemModal = () => {
-    setError(null); // Clear any previous main page errors
+    resetAddForm();
+    setError(null);
     setSuccess(null);
-    setAddItemError(null); // Clear add item specific error
-    // Reset form fields when opening the modal
-    setNewItemName("");
-    setNewItemDescription("");
-    setNewItemPrice("");
-    setNewItemLocationId("");
-    setNewItemCategoryId("");
-    if (addImageUrl) URL.revokeObjectURL(addImageUrl);
-    setNewItemImageFile(null);
-    setAddImageUrl(null);
-    setNewItemOwnerId("");
-    // Set default if only one option exists
+    setAddItemError(null);
     if (locations.length === 1) {
       setNewItemLocationId(locations[0].location_id.toString());
     }
@@ -546,23 +533,13 @@ const ItemsView = () => {
     if (owners.length === 1) {
       setNewItemOwnerId(owners[0].owner_id.toString());
     }
-
     setIsAddItemModalOpen(true);
   };
 
   const handleCloseAddItemModal = () => {
+    resetAddForm();
     setIsAddItemModalOpen(false);
-    setAddItemError(null); // Clear error when closing
-    // Reset form fields
-    setNewItemName("");
-    setNewItemDescription("");
-    setNewItemPrice("");
-    setNewItemLocationId("");
-    setNewItemCategoryId("");
-    if (addImageUrl) URL.revokeObjectURL(addImageUrl);
-    setNewItemImageFile(null);
-    setAddImageUrl(null);
-    setNewItemOwnerId("");
+    setAddItemError(null);
   };
 
   // --- Add Item Handler ---
@@ -604,9 +581,9 @@ const ItemsView = () => {
       );
       return;
     }
-    if (!api.isConfigured || !api.addItem) {
+    if (!isConfigured || !addItem) {
       setAddItemError(
-        api.isConfigured
+        isConfigured
           ? intl.formatMessage({
               id: "items.addForm.notSupported",
               defaultMessage:
@@ -617,7 +594,6 @@ const ItemsView = () => {
       return;
     }
 
-    // Validate price if entered
     if (newItemPrice !== "") {
       const p = parseFloat(newItemPrice);
       if (isNaN(p) || p < 0) {
@@ -627,16 +603,14 @@ const ItemsView = () => {
     }
 
     setLoading(true);
-    setAddItemError(null); // Clear previous modal-specific error
+    setAddItemError(null);
 
     try {
       let fileToSend = null;
-      // Process image before sending if a file exists AND compression is enabled
       if (
         newItemImageFile instanceof File &&
         appSettings.imageCompressionEnabled
       ) {
-        console.log("Attempting image compression for new item...");
         const compressionOptions = {
           maxSizeMB: 0.2,
           maxWidthOrHeight: 1024,
@@ -654,34 +628,26 @@ const ItemsView = () => {
             baseErrorMessage,
           );
         } catch (compressionError) {
-          // Handle compression error specifically, maybe show it to the user
           console.error("Compression failed during add:", compressionError);
-          // Throw it again to be caught by the outer catch block which sets the general error state
           throw compressionError;
         }
       } else if (newItemImageFile instanceof File) {
-        // If compression is disabled but there's a file, use the original
         fileToSend = newItemImageFile;
-        console.log(
-          "Image compression disabled or not applicable, using original file.",
-        );
       }
 
-      const result = await api.addItem({
+      const result = await addItem({
         name: newItemName.trim(),
         description: newItemDescription.trim() || null,
         price: newItemPrice !== "" ? parseFloat(newItemPrice) : null,
         location_id: parseInt(newItemLocationId, 10),
         category_id: parseInt(newItemCategoryId, 10),
         owner_id: parseInt(newItemOwnerId, 10),
-        imageFile: fileToSend, // Pass the potentially compressed File object
+        imageFile: fileToSend,
       });
 
       if (result.success) {
-        // Fetch data, then close modal and show global success message
-        handleCloseAddItemModal(); // Close modal first
+        handleCloseAddItemModal();
         fetchAllItemsMetadata().then(() => {
-          // Refresh all metadata
           setSuccess(
             intl.formatMessage(
               {
@@ -694,7 +660,6 @@ const ItemsView = () => {
         });
       } else {
         setAddItemError(
-          // Set modal-specific error
           intl.formatMessage(
             {
               id: "items.error.add",
@@ -796,29 +761,15 @@ const ItemsView = () => {
   };
 
   const handleCancelEdit = () => {
-    setEditingItemId(null);
-    setEditName("");
-    setEditDescription("");
-    setEditItemPrice("");
-    setEditLocationId("");
-    setEditCategoryId("");
-    setEditOwnerId("");
-
-    // Clear image state and revoke URL on cancel
-    if (editImageUrl) URL.revokeObjectURL(editImageUrl);
-    setEditItemImageFile(null);
-    setEditImageUrl(null);
-
-    setImageMarkedForRemoval(false); // Reset removal flag
-    setUpdateError(null);
+    resetEditForm();
   };
 
   // Handler for the "Remove Image" button in the edit modal
   const handleRemoveEditImage = () => {
-    if (editImageUrl) URL.revokeObjectURL(editImageUrl); // Revoke URL
+    if (editImageUrl) URL.revokeObjectURL(editImageUrl);
     setEditItemImageFile(null);
     setEditImageUrl(null);
-    setImageMarkedForRemoval(true); // Mark the image for removal on save
+    setImageMarkedForRemoval(true);
   };
 
   const handleUpdateItem = async (e) => {
@@ -829,7 +780,7 @@ const ItemsView = () => {
       !editLocationId ||
       !editCategoryId ||
       !editOwnerId ||
-      !api.updateItem
+      !updateItem
     ) {
       setUpdateError(
         intl.formatMessage({
@@ -845,7 +796,6 @@ const ItemsView = () => {
     setUpdateError(null);
     setSuccess(null);
 
-    // Validate price if entered
     if (editItemPrice !== "") {
       const p = parseFloat(editItemPrice);
       if (isNaN(p) || p < 0) {
@@ -857,13 +807,11 @@ const ItemsView = () => {
 
     try {
       let fileToSend = null;
-      // Process image before sending if a new file was selected AND compression is enabled
       if (
         editItemImageFile instanceof File &&
         !imageMarkedForRemoval &&
         appSettings.imageCompressionEnabled
       ) {
-        console.log("Attempting image compression for updated item...");
         const compressionOptions = {
           maxSizeMB: 0.2,
           maxWidthOrHeight: 1024,
@@ -881,19 +829,13 @@ const ItemsView = () => {
             baseErrorMessage,
           );
         } catch (compressionError) {
-          // Handle compression error specifically
           console.error("Compression failed during update:", compressionError);
-          // Throw it again to be caught by the outer catch block which sets the updateError state
           throw compressionError;
         }
       } else if (editItemImageFile instanceof File && !imageMarkedForRemoval) {
-        // If compression is disabled but there's a file, use the original
         fileToSend = editItemImageFile;
-        console.log(
-          "Image compression disabled or not applicable, using original file for update.",
-        );
       }
-      const result = await api.updateItem({
+      const result = await updateItem({
         item_id: editingItemId,
         name: editName.trim(),
         description: editDescription.trim() || null,
@@ -901,8 +843,8 @@ const ItemsView = () => {
         location_id: parseInt(editLocationId, 10),
         category_id: parseInt(editCategoryId, 10),
         owner_id: parseInt(editOwnerId, 10),
-        imageFile: fileToSend, // Pass the potentially compressed or original file (or null)
-        removeImage: imageMarkedForRemoval, // Pass the explicit removal flag
+        imageFile: fileToSend,
+        removeImage: imageMarkedForRemoval,
       });
 
       if (result.success) {
@@ -916,18 +858,13 @@ const ItemsView = () => {
           ),
         );
 
-        const updatedItemId = editingItemId; // Capture for use in state updaters
+        const updatedItemId = editingItemId;
 
-        // If an image file was part of the update payload (sent or marked for removal),
-        // or if the API result includes an image_uuid (which it should on success),
-        // we need to update local state accordingly.
         if (
           fileToSend ||
           imageMarkedForRemoval ||
           typeof result.image_uuid !== "undefined"
         ) {
-          // Clear client-side File object and Blob URL caches for this item.
-          // This forces the image fetching useEffect to re-evaluate.
           setItemImageFiles((prevFiles) => {
             const newFiles = { ...prevFiles };
             delete newFiles[updatedItemId];
@@ -944,8 +881,6 @@ const ItemsView = () => {
           });
         }
 
-        // Store the definitive details from the successful update operation.
-        // These will be used by fetchAllItemsMetadata to ensure consistency.
         setLastUpdatedItemDetails({
           itemId: updatedItemId,
           name: editName.trim(),
@@ -956,8 +891,8 @@ const ItemsView = () => {
           imageUuid: result.image_uuid,
         });
 
-        handleCancelEdit(); // Close edit modal
-        fetchAllItemsMetadata(); // Refresh all metadata. It will use lastUpdatedItemDetails.
+        handleCancelEdit();
+        fetchAllItemsMetadata();
       } else {
         setUpdateError(
           intl.formatMessage(
@@ -1003,7 +938,7 @@ const ItemsView = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteCandidateId || !api.deleteItem) {
+    if (!deleteCandidateId || !deleteItem) {
       setDeleteError(
         intl.formatMessage({
           id: "items.error.deleteInvalid",
@@ -1019,7 +954,7 @@ const ItemsView = () => {
     setSuccess(null);
 
     try {
-      const result = await api.deleteItem({ item_id: deleteCandidateId });
+      const result = await deleteItem({ item_id: deleteCandidateId });
       if (result.success) {
         setSuccess(
           intl.formatMessage({
@@ -1027,9 +962,9 @@ const ItemsView = () => {
             defaultMessage: "Item deleted successfully!",
           }),
         );
-        handleCancelDelete(); // Close delete confirm modal
-        handleCancelEdit(); // Close edit modal if open
-        fetchAllItemsMetadata(); // Refresh all metadata
+        handleCancelDelete();
+        handleCancelEdit();
+        fetchAllItemsMetadata();
       } else {
         setDeleteError(
           intl.formatMessage(
@@ -1063,24 +998,22 @@ const ItemsView = () => {
 
   // --- Image View Modal Handlers ---
   const handleImageClick = (imageFile, imageAlt) => {
-    if (!(imageFile instanceof File)) return; // Only handle File objects
+    if (!(imageFile instanceof File)) return;
     const blobUrl = URL.createObjectURL(imageFile);
-    setImageViewModalUrl(blobUrl); // Use the temporary blob URL
+    setImageViewModalUrl(blobUrl);
     setImageViewModalAlt(imageAlt || "Image view");
     setIsImageViewModalOpen(true);
   };
 
   const handleCloseImageViewModal = () => {
     setIsImageViewModalOpen(false);
-    // Revoke the blob URL when the modal closes to free memory
     if (imageViewModalUrl && imageViewModalUrl.startsWith("blob:")) {
       URL.revokeObjectURL(imageViewModalUrl);
     }
-    // Optional: Delay clearing state slightly for fade-out transition
     setTimeout(() => {
       setImageViewModalUrl(null);
       setImageViewModalAlt("");
-    }, 200); // Match CSS transition duration (assuming 200ms was intended)
+    }, 200);
   };
 
   // --- Render ---
