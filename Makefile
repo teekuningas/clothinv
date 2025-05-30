@@ -58,9 +58,7 @@ help:
 shell:
 	nix develop
 
-test:
-	@echo "Running frontend unit tests..."
-	cd frontend && npm test
+test: test-frontend
 
 # --- Build local Datasette image ---
 build-datasette-image:
@@ -224,6 +222,10 @@ clean-backends: clean-backend-datasette clean-backend-postgrest
 watch-frontend:
 	@echo "Starting frontend development server..."
 	@cd frontend && npm install && npm run dev
+
+test-frontend:
+	@echo "Running frontend unit tests..."
+	cd frontend && npm install && npm test
 
 format:
 	@cd frontend && npm run format:jsx
