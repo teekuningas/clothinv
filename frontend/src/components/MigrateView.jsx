@@ -12,7 +12,7 @@ const MigrateView = () => {
       <p>
         {intl.formatMessage(
           { id: "migrate.versionInfo" },
-          { dbVersion, appVersion: appMajor }
+          { dbVersion, appVersion: appMajor },
         )}
       </p>
       {apiProviderType === "indexedDB" ? (

@@ -31,9 +31,9 @@ function App() {
         {
           id: "app.warn.versionMismatch",
           defaultMessage:
-            "Schema version mismatch (DB v{dbVersion} vs App v{appVersion}). Writes disabled until you migrate."
+            "Schema version mismatch (DB v{dbVersion} vs App v{appVersion}). Writes disabled until you migrate.",
         },
-        { dbVersion: api.dbVersion, appVersion: api.appMajor }
+        { dbVersion: api.dbVersion, appVersion: api.appMajor },
       )
     : "";
 

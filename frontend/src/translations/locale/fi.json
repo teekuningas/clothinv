@@ -272,7 +272,7 @@
     "api.destroy.errorDetailInconsistent": "Tietojen tuhoaminen epäonnistui: {detail}. Tiedot saattavat olla epäyhtenäisessä tilassa.",
     "api.destroy.errorDetail": "Tietojen tuhoaminen epäonnistui: {detail}.",
     "migrate.title": "Tietokannan migraatio vaaditaan",
-    "migrate.versionInfo": "Tietokantasi on versio {dbVersion}, mutta tämä sovellus on versio {appVersion}.",
-    "migrate.description.exportImport": "Vie tietosi, luo tyhjä tietokanta ja tuo tietosi uudelleen. Näin tietokannan skeema vastaa sovelluksen versiota.",
-    "migrate.description.indexedDB": "Vie tietosi, poista IndexedDB-tietokanta selaimen asetuksista ja tuo tietosi uudelleen. Näin tietokanta rakennetaan nykyiselle versiolle."
+    "migrate.versionInfo": "Tietokantasi versio on {dbVersion}, mutta tämän sovelluksen versio on {appVersion}.",
+    "migrate.description.exportImport": "Voit tehdä migraation viemällä tietosi asetuksista, luomalla uuden tyhjän tietokannan, ja tuomalla tietosi uudelleen. Näin tietokannan skeema vastaa sovelluksen versiota.",
+    "migrate.description.indexedDB": "Voit tehdä migraation viemällä tietosi asetuksista, poistamalla IndexedDB-tietokanta selaimen asetuksista ja tuomalla tietosi uudelleen. Näin tietokanta rakennetaan nykyiselle versiolle."
 }

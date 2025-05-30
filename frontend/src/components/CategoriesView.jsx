@@ -457,7 +457,9 @@ const CategoriesView = () => {
                     },
                     { name: cat.name },
                   )}
-                  disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
+                  disabled={
+                    !api.writeAllowed || loading || isUpdating || isDeleting
+                  }
                 >
                   ✏️ {/* Pencil emoji */}
                 </button>
@@ -590,7 +592,12 @@ const CategoriesView = () => {
             <div className="modal-actions">
               <button
                 type="submit"
-                disabled={!api.writeAllowed || isUpdating || isDeleting || !editName.trim()}
+                disabled={
+                  !api.writeAllowed ||
+                  isUpdating ||
+                  isDeleting ||
+                  !editName.trim()
+                }
                 className="button-primary"
               >
                 {isUpdating

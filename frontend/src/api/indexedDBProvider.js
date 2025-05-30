@@ -5,15 +5,11 @@ import {
     createCSV,
     parseCSV,
     getMimeTypeFromFilename,
-    // No image helpers needed directly here as we store File objects
-} from './providerUtils'; // Import shared utilities
+} from './providerUtils';
 
-// At the top of the file, for convenience
 const PROVIDER_NAME = "IndexedDB Provider";
-
-// --- IndexedDB Setup ---
 const DB_NAME    = 'ClothinvInventoryDB';
-const DB_VERSION = 1; // single‐version schema
+const DB_VERSION = 1; // Used for new databases
 const STORES = {
     items: 'items',
     images: 'images', // Note: Stores File objects, keyed by item_id (integer)
@@ -29,31 +25,11 @@ const openDB = () => {
   if (dbPromise) return dbPromise;
 
   dbPromise = (async () => {
-    // 1) probe existing version without bumping
-    let existingVersion = 0;
-    if (indexedDB.databases) {
-      // modern API: get list of DBs
-      const dbs = await indexedDB.databases();
-      const entry = dbs.find(d => d.name === DB_NAME);
-      existingVersion = entry?.version || 0;
-    } else {
-      // fallback: open+close quickly
-      try {
-        const tmp = await new Promise((res, rej) => {
-          const r = indexedDB.open(DB_NAME);
-          r.onsuccess = e => res(e.target.result);
-          r.onerror   = e => rej(e.target.error);
-        });
-        existingVersion = tmp.version;
-        tmp.close();
-      } catch {
-        existingVersion = 0;
-      }
-    }
+    const dbs = await indexedDB.databases();
+    const entry = dbs.find(d => d.name === DB_NAME);
+    const existingVersion = entry?.version || 0;
 
-    // 2) pick open() signature:
-    //   – new DB? open(name, DB_VERSION) so onupgradeneeded runs
-    //   – existing? open(name) so no upgradeneeded, version stays the same
+    // If no database, existingVersion === 0
     const request = existingVersion === 0
       ? indexedDB.open(DB_NAME, DB_VERSION)
       : indexedDB.open(DB_NAME);
@@ -69,20 +45,12 @@ const openDB = () => {
         resolve(event.target.result);
       };
 
-      // your existing upgrade handler (will only fire when existingVersion===0)
+      // Will only fire at database creation
       request.onupgradeneeded = (event) => {
-        const oldVer = event.oldVersion;
         const newVer = event.newVersion;
         console.log(
-          `[${PROVIDER_NAME}]: upgrade from v${oldVer} to v${newVer}`
+          `[${PROVIDER_NAME}]: upgrade to v${newVer}`
         );
-        if (oldVer !== 0) {
-          // skip migrations for now
-          console.warn(
-            `[${PROVIDER_NAME}]: skipping schema creation on existing DB`
-          );
-          return;
-        }
         const db = event.target.result;
         const transaction = event.target.transaction;
 
@@ -109,7 +77,7 @@ const openDB = () => {
               .forEach(entity => counterStore.put({ entity, nextId: 1 }));
         }
 
-        console.log("IndexedDB upgrade complete");
+        console.log("IndexedDB creation complete");
       };
     });
   })();

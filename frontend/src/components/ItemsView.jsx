@@ -1298,7 +1298,9 @@ const ItemsView = () => {
           isUpdating={isUpdating}
           isDeleting={isDeleting}
           canUpdateItem={
-            api.writeAllowed && api.isConfigured && typeof api.updateItem === "function"
+            api.writeAllowed &&
+            api.isConfigured &&
+            typeof api.updateItem === "function"
           }
           intl={intl}
         />

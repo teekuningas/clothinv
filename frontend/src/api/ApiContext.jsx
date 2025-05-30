@@ -17,7 +17,6 @@ const ApiContext = createContext();
 
 export const useApi = () => useContext(ApiContext);
 
-// --- Helper: Calculate Configuration Status --- (Moved before ApiProvider for clarity)
 const checkConfiguration = (providerType, settings) => {
   const provider = getProviderById(providerType);
   if (!provider || providerType === "none") {
@@ -50,7 +49,6 @@ export const ApiProvider = ({ children }) => {
   const isVersionMismatch = dbVersion !== null && dbVersion !== appMajor;
   const writeAllowed = !isVersionMismatch;
 
-  // --- Helper: Bind API Methods ---
   const bindApiMethods = useCallback(
     (providerType, currentApiSettings, configured) => {
       const newApiMethods = {};
@@ -74,25 +72,23 @@ export const ApiProvider = ({ children }) => {
       setApiMethods(newApiMethods);
     },
     [],
-  ); // No dependencies needed as it uses the passed currentConfig
+  );
 
-  // --- Effect: Bind API Methods on Config Change ---
   useEffect(() => {
     bindApiMethods(apiProviderType, apiSettings, isConfigured);
   }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]);
 
-  // --- Effect: Fetch DB Version when apiMethods.getDbVersion changes ---
   useEffect(() => {
     if (apiMethods.getDbVersion) {
-      apiMethods.getDbVersion()
-        .then(v => setDbVersion(v))
+      apiMethods
+        .getDbVersion()
+        .then((v) => setDbVersion(v))
         .catch(() => setDbVersion(1));
     } else {
       setDbVersion(1);
     }
   }, [apiMethods.getDbVersion]);
 
-  // --- Context Value ---
   const value = {
     apiProviderType: apiProviderType,
     apiSettings: apiSettings,
