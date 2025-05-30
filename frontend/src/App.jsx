@@ -225,6 +225,7 @@ function App() {
               path="/share-configuration"
               element={<ShareConfigurationLinkView />}
             />
+            <Route path="/migrate" element={<MigrateView />} />
           </Routes>
           <div
             className="global-warnings"
