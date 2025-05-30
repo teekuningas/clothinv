@@ -94,11 +94,11 @@ export const parseCSV = (csvString) => {
         const result = Papa.parse(csvString.trim(), {
             header: true, // Assumes first row is header
             skipEmptyLines: true,
-            dynamicTyping: (header) => { // Attempt basic type conversion
-                 // Convert known ID fields to integers if possible
-                 if (header.endsWith('_id') || header.endsWith('Id')) return true;
-                 // Add other numeric fields if needed
-                 return false; // Keep others as strings by default
+            dynamicTyping: (header) => {
+                 const h = header.trim().toLowerCase();
+                 // treat "id" and anything ending in "_id" as numbers, but not "uuid"
+                 if (h === 'id' || h.endsWith('_id')) return true;
+                 return false;
             },
             transformHeader: header => header.trim(), // Trim header whitespace
             transform: (value, header) => { // eslint-disable-line no-unused-vars
