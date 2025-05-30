@@ -5,6 +5,35 @@ import React, {
   useMemo,
   useRef,
 } from "react";
+
+// ── in-file “hook” for infinite loading via IntersectionObserver ──
+function useInfiniteLoader({
+  loaderRef,
+  loading,
+  hasMore,
+  onLoadMore,
+  root = null,
+  rootMargin = "200px",
+  threshold = 0,
+}) {
+  React.useEffect(() => {
+    const node = loaderRef.current;
+    if (!node) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loading && hasMore) {
+          onLoadMore();
+        }
+      },
+      { root, rootMargin, threshold }
+    );
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [loaderRef, loading, hasMore, onLoadMore, root, rootMargin, threshold]);
+}
+
+// Pull “magic 11” into a named constant
+const DEFAULT_PAGE_SIZE = 11;
 import { useApi } from "../api/ApiContext";
 import { useSettings } from "../settings/SettingsContext";
 import { useIntl } from "react-intl";
@@ -25,8 +54,10 @@ const ItemsView = () => {
   const [owners, setOwners] = useState([]);
 
   // Pagination and loading state
-  const [currentPage, setCurrentPage] = useState(0); // 0-indexed for client-side pagination
-  const [pageSize, setPageSize] = useState(11);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  // always reset to page 0 via this helper
+  const resetPage = useCallback(() => setCurrentPage(0), []);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [totalItemsCount, setTotalItemsCount] = useState(0); // Will be count after filtering, before pagination
 
@@ -312,37 +343,14 @@ const ItemsView = () => {
     loading,
   ]);
 
-  // ─── intersection observer for infinite loading ───
-  useEffect(() => {
-    if (!api.isConfigured || typeof api.listItems !== "function") return;
-    if (!hasMoreItems || loading) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !loading && hasMoreItems) {
-          setCurrentPage(p => p + 1);
-        }
-      },
-      {
-        root: null,
-        rootMargin: "0px",
-        threshold: 0
-      }
-    );
-
-    const node = loaderRef.current;
-    if (node) observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [
-    api.isConfigured,
-    api.listItems,
-    hasMoreItems,
+  // ─── infinite load when spacer scrolls into view ───
+  useInfiniteLoader({
+    loaderRef,
     loading,
-    loaderRef
-  ]);
+    hasMore: hasMoreItems,
+    onLoadMore: () => setCurrentPage(p => p + 1),
+    rootMargin: "200px",
+  });
 
   // Effect to fetch images for displayed items
   useEffect(() => {
@@ -395,39 +403,32 @@ const ItemsView = () => {
     });
   }, [displayedItems, api, itemImageFiles, loadingImages]);
 
-  // ─── Manually track and revoke only stale URLs ───
+  // ─── create/reuse blob URLs & revoke stale ones ───
   useEffect(() => {
-    const nextUrls = {};
+    const prev = prevImageUrlsRef.current;
+    const next = {};
 
     displayedItems.forEach(item => {
       const file = itemImageFiles[item.item_id];
       if (file instanceof File) {
-        // reuse the old URL if we already made one for this same File
-        if (prevImageUrlsRef.current[item.item_id]) {
-          nextUrls[item.item_id] = prevImageUrlsRef.current[item.item_id];
-        } else {
-          nextUrls[item.item_id] = URL.createObjectURL(file);
-        }
+        // reuse existing URL or create new
+        next[item.item_id] = prev[item.item_id] || URL.createObjectURL(file);
       }
     });
 
-    // Revoke any URL we made previously that is no longer in nextUrls
-    Object.entries(prevImageUrlsRef.current).forEach(([itemId, url]) => {
-      if (!nextUrls[itemId]) {
-        URL.revokeObjectURL(url);
-      }
+    // revoke any URL that dropped out
+    Object.entries(prev).forEach(([id, url]) => {
+      if (!next[id]) URL.revokeObjectURL(url);
     });
 
-    prevImageUrlsRef.current = nextUrls;
-    setDisplayedItemImageUrls(nextUrls);
-  }, [displayedItems, itemImageFiles]);
+    prevImageUrlsRef.current = next;
+    setDisplayedItemImageUrls(next);
 
-  // ─── One‐time cleanup on unmount ───
-  useEffect(() => {
+    // cleanup on unmount
     return () => {
-      Object.values(prevImageUrlsRef.current).forEach(URL.revokeObjectURL);
+      Object.values(next).forEach(URL.revokeObjectURL);
     };
-  }, []);
+  }, [displayedItems, itemImageFiles]);
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
@@ -745,7 +746,7 @@ const ItemsView = () => {
     } else if (filterType === "owner") {
       setFilterOwnerIds(updater);
     }
-    setCurrentPage(0); // Reset to first page on filter change
+    resetPage();
   };
 
   const handleResetFilters = () => {
@@ -755,7 +756,7 @@ const ItemsView = () => {
     setFilterOwnerIds([]);
     setFilterPriceMin(undefined);
     setFilterPriceMax(undefined);
-    setCurrentPage(0); // Reset to first page
+    resetPage();
   };
 
   // --- Edit Handlers ---
@@ -1160,7 +1161,7 @@ const ItemsView = () => {
                 value={sortCriteria}
                 onChange={(e) => {
                   setSortCriteria(e.target.value);
-                  setCurrentPage(0); // Reset to first page on sort change
+                  resetPage();
                 }}
                 disabled={loading}
               >
@@ -1204,7 +1205,7 @@ const ItemsView = () => {
                 value={filterName}
                 onChange={(e) => {
                   setFilterName(e.target.value);
-                  setCurrentPage(0); // Reset to first page
+                  resetPage();
                 }}
                 placeholder={intl.formatMessage({
                   id: "items.filter.textPlaceholder",
@@ -1307,7 +1308,7 @@ const ItemsView = () => {
                 onChange={([minV, maxV]) => {
                   setFilterPriceMin(minV);
                   setFilterPriceMax(maxV);
-                  setCurrentPage(0);
+                  resetPage();
                 }}
               />
               <div className="range-values">
@@ -1409,7 +1410,7 @@ const ItemsView = () => {
             })}
           </p>
         )}
-      <div ref={loaderRef} style={{ height: "1px", margin: "1px" }} />
+      <div ref={loaderRef} className="infinite-loader-spacer" />
 
       {api.isConfigured &&
         api.addItem &&
