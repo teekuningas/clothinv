@@ -85,8 +85,12 @@ const ItemsView = () => {
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [addItemError, setAddItemError] = useState(null);
 
-  // maximum price for slider (adjust as you like)
-  const PRICE_SLIDER_MAX = 1000;
+  // Slider bounds derived from your data
+  const sliderMin = 0;
+  const sliderMax = useMemo(() => {
+    const prices = allItemsMetadata.map((i) => i.price || 0);
+    return Math.ceil(Math.max(0, ...prices));
+  }, [allItemsMetadata]);
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
@@ -1286,12 +1290,13 @@ const ItemsView = () => {
                 })}
               </label>
               <RangeSlider
-                min={0}
-                max={PRICE_SLIDER_MAX}
+                min={sliderMin}
+                max={sliderMax}
                 step={0.01}
+                minDistancePercent={0.05}
                 value={[
-                  filterPriceMin ?? 0,
-                  filterPriceMax ?? PRICE_SLIDER_MAX,
+                  filterPriceMin ?? sliderMin,
+                  filterPriceMax ?? sliderMax,
                 ]}
                 onChange={([minV, maxV]) => {
                   setFilterPriceMin(minV);
@@ -1299,6 +1304,10 @@ const ItemsView = () => {
                   setCurrentPage(0);
                 }}
               />
+              <div className="range-values">
+                <span>{(filterPriceMin ?? sliderMin).toFixed(2)}</span>
+                <span>{(filterPriceMax ?? sliderMax).toFixed(2)}</span>
+              </div>
             </div>
 
             {/* Use button-light for reset */}
