@@ -26,7 +26,7 @@ const ItemsView = () => {
 
   // Pagination and loading state
   const [currentPage, setCurrentPage] = useState(0); // 0-indexed for client-side pagination
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(11);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [totalItemsCount, setTotalItemsCount] = useState(0); // Will be count after filtering, before pagination
 
@@ -325,7 +325,7 @@ const ItemsView = () => {
       },
       {
         root: null,
-        rootMargin: "200px",   // fire a bit before the loader comes into view
+        rootMargin: "0px",
         threshold: 0
       }
     );
