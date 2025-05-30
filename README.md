@@ -1,5 +1,7 @@
 # Clothinv
 
+![Clothinv Cover Photo](static/main.png)
+
 Clothinv is a minimalist application for clothing inventory management. It allows cataloging and browsing your wardrobe. By default, Clothinv operates entirely within your browser, using private, configuration-free local storage.
 
 ## Core Features
