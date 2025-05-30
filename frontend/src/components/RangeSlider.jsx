@@ -8,7 +8,7 @@ export default function RangeSlider({
   value = [min, max],
   onChange,
   className = "",
-  minDistancePercent = 0,    // new
+  minDistancePercent = 0, // new
 }) {
   const [minVal, setMinVal] = useState(value[0]);
   const [maxVal, setMaxVal] = useState(value[1]);
@@ -20,33 +20,32 @@ export default function RangeSlider({
   }, [value]);
 
   const dist = (max - min) * minDistancePercent;
-  const clampMin = v => Math.min(v, maxVal - step, maxVal - dist);
-  const clampMax = v => Math.max(v, minVal + step, minVal + dist);
+  const clampMin = (v) => Math.min(v, maxVal - step, maxVal - dist);
+  const clampMax = (v) => Math.max(v, minVal + step, minVal + dist);
 
-  const handleMin = e => {
+  const handleMin = (e) => {
     let v = clampMin(Number(e.target.value));
-    v = Math.round(v * 100) / 100;           // two‐decimal precision
+    v = Math.round(v * 100) / 100; // two‐decimal precision
     setMinVal(v);
     onChange?.([v, maxVal]);
   };
-  const handleMax = e => {
+  const handleMax = (e) => {
     let v = clampMax(Number(e.target.value));
     v = Math.round(v * 100) / 100;
     setMaxVal(v);
     onChange?.([minVal, v]);
   };
 
-  const percent = v => ((v - min) / (max - min)) * 100;
+  const percent = (v) => ((v - min) / (max - min)) * 100;
 
-  // CSS vars drive the colored range bar; no inline styles on inner elements
-  const leftPct  = percent(minVal);
+  const leftPct = percent(minVal);
   const widthPct = percent(maxVal) - leftPct;
   return (
     <div
       className={`range-slider ${className}`}
       style={{
-        "--range-left":  `${leftPct}%`,
-        "--range-width": `${widthPct}%`
+        "--range-left": `${leftPct}%`,
+        "--range-width": `${widthPct}%`,
       }}
     >
       <input

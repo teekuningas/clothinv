@@ -2,6 +2,7 @@
   position: relative;
   width: 100%;
   height: 32px;
+
   /* CSS vars default */
   --range-left: 0%;
   --range-width: 100%;
@@ -18,13 +19,13 @@
 
 .range-slider .track {
   width: 100%;
-  background: #ccc;        /* leave color override to host context */
+  background: #ccc;
 }
 
 .range-slider .range {
   left: var(--range-left);
   width: var(--range-width);
-  background: #08f;        /* leave override to host context */
+  background: #08f;
 }
 
 .range-slider input[type="range"] {
@@ -37,7 +38,6 @@
   padding: 0;
   pointer-events: none;
   appearance: none;
-  -webkit-appearance: none;
   background: transparent;
 }
 
@@ -46,6 +46,7 @@
   height: 4px;
   background: transparent;
 }
+
 .range-slider input[type="range"]::-moz-range-track {
   height: 4px;
   background: transparent;
@@ -55,6 +56,7 @@
 .range-slider input.thumb--min {
   z-index: 2;
 }
+
 .range-slider input.thumb--max {
   z-index: 3;
 }
@@ -64,10 +66,10 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #08f;        /* context can override */
+  background: #08f;
   border: none;
   cursor: pointer;
-  margin-top: -6px; /* center thumb on track */
+  margin-top: -6px;
 }
 
 .range-slider input[type="range"]::-moz-range-thumb {
