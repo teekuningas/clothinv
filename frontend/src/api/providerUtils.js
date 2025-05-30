@@ -96,10 +96,9 @@ export const parseCSV = (csvString) => {
             skipEmptyLines: true,
             dynamicTyping: (header) => {
                  const h = header.trim().toLowerCase();
-                 // treat "id" and anything ending in "_id" or "Id" as numbers, but not "uuid"
-                 if (h === 'id') return true;
-                 if (h.endsWith('_id')) return true;
-                 if (h.endsWith('Id')) return true;
+                 // parse "price" as number as well as any _id
+                 if (h === 'id' || h === 'price') return true;
+                 if (h.endsWith('_id') || h.endsWith('Id')) return true;
                  return false;
             },
             transformHeader: header => header.trim(), // Trim header whitespace

@@ -163,7 +163,7 @@ export const exportData = async (settings) => {
         const imageHeaders = ['image_id', 'uuid', 'image_mimetype', 'image_filename', 'created_at']; // Using item_id as image_id for simplicity here
         const imagesForCsv = [];
 
-        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'price', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 

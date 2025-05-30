@@ -826,7 +826,7 @@ export const exportData = async (settings) => {
         const imageHeaders = ['image_id', 'uuid', 'image_mimetype', 'image_filename', 'created_at'];
         zip.file('images.csv', createCSV(imageHeaders, allImagesMeta));
 
-        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'price', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
@@ -996,6 +996,10 @@ async function importDataV1(settings, loadedZip) {
                 uuid: itemUuid, // Use item's UUID from CSV
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
+                price: 
+                  itemMetadata.price !== '' && itemMetadata.price != null
+                    ? parseFloat(itemMetadata.price)
+                    : null,
                 owner_id: ownerMap[owner_id],       // Map to new ID
                 image_uuid: imageUuidFromItemCsv, // Pass image UUID from CSV (addItem will use this for _insertImage)
                 imageFile: imageFile,
