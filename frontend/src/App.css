@@ -2,9 +2,6 @@
   text-align: center;
 }
 
-/* --------------------------------------------------------------------------
-   Migrate‐now link inside the warning toast
-   ----------------------------------------------------------------------- */
 .status-warning .migrate-link {
     display: inline-block;
     margin-left: 8px;

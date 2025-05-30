@@ -9,7 +9,6 @@ import {
 
 const PROVIDER_NAME = "IndexedDB Provider";
 const DB_NAME    = 'ClothinvInventoryDB';
-const DB_VERSION = 1; // Used for new databases
 const STORES = {
     items: 'items',
     images: 'images', // Note: Stores File objects, keyed by item_id (integer)
@@ -25,16 +24,8 @@ const openDB = () => {
   if (dbPromise) return dbPromise;
 
   dbPromise = (async () => {
-    const dbs = await indexedDB.databases();
-    const entry = dbs.find(d => d.name === DB_NAME);
-    const existingVersion = entry?.version || 0;
-
-    console.log(existingVersion);
-
-    // If no database, existingVersion === 0
-    const request = existingVersion === 0
-      ? indexedDB.open(DB_NAME, DB_VERSION)
-      : indexedDB.open(DB_NAME);
+    // always open (or create) with the browser’s default version number
+    const request = indexedDB.open(DB_NAME);
 
     return new Promise((resolve, reject) => {
       request.onerror = (event) => {
@@ -43,16 +34,11 @@ const openDB = () => {
       };
 
       request.onsuccess = (event) => {
-        console.log(`[${PROVIDER_NAME}]: IndexedDB opened (v${event.target.result.version})`);
+        console.log(`[${PROVIDER_NAME}]: IndexedDB opened.`);
         resolve(event.target.result);
       };
 
-      // Will only fire at database creation
       request.onupgradeneeded = (event) => {
-        const newVer = event.newVersion;
-        console.log(
-          `[${PROVIDER_NAME}]: upgrade to v${newVer}`
-        );
         const db = event.target.result;
         const transaction = event.target.transaction;
 
@@ -79,7 +65,7 @@ const openDB = () => {
               .forEach(entity => counterStore.put({ entity, nextId: 1 }));
         }
 
-        console.log("IndexedDB creation complete");
+        console.log(`[${PROVIDER_NAME}]: IndexedDB creation complete.`);
       };
     });
   })();
@@ -552,25 +538,8 @@ const getFromStore = async (storeName, key) => {
     });
 };
 
-export const getDbVersion = () => {
-    return new Promise((resolve, reject) => {
-        // open only by name, so we get the real current version
-        const req = indexedDB.open(DB_NAME);
-        req.onsuccess = () => {
-            const db = req.result;
-            const ver = db.version;
-            db.close();
-            resolve(ver);
-        };
-        req.onerror = (evt) => {
-            console.error(
-              `[${PROVIDER_NAME}]: Error reading IndexedDB version:`,
-              evt.target.error
-            );
-            reject(evt.target.error);
-        };
-    });
-};
+// schema‐version is now decoupled from internal IDB version
+export const getDbVersion = async () => 1;
 
 // --- Exported API Methods ---
 
