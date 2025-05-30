@@ -67,7 +67,7 @@ const openDB = () => {
         }
         if (!db.objectStoreNames.contains(STORES.schema_version)) {
             const versionStore = db.createObjectStore(STORES.schema_version, { keyPath: 'key' });
-            versionStore.put({ key: 'db_version', value: 2 });
+            versionStore.put({ key: 'db_version', value: 3 });
         }
 
         console.log(`[${PROVIDER_NAME}]: IndexedDB creation complete.`);

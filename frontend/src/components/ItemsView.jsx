@@ -6,7 +6,7 @@ import React, {
   useRef,
 } from "react";
 
- // in-file hook for infinite loading
+// in-file hook for infinite loading
 function useInfiniteLoader({
   loaderRef,
   loading,
@@ -25,7 +25,7 @@ function useInfiniteLoader({
           onLoadMore();
         }
       },
-      { root, rootMargin, threshold }
+      { root, rootMargin, threshold },
     );
     obs.observe(node);
     return () => obs.disconnect();
@@ -122,7 +122,7 @@ const ItemsView = () => {
     // collect only valid numbers
     const prices = allItemsMetadata
       .map((i) => i.price)
-      .filter((p) => typeof p === 'number' && !isNaN(p));
+      .filter((p) => typeof p === "number" && !isNaN(p));
     if (prices.length === 0) {
       return 1;
     }
@@ -268,7 +268,13 @@ const ItemsView = () => {
     } finally {
       setLoading(false);
     }
-  }, [isConfigured, listItems, intl, lastUpdatedItemDetails, setLastUpdatedItemDetails]);
+  }, [
+    isConfigured,
+    listItems,
+    intl,
+    lastUpdatedItemDetails,
+    setLastUpdatedItemDetails,
+  ]);
 
   // Fetch locations, categories, owners (ancillary data)
   const fetchAncillaryData = useCallback(async () => {
@@ -326,12 +332,7 @@ const ItemsView = () => {
       setOwners([]);
       setCurrentPage(0);
     }
-  }, [
-    isConfigured,
-    listItems,
-    fetchAncillaryData,
-    fetchAllItemsMetadata,
-  ]);
+  }, [isConfigured, listItems, fetchAncillaryData, fetchAllItemsMetadata]);
 
   // Effect for client-side filtering, sorting, and pagination
   useEffect(() => {
@@ -380,7 +381,7 @@ const ItemsView = () => {
     loaderRef,
     loading,
     hasMore: hasMoreItems,
-    onLoadMore: () => setCurrentPage(p => p + 1),
+    onLoadMore: () => setCurrentPage((p) => p + 1),
     rootMargin: "200px",
   });
 
@@ -433,7 +434,7 @@ const ItemsView = () => {
     const prev = prevImageUrlsRef.current;
     const next = {};
 
-    displayedItems.forEach(item => {
+    displayedItems.forEach((item) => {
       const file = itemImageFiles[item.item_id];
       if (file instanceof File) {
         // reuse existing URL or create new
@@ -465,21 +466,24 @@ const ItemsView = () => {
     owners.find((owner) => owner.owner_id === id)?.name ||
     intl.formatMessage({ id: "items.card.noOwner", defaultMessage: "N/A" });
 
-  const handleFileChange = useCallback((event, type) => {
-    const file = event.target.files[0];
-    if (!(file instanceof File)) return;
-    if (type === "add") {
-      if (addImageUrl) URL.revokeObjectURL(addImageUrl);
-      setNewItemImageFile(file);
-      setAddImageUrl(URL.createObjectURL(file));
-    } else {
-      if (editImageUrl) URL.revokeObjectURL(editImageUrl);
-      setEditItemImageFile(file);
-      setEditImageUrl(URL.createObjectURL(file));
-      setImageMarkedForRemoval(false);
-    }
-    event.target.value = null;
-  }, [addImageUrl, editImageUrl]);
+  const handleFileChange = useCallback(
+    (event, type) => {
+      const file = event.target.files[0];
+      if (!(file instanceof File)) return;
+      if (type === "add") {
+        if (addImageUrl) URL.revokeObjectURL(addImageUrl);
+        setNewItemImageFile(file);
+        setAddImageUrl(URL.createObjectURL(file));
+      } else {
+        if (editImageUrl) URL.revokeObjectURL(editImageUrl);
+        setEditItemImageFile(file);
+        setEditImageUrl(URL.createObjectURL(file));
+        setImageMarkedForRemoval(false);
+      }
+      event.target.value = null;
+    },
+    [addImageUrl, editImageUrl],
+  );
 
   const handleRemoveNewImage = () => {
     if (addImageUrl) URL.revokeObjectURL(addImageUrl);
@@ -500,7 +504,7 @@ const ItemsView = () => {
       try {
         const rotated = await rotateImageFile(currentFile);
         setFile(rotated);
-        if ((isAdd ? addImageUrl : editImageUrl)) {
+        if (isAdd ? addImageUrl : editImageUrl) {
           URL.revokeObjectURL(isAdd ? addImageUrl : editImageUrl);
         }
         const newUrl = URL.createObjectURL(rotated);
@@ -508,15 +512,19 @@ const ItemsView = () => {
       } catch (e) {
         console.error("Rotate image failed:", e);
         const msg = intl.formatMessage(
-          { id: "items.error.rotate", defaultMessage: "Image rotation failed: {error}" },
-          { error: e.message }
+          {
+            id: "items.error.rotate",
+            defaultMessage: "Image rotation failed: {error}",
+          },
+          { error: e.message },
         );
-        if (isAdd) setError(msg); else setUpdateError(msg);
+        if (isAdd) setError(msg);
+        else setUpdateError(msg);
       } finally {
         setRotating(false);
       }
     },
-    [newItemImageFile, editItemImageFile, addImageUrl, editImageUrl, intl]
+    [newItemImageFile, editItemImageFile, addImageUrl, editImageUrl, intl],
   );
 
   const handleOpenAddItemModal = () => {
