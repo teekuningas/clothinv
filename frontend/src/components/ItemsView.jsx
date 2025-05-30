@@ -15,6 +15,7 @@ import { compressImage, rotateImageFile } from "../helpers/images";
 import { processItems } from "../helpers/filters";
 import Gallery from "./Gallery"; // Import the new Gallery component
 import "./ItemsView.css";
+import RangeSlider from "./RangeSlider";
 
 const ItemsView = () => {
   const [allItemsMetadata, setAllItemsMetadata] = useState([]);
@@ -83,6 +84,9 @@ const ItemsView = () => {
 
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [addItemError, setAddItemError] = useState(null);
+
+  // maximum price for slider (adjust as you like)
+  const PRICE_SLIDER_MAX = 1000;
 
   const [sortCriteria, setSortCriteria] = useState("created_at_desc"); // Default to newest first
 
@@ -1275,53 +1279,26 @@ const ItemsView = () => {
 
             {/* Price Range Filter */}
             <div className="filter-group">
-              <label htmlFor="filter-price-range">
+              <label>
                 {intl.formatMessage({
                   id: "items.filter.priceRangeLabel",
                   defaultMessage: "Price Range:",
                 })}
               </label>
-              <div className="price-range-inputs">
-                <input
-                  type="number"
-                  id="filter-price-min"
-                  step="0.01"
-                  min="0"
-                  placeholder={intl.formatMessage({
-                    id: "items.filter.priceMinPlaceholder",
-                    defaultMessage: "Min",
-                  })}
-                  value={filterPriceMin ?? ""}
-                  onChange={(e) => {
-                    const v =
-                      e.target.value === ""
-                        ? undefined
-                        : parseFloat(e.target.value);
-                    setFilterPriceMin(v);
-                    setCurrentPage(0);
-                  }}
-                />
-                <span className="separator">—</span>
-                <input
-                  type="number"
-                  id="filter-price-max"
-                  step="0.01"
-                  min="0"
-                  placeholder={intl.formatMessage({
-                    id: "items.filter.priceMaxPlaceholder",
-                    defaultMessage: "Max",
-                  })}
-                  value={filterPriceMax ?? ""}
-                  onChange={(e) => {
-                    const v =
-                      e.target.value === ""
-                        ? undefined
-                        : parseFloat(e.target.value);
-                    setFilterPriceMax(v);
-                    setCurrentPage(0);
-                  }}
-                />
-              </div>
+              <RangeSlider
+                min={0}
+                max={PRICE_SLIDER_MAX}
+                step={0.01}
+                value={[
+                  filterPriceMin ?? 0,
+                  filterPriceMax ?? PRICE_SLIDER_MAX,
+                ]}
+                onChange={([minV, maxV]) => {
+                  setFilterPriceMin(minV);
+                  setFilterPriceMax(maxV);
+                  setCurrentPage(0);
+                }}
+              />
             </div>
 
             {/* Use button-light for reset */}
