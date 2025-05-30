@@ -107,6 +107,8 @@ const ItemsView = () => {
   // Refs for modal image URLs to ensure cleanup on unmount
   const addImageUrlRef = useRef(addImageUrl);
   const editImageUrlRef = useRef(editImageUrl);
+  // just under your other useRef() calls
+  const prevImageUrlsRef = useRef({});
 
   const api = useApi();
   const { settings: appSettings } = useSettings();
@@ -325,7 +327,10 @@ const ItemsView = () => {
           setCurrentPage((prevPage) => prevPage + 1);
         }
       },
-      { threshold: 1.0 }, // Trigger when 100% of the loader is visible
+      {
+        rootMargin: '0px 0px 200px 0px', // start loading when the loader is ~200px below viewport
+        threshold: 0,                     // fire as soon as it enters
+      }
     );
 
     const currentLoaderRef = loaderRef.current;
@@ -391,44 +396,35 @@ const ItemsView = () => {
     });
   }, [displayedItems, api, itemImageFiles, loadingImages]);
 
-  // Effect to manage Blob URLs for displayed item images
+  // ─── Manually track and revoke only stale URLs ───
   useEffect(() => {
-    const newUrls = {}; // Accumulate URLs for the current displayedItems that have images
+    const newUrls = {};
 
-    // Create URLs for items that are currently displayed and have a File object
-    displayedItems.forEach((item) => {
+    displayedItems.forEach(item => {
       const file = itemImageFiles[item.item_id];
       if (file instanceof File) {
-        // Only create a new URL if one doesn't already exist for this item_id,
-        // or if the file instance might have changed (though direct comparison is hard).
-        // For simplicity, we'll create/recreate if the file exists.
-        // The cleanup logic handles revoking.
         newUrls[item.item_id] = URL.createObjectURL(file);
       }
     });
 
-    // Revoke URLs that were in the previous state of displayedItemImageUrls
-    // but are not in the new set (e.g., item removed from display, or its image file was removed/nulled).
-    // Also, if a new URL was generated for an item_id that had an old URL, the old one needs revoking.
-    Object.keys(displayedItemImageUrls).forEach((itemIdKey) => {
-      const numericItemId = parseInt(itemIdKey, 10); // Ensure itemId is treated as a number for lookups
-      // If the old URL is not in newUrls OR if newUrls has a DIFFERENT url for the same itemId, revoke the old one.
-      if (
-        !newUrls[numericItemId] ||
-        newUrls[numericItemId] !== displayedItemImageUrls[numericItemId]
-      ) {
-        URL.revokeObjectURL(displayedItemImageUrls[numericItemId]);
+    // Revoke any old URL that’s no longer in newUrls or has been replaced
+    Object.entries(prevImageUrlsRef.current).forEach(([itemId, oldUrl]) => {
+      if (!newUrls[itemId] || newUrls[itemId] !== oldUrl) {
+        URL.revokeObjectURL(oldUrl);
       }
     });
 
+    // Commit the new set
+    prevImageUrlsRef.current = newUrls;
     setDisplayedItemImageUrls(newUrls);
+  }, [displayedItems, itemImageFiles]);
 
-    // Cleanup function: when component unmounts or dependencies change,
-    // revoke all URLs that were created and set in *this* effect run.
+  // ─── One‐time cleanup on unmount ───
+  useEffect(() => {
     return () => {
-      Object.values(newUrls).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(prevImageUrlsRef.current).forEach(URL.revokeObjectURL);
     };
-  }, [displayedItems, itemImageFiles]); // Dependencies: re-run when displayed items or their files change.
+  }, []);
 
   const getLocationNameById = (id) =>
     locations.find((loc) => loc.location_id === id)?.name ||
