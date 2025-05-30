@@ -104,6 +104,7 @@
 .filter-group .range-slider {
   --range-left: inherit;      /* no-op */
   --range-width: inherit;     /* no-op */
+
   margin-top: 8px;
 
   /* colors override */

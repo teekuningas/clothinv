@@ -53,11 +53,11 @@
 }
 
 /* stack the two thumbs so you always see both */
-.range-slider input.thumb--min {
+.range-slider input.thumb-min {
   z-index: 2;
 }
 
-.range-slider input.thumb--max {
+.range-slider input.thumb-max {
   z-index: 3;
 }
 
