@@ -312,38 +312,27 @@ const ItemsView = () => {
     loading,
   ]);
 
-  // Effect for Intersection Observer to load more items on scroll
+  // Effect for scroll-based infinite loading
   useEffect(() => {
-    // Do not set up observer if API isn't configured, or if listItems isn't supported
-    if (!api.isConfigured || typeof api.listItems !== "function") {
-      return;
-    }
+    if (!api.isConfigured || typeof api.listItems !== "function") return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const firstEntry = entries[0];
-        if (firstEntry.isIntersecting && hasMoreItems && !loading) {
-          // Not the main 'loading' for fetchAllItemsMetadata, but general readiness
-          setCurrentPage((prevPage) => prevPage + 1);
-        }
-      },
-      {
-        rootMargin: '0px 0px 200px 0px', // start loading when the loader is ~200px below viewport
-        threshold: 0,                     // fire as soon as it enters
-      }
-    );
-
-    const currentLoaderRef = loaderRef.current;
-    if (currentLoaderRef) {
-      observer.observe(currentLoaderRef);
-    }
-
-    return () => {
-      if (currentLoaderRef) {
-        observer.unobserve(currentLoaderRef);
+    const onScroll = () => {
+      if (loading || !hasMoreItems) return;
+      const scrollPos = window.innerHeight + window.pageYOffset;
+      const threshold = document.documentElement.scrollHeight - 200;
+      if (scrollPos >= threshold) {
+        setCurrentPage((p) => p + 1);
       }
     };
-  }, [hasMoreItems, loading, api.isConfigured, api.listItems, loaderRef]);
+
+    window.addEventListener("scroll", onScroll);
+    // trigger right away in case the content is shorter than the viewport
+    onScroll();
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [hasMoreItems, loading, api.isConfigured, api.listItems]);
 
   // Effect to fetch images for displayed items
   useEffect(() => {
@@ -398,25 +387,29 @@ const ItemsView = () => {
 
   // ─── Manually track and revoke only stale URLs ───
   useEffect(() => {
-    const newUrls = {};
+    const nextUrls = {};
 
     displayedItems.forEach(item => {
       const file = itemImageFiles[item.item_id];
       if (file instanceof File) {
-        newUrls[item.item_id] = URL.createObjectURL(file);
+        // reuse the old URL if we already made one for this same File
+        if (prevImageUrlsRef.current[item.item_id]) {
+          nextUrls[item.item_id] = prevImageUrlsRef.current[item.item_id];
+        } else {
+          nextUrls[item.item_id] = URL.createObjectURL(file);
+        }
       }
     });
 
-    // Revoke any old URL that’s no longer in newUrls or has been replaced
-    Object.entries(prevImageUrlsRef.current).forEach(([itemId, oldUrl]) => {
-      if (!newUrls[itemId] || newUrls[itemId] !== oldUrl) {
-        URL.revokeObjectURL(oldUrl);
+    // Revoke any URL we made previously that is no longer in nextUrls
+    Object.entries(prevImageUrlsRef.current).forEach(([itemId, url]) => {
+      if (!nextUrls[itemId]) {
+        URL.revokeObjectURL(url);
       }
     });
 
-    // Commit the new set
-    prevImageUrlsRef.current = newUrls;
-    setDisplayedItemImageUrls(newUrls);
+    prevImageUrlsRef.current = nextUrls;
+    setDisplayedItemImageUrls(nextUrls);
   }, [displayedItems, itemImageFiles]);
 
   // ─── One‐time cleanup on unmount ───

@@ -27,13 +27,11 @@ export default function RangeSlider({
     let v = clampMin(Number(e.target.value));
     v = Math.round(v * 100) / 100; // two‐decimal precision
     setMinVal(v);
-    onChange?.([v, maxVal]);
   };
   const handleMax = (e) => {
     let v = clampMax(Number(e.target.value));
     v = Math.round(v * 100) / 100;
     setMaxVal(v);
-    onChange?.([minVal, v]);
   };
 
   const percent = (v) => ((v - min) / (max - min)) * 100;
@@ -55,6 +53,8 @@ export default function RangeSlider({
         step={step}
         value={minVal}
         onChange={handleMin}
+        onMouseUp={() => onChange?.([minVal, maxVal])}
+        onTouchEnd={() => onChange?.([minVal, maxVal])}
         className="thumb thumb-min"
       />
       <input
@@ -64,6 +64,8 @@ export default function RangeSlider({
         step={step}
         value={maxVal}
         onChange={handleMax}
+        onMouseUp={() => onChange?.([minVal, maxVal])}
+        onTouchEnd={() => onChange?.([minVal, maxVal])}
         className="thumb thumb-max"
       />
       <div className="track" />
