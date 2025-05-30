@@ -2,6 +2,28 @@
   text-align: center;
 }
 
+/* --------------------------------------------------------------------------
+   Migrate‐now link inside the warning toast
+   ----------------------------------------------------------------------- */
+.status-warning .migrate-link {
+    display: inline-block;
+    margin-left: 8px;
+    color:       var(--color-primary);
+    background:  var(--color-bg-container);
+    border:      1px solid var(--color-primary);
+    padding:     6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.status-warning .migrate-link:hover,
+.status-warning .migrate-link:focus {
+    background:  var(--color-primary);
+    color:       var(--color-primary-text);
+    outline: none;
+}
+
 .app-main-content {
   margin-bottom: 30px;
 }
