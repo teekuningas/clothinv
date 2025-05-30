@@ -78,6 +78,8 @@ const ItemsView = () => {
   const [filterLocationIds, setFilterLocationIds] = useState([]);
   const [filterCategoryIds, setFilterCategoryIds] = useState([]);
   const [filterOwnerIds, setFilterOwnerIds] = useState([]);
+  const [filterPriceMin, setFilterPriceMin] = useState();
+  const [filterPriceMax, setFilterPriceMax] = useState();
 
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState(false);
   const [addItemError, setAddItemError] = useState(null);
@@ -260,6 +262,8 @@ const ItemsView = () => {
       filterLocationIds,
       filterCategoryIds,
       filterOwnerIds,
+      filterPriceMin,
+      filterPriceMax,
     };
     const paginationCriteria = {
       currentPage,
@@ -283,6 +287,8 @@ const ItemsView = () => {
     filterLocationIds,
     filterCategoryIds,
     filterOwnerIds,
+    filterPriceMin,
+    filterPriceMax,
     sortCriteria,
     currentPage,
     pageSize,
@@ -733,6 +739,8 @@ const ItemsView = () => {
     setFilterLocationIds([]);
     setFilterCategoryIds([]);
     setFilterOwnerIds([]);
+    setFilterPriceMin(undefined);
+    setFilterPriceMax(undefined);
     setCurrentPage(0); // Reset to first page
   };
 
@@ -1154,7 +1162,19 @@ const ItemsView = () => {
                     defaultMessage: "Oldest First",
                   })}
                 </option>
-              </select>
+              <option value="price_asc">
+                {intl.formatMessage({
+                  id: "items.sort.priceLowHigh",
+                  defaultMessage: "Price: Low → High",
+                })}
+              </option>
+              <option value="price_desc">
+                {intl.formatMessage({
+                  id: "items.sort.priceHighLow",
+                  defaultMessage: "Price: High → Low",
+                })}
+              </option>
+            </select>
             </div>
             {/* Text Filter */}
             <div className="filter-group">
@@ -1252,6 +1272,51 @@ const ItemsView = () => {
                 </div>
               ))}
             </fieldset>
+
+            {/* Price Range Filter */}
+            <div className="filter-group">
+              <label htmlFor="filter-price-range">
+                {intl.formatMessage({
+                  id: "items.filter.priceRangeLabel",
+                  defaultMessage: "Price Range:",
+                })}
+              </label>
+              <div className="price-range-inputs">
+                <input
+                  type="number"
+                  id="filter-price-min"
+                  step="0.01"
+                  min="0"
+                  placeholder={intl.formatMessage({
+                    id: "items.filter.priceMinPlaceholder",
+                    defaultMessage: "Min",
+                  })}
+                  value={filterPriceMin ?? ""}
+                  onChange={e => {
+                    const v = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                    setFilterPriceMin(v);
+                    setCurrentPage(0);
+                  }}
+                />
+                <span className="separator">—</span>
+                <input
+                  type="number"
+                  id="filter-price-max"
+                  step="0.01"
+                  min="0"
+                  placeholder={intl.formatMessage({
+                    id: "items.filter.priceMaxPlaceholder",
+                    defaultMessage: "Max",
+                  })}
+                  value={filterPriceMax ?? ""}
+                  onChange={e => {
+                    const v = e.target.value === "" ? undefined : parseFloat(e.target.value);
+                    setFilterPriceMax(v);
+                    setCurrentPage(0);
+                  }}
+                />
+              </div>
+            </div>
 
             {/* Use button-light for reset */}
             <button
@@ -1414,7 +1479,10 @@ const ItemsView = () => {
             </div>
             <div className="form-group">
               <label htmlFor="item-price-modal">
-                Price:
+                {intl.formatMessage({
+                  id: "items.addForm.priceLabel",
+                  defaultMessage: "Price:",
+                })}
               </label>
               <input
                 type="number"
@@ -1677,7 +1745,10 @@ const ItemsView = () => {
                 </div>
                 <div className="form-group">
                   <label htmlFor="edit-item-price">
-                    Price:
+                    {intl.formatMessage({
+                      id: "items.editForm.priceLabel",
+                      defaultMessage: "Price:",
+                    })}
                   </label>
                   <input
                     type="number"
