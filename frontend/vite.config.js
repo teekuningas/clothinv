@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE_URL || '/', // Use VITE_BASE_URL if set, otherwise default to '/'
     server: {
       port: 3000,
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom'
     }
   };
 });
