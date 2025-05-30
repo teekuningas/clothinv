@@ -27,6 +27,10 @@ const defaultHeaders = (settings) => {
     return headers;
 };
 
+export const getDbVersion = async (/* settings */) => {
+    return 1;
+};
+
 // handleResponse updated to be more generic and return JSON if possible
 const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {

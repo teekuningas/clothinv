@@ -1328,7 +1328,7 @@ const ItemsView = () => {
               id: "items.addItemFAB.label",
               defaultMessage: "Add new item",
             })}
-            disabled={loading || isUpdating || isDeleting}
+            disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
           >
             +
           </button>
@@ -1544,6 +1544,7 @@ const ItemsView = () => {
               <button
                 type="submit"
                 disabled={
+                  !api.writeAllowed ||
                   loading ||
                   !newItemName.trim() ||
                   !newItemLocationId ||
@@ -1802,6 +1803,7 @@ const ItemsView = () => {
                   <button
                     type="submit"
                     disabled={
+                      !api.writeAllowed ||
                       isUpdating ||
                       isDeleting ||
                       !editName.trim() ||
@@ -1826,7 +1828,7 @@ const ItemsView = () => {
                       type="button"
                       className="button-danger"
                       onClick={() => handleDeleteClick(editingItemId)}
-                      disabled={isUpdating || isDeleting}
+                      disabled={!api.writeAllowed || isUpdating || isDeleting}
                     >
                       {intl.formatMessage({
                         id: "common.delete",
@@ -1885,7 +1887,7 @@ const ItemsView = () => {
             <div className="modal-actions">
               <button
                 onClick={handleConfirmDelete}
-                disabled={isDeleting}
+                disabled={!api.writeAllowed || isDeleting}
                 className="button-danger"
               >
                 {isDeleting

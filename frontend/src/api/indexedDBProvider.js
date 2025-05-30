@@ -540,6 +540,10 @@ const getFromStore = async (storeName, key) => {
     });
 };
 
+export const getDbVersion = async (/* settings */) => {
+    return DB_VERSION; // existing constant = 1
+};
+
 // --- Exported API Methods ---
 
 // Locations

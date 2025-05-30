@@ -23,10 +23,11 @@ export const REQUIRED_API_METHODS = [
     'addOwner',
     'updateOwner',
     'deleteOwner',
-    'getImage', // Add this line
+    'getImage',
     'exportData',
     'importData',
     'destroyData',
+    'getDbVersion',
 ];
 
 /**

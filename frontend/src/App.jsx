@@ -25,6 +25,10 @@ function App() {
   const api = useApi();
   const { settings } = useSettings();
 
+  const warn = api.isVersionMismatch
+    ? `⚠️ Schema version mismatch (DB v${api.dbVersion} vs App v${api.appMajor}). Writes disabled until you migrate.`
+    : "";
+
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
@@ -62,6 +66,7 @@ function App() {
 
   return (
     <BrowserRouter basename={baseUrl}>
+      {warn && <div className="status-warning">{warn}</div>}
       <div className="app">
         <header className="app-header">
           <h1>

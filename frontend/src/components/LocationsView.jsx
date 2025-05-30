@@ -456,7 +456,7 @@ const LocationsView = () => {
                     },
                     { name: loc.name },
                   )}
-                  disabled={loading || isUpdating || isDeleting}
+                  disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
                 >
                   ✏️ {/* Pencil emoji */}
                 </button>
@@ -475,7 +475,7 @@ const LocationsView = () => {
           aria-label={intl.formatMessage({
             id: "locations.addLocationFAB.label",
           })}
-          disabled={loading || isUpdating || isDeleting}
+          disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
         >
           +
         </button>
@@ -592,7 +592,7 @@ const LocationsView = () => {
             <div className="modal-actions">
               <button
                 type="submit"
-                disabled={isUpdating || isDeleting || !editName.trim()}
+                disabled={!api.writeAllowed || isUpdating || isDeleting || !editName.trim()}
                 className="button-primary"
               >
                 {isUpdating
@@ -612,7 +612,7 @@ const LocationsView = () => {
                     type="button"
                     className="button-danger"
                     onClick={() => handleDeleteClick(editingLocationId)}
-                    disabled={isUpdating || isDeleting}
+                    disabled={!api.writeAllowed || isUpdating || isDeleting}
                   >
                     {intl.formatMessage({
                       id: "common.delete",
@@ -667,7 +667,7 @@ const LocationsView = () => {
             <div className="modal-actions">
               <button
                 onClick={handleConfirmDelete}
-                disabled={isDeleting}
+                disabled={!api.writeAllowed || isDeleting}
                 className="button-danger"
               >
                 {isDeleting

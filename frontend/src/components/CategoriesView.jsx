@@ -457,7 +457,7 @@ const CategoriesView = () => {
                     },
                     { name: cat.name },
                   )}
-                  disabled={loading || isUpdating || isDeleting}
+                  disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
                 >
                   ✏️ {/* Pencil emoji */}
                 </button>
@@ -475,7 +475,7 @@ const CategoriesView = () => {
           aria-label={intl.formatMessage({
             id: "categories.addCategoryFAB.label",
           })}
-          disabled={loading || isUpdating || isDeleting}
+          disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
         >
           +
         </button>
@@ -590,7 +590,7 @@ const CategoriesView = () => {
             <div className="modal-actions">
               <button
                 type="submit"
-                disabled={isUpdating || isDeleting || !editName.trim()}
+                disabled={!api.writeAllowed || isUpdating || isDeleting || !editName.trim()}
                 className="button-primary"
               >
                 {isUpdating
@@ -610,7 +610,7 @@ const CategoriesView = () => {
                     type="button"
                     className="button-danger"
                     onClick={() => handleDeleteClick(editingCategoryId)}
-                    disabled={isUpdating || isDeleting}
+                    disabled={!api.writeAllowed || isUpdating || isDeleting}
                   >
                     {intl.formatMessage({
                       id: "common.delete",
@@ -664,7 +664,7 @@ const CategoriesView = () => {
             <div className="modal-actions">
               <button
                 onClick={handleConfirmDelete}
-                disabled={isDeleting}
+                disabled={!api.writeAllowed || isDeleting}
                 className="button-danger"
               >
                 {isDeleting

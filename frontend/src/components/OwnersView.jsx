@@ -455,7 +455,7 @@ const OwnersView = () => {
                     },
                     { name: owner.name },
                   )}
-                  disabled={loading || isUpdating || isDeleting}
+                  disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
                 >
                   ✏️ {/* Pencil emoji */}
                 </button>
@@ -471,7 +471,7 @@ const OwnersView = () => {
           className="add-owner-fab button-primary"
           onClick={handleOpenAddOwnerModal}
           aria-label={intl.formatMessage({ id: "owners.addOwnerFAB.label" })}
-          disabled={loading || isUpdating || isDeleting}
+          disabled={!api.writeAllowed || loading || isUpdating || isDeleting}
         >
           +
         </button>
@@ -582,7 +582,7 @@ const OwnersView = () => {
             <div className="modal-actions">
               <button
                 type="submit"
-                disabled={isUpdating || isDeleting || !editName.trim()}
+                disabled={!api.writeAllowed || isUpdating || isDeleting || !editName.trim()}
                 className="button-primary"
               >
                 {isUpdating
@@ -602,7 +602,7 @@ const OwnersView = () => {
                     type="button"
                     className="button-danger"
                     onClick={() => handleDeleteClick(editingOwnerId)}
-                    disabled={isUpdating || isDeleting}
+                    disabled={!api.writeAllowed || isUpdating || isDeleting}
                   >
                     {intl.formatMessage({
                       id: "common.delete",
@@ -656,7 +656,7 @@ const OwnersView = () => {
             <div className="modal-actions">
               <button
                 onClick={handleConfirmDelete}
-                disabled={isDeleting}
+                disabled={!api.writeAllowed || isDeleting}
                 className="button-danger"
               >
                 {isDeleting

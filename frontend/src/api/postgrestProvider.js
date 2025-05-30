@@ -30,6 +30,11 @@ const defaultHeaders = (settings, preferRepresentation = true) => {
     return headers;
 };
 
+export const getDbVersion = async (/* settings */) => {
+    // No built-in metadata table yet:
+    return 1;
+};
+
 // handleResponse updated for PostgREST error format
 const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {

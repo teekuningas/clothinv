@@ -11,6 +11,7 @@ import {
   getProviderById,
   REQUIRED_API_METHODS,
 } from "./providerRegistry";
+import { FORMAT_VERSION } from "./exportFormat";
 
 const ApiContext = createContext();
 
@@ -43,6 +44,11 @@ export const ApiProvider = ({ children }) => {
   const isConfigured = checkConfiguration(apiProviderType, apiSettings);
 
   const [apiMethods, setApiMethods] = useState({});
+  const [dbVersion, setDbVersion] = useState(null);
+
+  const appMajor = parseInt(FORMAT_VERSION.split(".")[0], 10);
+  const isVersionMismatch = dbVersion !== null && dbVersion !== appMajor;
+  const writeAllowed = !isVersionMismatch;
 
   // --- Helper: Bind API Methods ---
   const bindApiMethods = useCallback(
@@ -75,11 +81,26 @@ export const ApiProvider = ({ children }) => {
     bindApiMethods(apiProviderType, apiSettings, isConfigured);
   }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]);
 
+  // --- Effect: Fetch DB Version when apiMethods.getDbVersion changes ---
+  useEffect(() => {
+    if (apiMethods.getDbVersion) {
+      apiMethods.getDbVersion()
+        .then(v => setDbVersion(v))
+        .catch(() => setDbVersion(1));
+    } else {
+      setDbVersion(1);
+    }
+  }, [apiMethods.getDbVersion]);
+
   // --- Context Value ---
   const value = {
     apiProviderType: apiProviderType,
     apiSettings: apiSettings,
     isConfigured: isConfigured,
+    dbVersion,
+    appMajor,
+    isVersionMismatch,
+    writeAllowed,
     ...apiMethods,
   };
 
