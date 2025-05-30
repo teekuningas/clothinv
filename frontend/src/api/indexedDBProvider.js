@@ -8,7 +8,8 @@ import {
 } from './providerUtils';
 
 const PROVIDER_NAME = "IndexedDB Provider";
-const DB_NAME    = 'ClothinvInventoryDB';
+const DB_NAME = 'ClothinvDB';
+const DB_VERSION = 3;
 const STORES = {
     items: 'items',
     images: 'images', // Note: Stores File objects, keyed by item_id (integer)
@@ -67,7 +68,7 @@ const openDB = () => {
         }
         if (!db.objectStoreNames.contains(STORES.schema_version)) {
             const versionStore = db.createObjectStore(STORES.schema_version, { keyPath: 'key' });
-            versionStore.put({ key: 'db_version', value: 3 });
+            versionStore.put({ key: 'db_version', value: DB_VERSION });
         }
 
         console.log(`[${PROVIDER_NAME}]: IndexedDB creation complete.`);
