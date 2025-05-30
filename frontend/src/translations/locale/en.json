@@ -1,6 +1,7 @@
 {
     "app.title": "Clothinv",
     "app.warn.versionMismatch": "Schema version mismatch (DB v{dbVersion} vs App v{appVersion}). Writes disabled until you migrate.",
+    "app.warn.appBehind":      "Database schema version ({dbVersion}) is newer than the application version ({appVersion}). Please update the application.",
     "nav.items": "Clothes",
     "nav.locations": "Locations",
     "nav.categories": "Categories",

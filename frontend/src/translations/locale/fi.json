@@ -1,6 +1,7 @@
 {
     "app.title": "Clothinv",
     "app.warn.versionMismatch": "Tietokannan skeeman versio ei täsmää (DB v{dbVersion} vs Sovellus v{appVersion}). Muutoksia ei sallita ennen migraatiota.",
+    "app.warn.appBehind":      "Tietokannan skeeman versio ({dbVersion}) on uudempi kuin sovelluksen versio ({appVersion}). Päivitä sovellus jatkaaksesi.",
     "nav.items": "Vaatteet",
     "nav.locations": "Sijainnit",
     "nav.categories": "Kategoriat",

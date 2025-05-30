@@ -46,7 +46,11 @@ export const ApiProvider = ({ children }) => {
   const [dbVersion, setDbVersion] = useState(null);
 
   const appMajor = parseInt(FORMAT_VERSION.split(".")[0], 10);
-  const isVersionMismatch = dbVersion !== null && dbVersion !== appMajor;
+  // DB behind (app > db) means you need to migrate
+  const isDbBehind   = dbVersion !== null && appMajor > dbVersion;
+  // App behind (db > app) means you need to upgrade your app
+  const isAppBehind  = dbVersion !== null && dbVersion > appMajor;
+  const isVersionMismatch = isDbBehind || isAppBehind;
   const writeAllowed = !isVersionMismatch;
 
   const bindApiMethods = useCallback(
@@ -95,6 +99,8 @@ export const ApiProvider = ({ children }) => {
     isConfigured: isConfigured,
     dbVersion,
     appMajor,
+    isDbBehind,
+    isAppBehind,
     isVersionMismatch,
     writeAllowed,
     ...apiMethods,

@@ -26,16 +26,8 @@ function App() {
   const api = useApi();
   const { settings } = useSettings();
 
-  const warn = api.isVersionMismatch
-    ? intl.formatMessage(
-        {
-          id: "app.warn.versionMismatch",
-          defaultMessage:
-            "Schema version mismatch (DB v{dbVersion} vs App v{appVersion}). Writes disabled until you migrate.",
-        },
-        { dbVersion: api.dbVersion, appVersion: api.appMajor },
-      )
-    : "";
+  // two flavors of version‐mismatch banners
+  // app ahead → migrate (link), db ahead → update your app
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -74,11 +66,22 @@ function App() {
 
   return (
     <BrowserRouter basename={baseUrl}>
-      {warn && (
+      {api.isDbBehind && (
         <div className="status-warning">
           <NavLink to="/migrate" className="migrate-link">
-            {warn}
+            {intl.formatMessage(
+              { id: "app.warn.versionMismatch" },
+              { dbVersion: api.dbVersion, appVersion: api.appMajor }
+            )}
           </NavLink>
+        </div>
+      )}
+      {api.isAppBehind && (
+        <div className="status-warning">
+          {intl.formatMessage(
+            { id: "app.warn.appBehind" },
+            { dbVersion: api.dbVersion, appVersion: api.appMajor }
+          )}
         </div>
       )}
       <div className="app">
