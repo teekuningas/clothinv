@@ -26,55 +26,95 @@ const STORES = {
 let dbPromise = null;
 
 const openDB = () => {
-    if (dbPromise) return dbPromise;
+  if (dbPromise) return dbPromise;
 
-    dbPromise = new Promise((resolve, reject) => {
-        // omit DB_VERSION here so that if the DB already exists at a given version
-        // we simply open it and do NOT fire onupgradeneeded
-        const request = indexedDB.open(DB_NAME);
+  dbPromise = (async () => {
+    // 1) probe existing version without bumping
+    let existingVersion = 0;
+    if (indexedDB.databases) {
+      // modern API: get list of DBs
+      const dbs = await indexedDB.databases();
+      const entry = dbs.find(d => d.name === DB_NAME);
+      existingVersion = entry?.version || 0;
+    } else {
+      // fallback: open+close quickly
+      try {
+        const tmp = await new Promise((res, rej) => {
+          const r = indexedDB.open(DB_NAME);
+          r.onsuccess = e => res(e.target.result);
+          r.onerror   = e => rej(e.target.error);
+        });
+        existingVersion = tmp.version;
+        tmp.close();
+      } catch {
+        existingVersion = 0;
+      }
+    }
 
-        request.onerror = (event) => {
-            console.error(`[${PROVIDER_NAME}]: IndexedDB error:`, event.target.error); // Add prefix
-            reject(`IndexedDB error: ${event.target.error}`);
-        };
+    // 2) pick open() signature:
+    //   – new DB? open(name, DB_VERSION) so onupgradeneeded runs
+    //   – existing? open(name) so no upgradeneeded, version stays the same
+    const request = existingVersion === 0
+      ? indexedDB.open(DB_NAME, DB_VERSION)
+      : indexedDB.open(DB_NAME);
 
-        request.onsuccess = (event) => {
-            console.log(`[${PROVIDER_NAME}]: IndexedDB opened successfully`); // Add prefix
-            resolve(event.target.result);
-        };
+    return new Promise((resolve, reject) => {
+      request.onerror = (event) => {
+        console.error(`[${PROVIDER_NAME}]: IndexedDB error:`, event.target.error);
+        reject(event.target.error);
+      };
 
-        request.onupgradeneeded = (event) => {
-            console.log(`[${PROVIDER_NAME}]: IndexedDB upgrade needed from version ${event.oldVersion} to ${event.newVersion}`); // Add prefix
-            const db          = event.target.result;
-            const transaction = event.target.transaction;
+      request.onsuccess = (event) => {
+        console.log(`[${PROVIDER_NAME}]: IndexedDB opened (v${event.target.result.version})`);
+        resolve(event.target.result);
+      };
 
-            // Create all object stores if missing
-            if (!db.objectStoreNames.contains(STORES.items)) {
-                db.createObjectStore(STORES.items, { keyPath: 'item_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.images)) {
-                db.createObjectStore(STORES.images);
-            }
-            if (!db.objectStoreNames.contains(STORES.locations)) {
-                db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.categories)) {
-                db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.owners)) {
-                db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
-            }
-            // Counters store (seed default nextId = 1 for each entity)
-            if (!db.objectStoreNames.contains(STORES.counters)) {
-                const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
-                ['items','locations','categories','owners']
-                  .forEach(entity => counterStore.put({ entity, nextId: 1 }));
-            }
+      // your existing upgrade handler (will only fire when existingVersion===0)
+      request.onupgradeneeded = (event) => {
+        const oldVer = event.oldVersion;
+        const newVer = event.newVersion;
+        console.log(
+          `[${PROVIDER_NAME}]: upgrade from v${oldVer} to v${newVer}`
+        );
+        if (oldVer !== 0) {
+          // skip migrations for now
+          console.warn(
+            `[${PROVIDER_NAME}]: skipping schema creation on existing DB`
+          );
+          return;
+        }
+        const db = event.target.result;
+        const transaction = event.target.transaction;
 
-            console.log("IndexedDB upgrade complete");
-        };
+        // Create all object stores if missing
+        if (!db.objectStoreNames.contains(STORES.items)) {
+            db.createObjectStore(STORES.items, { keyPath: 'item_id' });
+        }
+        if (!db.objectStoreNames.contains(STORES.images)) {
+            db.createObjectStore(STORES.images);
+        }
+        if (!db.objectStoreNames.contains(STORES.locations)) {
+            db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
+        }
+        if (!db.objectStoreNames.contains(STORES.categories)) {
+            db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
+        }
+        if (!db.objectStoreNames.contains(STORES.owners)) {
+            db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
+        }
+        // Counters store (seed default nextId = 1 for each entity)
+        if (!db.objectStoreNames.contains(STORES.counters)) {
+            const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
+            ['items','locations','categories','owners']
+              .forEach(entity => counterStore.put({ entity, nextId: 1 }));
+        }
+
+        console.log("IndexedDB upgrade complete");
+      };
     });
-    return dbPromise;
+  })();
+
+  return dbPromise;
 };
 
 // --- Helper Functions for IndexedDB Operations ---
