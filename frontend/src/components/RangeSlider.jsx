@@ -55,7 +55,7 @@ export default function RangeSlider({
         step={step}
         value={minVal}
         onChange={handleMin}
-        className="thumb thumb--min"
+        className="thumb thumb-min"
       />
       <input
         type="range"
@@ -64,7 +64,7 @@ export default function RangeSlider({
         step={step}
         value={maxVal}
         onChange={handleMax}
-        className="thumb thumb--max"
+        className="thumb thumb-max"
       />
       <div className="track" />
       <div className="range" />

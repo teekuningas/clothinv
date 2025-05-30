@@ -104,6 +104,7 @@
 .filter-group .range-slider {
   --range-left: inherit;      /* no-op */
   --range-width: inherit;     /* no-op */
+  margin-top: 8px;
 
   /* colors override */
 }
@@ -131,9 +132,6 @@
 }
 
 /* RangeSlider margin for filter group */
-.filter-group .range-slider {
-  margin-top: 8px;
-}
 
 .remove-image-button {
     font-size: 0.9em;
