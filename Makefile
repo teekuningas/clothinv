@@ -35,7 +35,8 @@ image_exists = $(shell sudo docker images -q $(1))
 	build-datasette-image \
 	start-backend-postgrest stop-backend-postgrest clean-backend-postgrest \
 	start-backends stop-backends clean-backends \
-	watch-frontend format
+	watch-frontend format \
+	test
 
 help:
 	@echo "Available commands:"
@@ -56,6 +57,8 @@ help:
 
 shell:
 	nix develop
+
+test: test-frontend
 
 # --- Build local Datasette image ---
 build-datasette-image:
@@ -219,6 +222,10 @@ clean-backends: clean-backend-datasette clean-backend-postgrest
 watch-frontend:
 	@echo "Starting frontend development server..."
 	@cd frontend && npm install && npm run dev
+
+test-frontend:
+	@echo "Running frontend unit tests..."
+	cd frontend && npm install && npm test
 
 format:
 	@cd frontend && npm run format:jsx

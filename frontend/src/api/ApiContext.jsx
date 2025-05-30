@@ -11,12 +11,12 @@ import {
   getProviderById,
   REQUIRED_API_METHODS,
 } from "./providerRegistry";
+import { FORMAT_VERSION } from "./exportFormat";
 
 const ApiContext = createContext();
 
 export const useApi = () => useContext(ApiContext);
 
-// --- Helper: Calculate Configuration Status --- (Moved before ApiProvider for clarity)
 const checkConfiguration = (providerType, settings) => {
   const provider = getProviderById(providerType);
   if (!provider || providerType === "none") {
@@ -43,8 +43,16 @@ export const ApiProvider = ({ children }) => {
   const isConfigured = checkConfiguration(apiProviderType, apiSettings);
 
   const [apiMethods, setApiMethods] = useState({});
+  const [dbVersion, setDbVersion] = useState(null);
 
-  // --- Helper: Bind API Methods ---
+  const appMajor = parseInt(FORMAT_VERSION.split(".")[0], 10);
+  // DB behind (app > db) means you need to migrate
+  const isDbBehind = dbVersion !== null && appMajor > dbVersion;
+  // App behind (db > app) means you need to upgrade your app
+  const isAppBehind = dbVersion !== null && dbVersion > appMajor;
+  const isVersionMismatch = isDbBehind || isAppBehind;
+  const writeAllowed = !isVersionMismatch;
+
   const bindApiMethods = useCallback(
     (providerType, currentApiSettings, configured) => {
       const newApiMethods = {};
@@ -68,18 +76,33 @@ export const ApiProvider = ({ children }) => {
       setApiMethods(newApiMethods);
     },
     [],
-  ); // No dependencies needed as it uses the passed currentConfig
+  );
 
-  // --- Effect: Bind API Methods on Config Change ---
   useEffect(() => {
     bindApiMethods(apiProviderType, apiSettings, isConfigured);
   }, [apiProviderType, apiSettings, isConfigured, bindApiMethods]);
 
-  // --- Context Value ---
+  useEffect(() => {
+    if (apiMethods.getDbVersion) {
+      apiMethods
+        .getDbVersion()
+        .then((v) => setDbVersion(v))
+        .catch(() => setDbVersion(1));
+    } else {
+      setDbVersion(1);
+    }
+  }, [apiMethods.getDbVersion]);
+
   const value = {
     apiProviderType: apiProviderType,
     apiSettings: apiSettings,
     isConfigured: isConfigured,
+    dbVersion,
+    appMajor,
+    isDbBehind,
+    isAppBehind,
+    isVersionMismatch,
+    writeAllowed,
     ...apiMethods,
   };
 

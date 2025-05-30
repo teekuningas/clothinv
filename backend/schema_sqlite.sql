@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS items (
     image_id INTEGER,
     image_uuid TEXT, -- Added column to store the UUID of the linked image
     owner_id INTEGER,
+    price REAL, -- nullable, two-decimal float
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
@@ -62,3 +63,9 @@ CREATE TABLE IF NOT EXISTS items (
     FOREIGN KEY (image_uuid) REFERENCES images(uuid) ON DELETE SET NULL, -- Added FK constraint for image UUID
     FOREIGN KEY (owner_id) REFERENCES owners(owner_id) ON DELETE SET NULL
 );
+
+-- Schema versioning table
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER NOT NULL
+);
+INSERT OR IGNORE INTO schema_version(version) VALUES(3);

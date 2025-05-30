@@ -7,6 +7,20 @@
     margin-top: 20px;
 }
 
+.price-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--color-primary);
+  color: var(--color-primary-text);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 1em;
+  font-weight: bold;
+  line-height: 1;
+  pointer-events: none;
+}
+
 /* --- Item Card --- */
 .item-card {
     border: 1px solid var(--color-border);

@@ -921,6 +921,7 @@ const SettingsView = () => {
                 onClick={handleImport}
                 className="button-danger"
                 disabled={
+                  !api.writeAllowed ||
                   !importFile ||
                   importStatus === "importing" ||
                   !api.importData || // Check if method exists on api object
@@ -985,6 +986,7 @@ const SettingsView = () => {
                 onClick={handleDestroy}
                 className="button-danger"
                 disabled={
+                  !api.writeAllowed ||
                   destroyStatus === "destroying" ||
                   !api.destroyData || // Check if method exists on api object
                   !api.isConfigured // Use api.isConfigured

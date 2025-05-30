@@ -5,15 +5,10 @@ import {
     createCSV,
     parseCSV,
     getMimeTypeFromFilename,
-    // No image helpers needed directly here as we store File objects
-} from './providerUtils'; // Import shared utilities
+} from './providerUtils';
 
-// At the top of the file, for convenience
 const PROVIDER_NAME = "IndexedDB Provider";
-
-// --- IndexedDB Setup ---
 const DB_NAME    = 'ClothinvInventoryDB';
-const DB_VERSION = 1; // single‐version schema
 const STORES = {
     items: 'items',
     images: 'images', // Note: Stores File objects, keyed by item_id (integer)
@@ -21,58 +16,66 @@ const STORES = {
     categories: 'categories', // Stores category metadata, keyed by category_id
     owners: 'owners', // Stores owner metadata, keyed by owner_id
     counters: 'counters', // Stores next available ID for each entity type
+    schema_version: 'schema_version' // Stores schema version
 };
 
 let dbPromise = null;
 
 const openDB = () => {
-    if (dbPromise) return dbPromise;
+  if (dbPromise) return dbPromise;
 
-    dbPromise = new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+  dbPromise = (async () => {
+    // always open (or create) with the browser’s default version number
+    const request = indexedDB.open(DB_NAME);
 
-        request.onerror = (event) => {
-            console.error(`[${PROVIDER_NAME}]: IndexedDB error:`, event.target.error); // Add prefix
-            reject(`IndexedDB error: ${event.target.error}`);
-        };
+    return new Promise((resolve, reject) => {
+      request.onerror = (event) => {
+        console.error(`[${PROVIDER_NAME}]: IndexedDB error:`, event.target.error);
+        reject(event.target.error);
+      };
 
-        request.onsuccess = (event) => {
-            console.log(`[${PROVIDER_NAME}]: IndexedDB opened successfully`); // Add prefix
-            resolve(event.target.result);
-        };
+      request.onsuccess = (event) => {
+        console.log(`[${PROVIDER_NAME}]: IndexedDB opened.`);
+        resolve(event.target.result);
+      };
 
-        request.onupgradeneeded = (event) => {
-            console.log(`[${PROVIDER_NAME}]: IndexedDB upgrade needed from version ${event.oldVersion} to ${event.newVersion}`); // Add prefix
-            const db          = event.target.result;
-            const transaction = event.target.transaction;
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        const transaction = event.target.transaction;
 
-            // Create all object stores if missing
-            if (!db.objectStoreNames.contains(STORES.items)) {
-                db.createObjectStore(STORES.items, { keyPath: 'item_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.images)) {
-                db.createObjectStore(STORES.images);
-            }
-            if (!db.objectStoreNames.contains(STORES.locations)) {
-                db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.categories)) {
-                db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
-            }
-            if (!db.objectStoreNames.contains(STORES.owners)) {
-                db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
-            }
-            // Counters store (seed default nextId = 1 for each entity)
-            if (!db.objectStoreNames.contains(STORES.counters)) {
-                const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
-                ['items','locations','categories','owners']
-                  .forEach(entity => counterStore.put({ entity, nextId: 1 }));
-            }
+        // Create all object stores if missing
+        if (!db.objectStoreNames.contains(STORES.items)) {
+            db.createObjectStore(STORES.items, { keyPath: 'item_id' });
+        }
+        if (!db.objectStoreNames.contains(STORES.images)) {
+            db.createObjectStore(STORES.images);
+        }
+        if (!db.objectStoreNames.contains(STORES.locations)) {
+            db.createObjectStore(STORES.locations, { keyPath: 'location_id' });
+        }
+        if (!db.objectStoreNames.contains(STORES.categories)) {
+            db.createObjectStore(STORES.categories, { keyPath: 'category_id' });
+        }
+        if (!db.objectStoreNames.contains(STORES.owners)) {
+            db.createObjectStore(STORES.owners, { keyPath: 'owner_id' });
+        }
+        // Counters store (seed default nextId = 1 for each entity)
+        if (!db.objectStoreNames.contains(STORES.counters)) {
+            const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
+            ['items','locations','categories','owners']
+              .forEach(entity => counterStore.put({ entity, nextId: 1 }));
+        }
+        if (!db.objectStoreNames.contains(STORES.schema_version)) {
+            const versionStore = db.createObjectStore(STORES.schema_version, { keyPath: 'key' });
+            versionStore.put({ key: 'db_version', value: 2 });
+        }
 
-            console.log("IndexedDB upgrade complete");
-        };
+        console.log(`[${PROVIDER_NAME}]: IndexedDB creation complete.`);
+      };
     });
-    return dbPromise;
+  })();
+
+  return dbPromise;
 };
 
 // --- Helper Functions for IndexedDB Operations ---
@@ -160,7 +163,7 @@ export const exportData = async (settings) => {
         const imageHeaders = ['image_id', 'uuid', 'image_mimetype', 'image_filename', 'created_at']; // Using item_id as image_id for simplicity here
         const imagesForCsv = [];
 
-        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'price', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
@@ -357,6 +360,13 @@ async function importDataV1(settings, loadedZip) {
             itemMetadata.updated_at = itemMetadata.updated_at || null;
             itemMetadata.image_uuid = imageUuid; // Store the image's UUID in the item metadata
 
+            // Add price support: parse price as number or null
+            if (itemMetadata.price !== '' && itemMetadata.price != null) {
+                itemMetadata.price = parseFloat(itemMetadata.price);
+            } else {
+                itemMetadata.price = null;
+            }
+
             // Use a transaction to add item and image together
             const dbItem = await openDB();
             const itemTx = dbItem.transaction([STORES.items, STORES.images], 'readwrite');
@@ -418,13 +428,15 @@ export const importData = async (settings, zipFile) => {
     }
 
     switch (version) {
-        case FORMAT_VERSION:
-            return importDataV1(settings, loadedZip);
-        default:
-            return {
-                success: false,
-                error: `Unsupported export format version: ${version}`,
-            };
+      case "1.0":
+      case "2.0":
+      case FORMAT_VERSION:
+        return importDataV1(settings, loadedZip);
+      default:
+        return {
+          success: false,
+          error: `Unsupported export format version: ${version}`,
+        };
     }
 };
 
@@ -538,6 +550,16 @@ const getFromStore = async (storeName, key) => {
             reject(`Error getting ${key} from ${storeName}: ${event.target.error}`);
         };
     });
+};
+
+export const getDbVersion = async () => {
+    try {
+        const rec = await getFromStore(STORES.schema_version, 'db_version');
+        return rec?.value ?? 1;
+    } catch {
+        // With missing version, default to 1
+        return 1;
+    }
 };
 
 // --- Exported API Methods ---
@@ -861,7 +883,7 @@ export const getImage = async (settings, inputData) => {
 };
 
 export const addItem = async (settings, data) => {
-    const { imageFile, ...restOfData } = data; // Separate image file from metadata
+    const { imageFile, price, ...restOfData } = data; // Separate image file and price from metadata
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
@@ -903,6 +925,7 @@ export const addItem = async (settings, data) => {
             // Prepare item metadata with the new ID
             const newItemMetadata = {
                 ...restOfData,
+                price: price == null ? null : parseFloat(price),
                 item_id: newId,
                 uuid: newItemUuid, // Add item UUID
                 image_uuid: newImageUuid, // Add image UUID (or null)
@@ -944,7 +967,7 @@ export const addItem = async (settings, data) => {
 
 
 export const updateItem = async (settings, inputData) => {
-    const { item_id: itemId, ...data } = inputData;
+    const { item_id: itemId, price, removeImage, imageFile, uuid, image_uuid, ...restOfData } = inputData;
 
     // Get existing item metadata first
     const existingItem = await getFromStore(STORES.items, itemId);
@@ -952,14 +975,13 @@ export const updateItem = async (settings, inputData) => {
         return { success: false, message: 'Item not found' };
     }
 
-    const { imageFile, removeImage, uuid, image_uuid, ...restOfData } = data; // Exclude UUIDs from update data
-
     let newImageUuid = existingItem.image_uuid; // Keep existing image UUID by default
 
     // Prepare updated metadata
     const updatedItemMetadata = {
         ...existingItem,
         ...restOfData,
+        price: price == null ? null : parseFloat(price),
         updated_at: new Date().toISOString()
     };
 

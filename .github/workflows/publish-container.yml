@@ -20,6 +20,14 @@ jobs:
       shell: bash
       run: echo "IMAGE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 'lts/*'
+
+    - name: Run frontend unit tests
+      run: make test
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 

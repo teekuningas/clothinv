@@ -16,6 +16,7 @@ import OwnersView from "./components/OwnersView";
 import SettingsView from "./components/SettingsView";
 import ConfigureFromUrlView from "./components/ConfigureFromUrlView";
 import ShareConfigurationLinkView from "./components/ShareConfigurationLinkView";
+import MigrateView from "./components/MigrateView";
 import "./App.css";
 
 function App() {
@@ -62,6 +63,24 @@ function App() {
 
   return (
     <BrowserRouter basename={baseUrl}>
+      {api.isDbBehind && (
+        <div className="status-warning">
+          <NavLink to="/migrate" className="migrate-link">
+            {intl.formatMessage(
+              { id: "app.warn.versionMismatch" },
+              { dbVersion: api.dbVersion, appVersion: api.appMajor },
+            )}
+          </NavLink>
+        </div>
+      )}
+      {api.isAppBehind && (
+        <div className="status-warning">
+          {intl.formatMessage(
+            { id: "app.warn.appBehind" },
+            { dbVersion: api.dbVersion, appVersion: api.appMajor },
+          )}
+        </div>
+      )}
       <div className="app">
         <header className="app-header">
           <h1>
@@ -206,6 +225,7 @@ function App() {
               path="/share-configuration"
               element={<ShareConfigurationLinkView />}
             />
+            <Route path="/migrate" element={<MigrateView />} />
           </Routes>
           <div
             className="global-warnings"

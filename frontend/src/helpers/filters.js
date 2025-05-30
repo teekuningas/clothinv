@@ -1,6 +1,11 @@
 
-// Helper function to parse sort criteria string
 const parseSortCriteria = (criteria) => {
+  if (criteria === "price_asc") {
+    return { sortBy: "price", sortOrder: "asc" };
+  }
+  if (criteria === "price_desc") {
+    return { sortBy: "price", sortOrder: "desc" };
+  }
   if (criteria.endsWith("_asc")) {
     return { sortBy: criteria.slice(0, -4), sortOrder: "asc" };
   }
@@ -18,7 +23,7 @@ export const processItems = (
 ) => {
   let processedItems = [...allItemsMetadata]; // Start with a copy of all items
 
-  const { filterName, filterLocationIds, filterCategoryIds, filterOwnerIds } = filterCriteria;
+  const { filterName, filterLocationIds, filterCategoryIds, filterOwnerIds, filterPriceMin, filterPriceMax } = filterCriteria;
   const { currentPage, pageSize } = paginationCriteria;
 
   // 1. Filtering
@@ -38,6 +43,15 @@ export const processItems = (
   if (filterOwnerIds && filterOwnerIds.length > 0) {
     processedItems = processedItems.filter(item => filterOwnerIds.includes(item.owner_id));
   }
+  // Price range filter
+  if (typeof filterPriceMin !== "undefined" || typeof filterPriceMax !== "undefined") {
+    processedItems = processedItems.filter(item => {
+      if (item.price == null) return true;
+      if (typeof filterPriceMin === "number" && item.price < filterPriceMin) return false;
+      if (typeof filterPriceMax === "number" && item.price > filterPriceMax) return false;
+      return true;
+    });
+  }
 
   // This is the count of items *after* filtering, but *before* pagination.
   const totalFilteredItemsCount = processedItems.length;
@@ -48,8 +62,12 @@ export const processItems = (
     let valA = a[sortBy];
     let valB = b[sortBy];
 
+    if (sortBy === "price") {
+      valA = typeof valA === "number" ? valA : 0;
+      valB = typeof valB === "number" ? valB : 0;
+    }
     // Handle date strings for created_at/updated_at
-    if (sortBy.endsWith("_at") && typeof valA === 'string' && typeof valB === 'string') {
+    else if (sortBy.endsWith("_at") && typeof valA === 'string' && typeof valB === 'string') {
       valA = new Date(valA);
       valB = new Date(valB);
     } else if (typeof valA === 'string' && typeof valB === 'string') {

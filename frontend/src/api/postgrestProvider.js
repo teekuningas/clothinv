@@ -30,6 +30,21 @@ const defaultHeaders = (settings, preferRepresentation = true) => {
     return headers;
 };
 
+export const getDbVersion = async (settings) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) return 1;
+    try {
+        const res = await fetch(`${baseUrl}/schema_version?select=version&limit=1`, {
+            headers: defaultHeaders(settings, false)
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        return data[0]?.version || 1;
+    } catch {
+        return 1;
+    }
+};
+
 // handleResponse updated for PostgREST error format
 const handleResponse = async (res, operation, entityDescription) => {
     if (!res.ok) {
@@ -397,6 +412,7 @@ export const addItem = async (settings, data) => {
         location_id: data.location_id,
         category_id: data.category_id,
         owner_id: data.owner_id,
+        price: typeof data.price !== "undefined" && data.price !== null ? parseFloat(data.price) : null,
         uuid: newItemUuid, // Add item UUID (or undefined for PG default)
         image_id: imageId, // Use the inserted image ID or null
         image_uuid: imageUuid, // Use the inserted image UUID or null
@@ -480,6 +496,7 @@ export const updateItem = async (settings, inputData) => { // data should NOT co
         location_id: updateData.location_id,
         category_id: updateData.category_id,
         owner_id: updateData.owner_id,
+        price: typeof updateData.price !== "undefined" && updateData.price !== null ? parseFloat(updateData.price) : null,
         image_id: newImageId, // Set the potentially updated image ID
         image_uuid: newImageUuid, // Set the potentially updated image UUID
     };
@@ -660,7 +677,7 @@ export const exportData = async (settings) => {
         const imageHeaders = ['image_id', 'uuid', 'image_mimetype', 'image_filename', 'created_at'];
         zip.file('images.csv', createCSV(imageHeaders, allImagesMeta));
 
-        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
+        const itemHeaders = ['item_id', 'uuid', 'name', 'description', 'location_id', 'category_id', 'price', 'owner_id', 'image_id', 'image_uuid', 'image_zip_filename', 'image_original_filename', 'created_at', 'updated_at'];
         const itemsForCsv = [];
         const imagesFolder = zip.folder('images');
 
@@ -810,6 +827,10 @@ async function importDataV1(settings, loadedZip) {
                 uuid: itemUuid, // Pass item UUID from CSV
                 location_id: locationMap[location_id], // Map to new ID
                 category_id: categoryMap[category_id], // Map to new ID
+                price: 
+                  itemMetadata.price !== '' && itemMetadata.price != null
+                    ? parseFloat(itemMetadata.price)
+                    : null,
                 owner_id: ownerMap[owner_id], // Map to new ID
                 image_uuid: imageFile ? imageUuidFromCsv : undefined, // <<< ADD THIS LINE: Pass image UUID from CSV if there's an image
                 imageFile: imageFile,               // Pass the File object (addItem will handle base64 conversion)
@@ -868,13 +889,15 @@ export const importData = async (settings, zipFile) => {
     }
 
     switch (version) {
-        case FORMAT_VERSION:
-            return importDataV1(settings, loadedZip);
-        default:
-            return {
-                success: false,
-                error: `Unsupported export format version: ${version}`,
-            };
+      case "1.0":
+      case "2.0":
+      case FORMAT_VERSION:
+        return importDataV1(settings, loadedZip);
+      default:
+        return {
+          success: false,
+          error: `Unsupported export format version: ${version}`,
+        };
     }
 };
 
