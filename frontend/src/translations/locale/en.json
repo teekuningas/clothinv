@@ -270,5 +270,9 @@
     "api.import.errorDetailInconsistent": "Import failed: {detail}. Data might be in an inconsistent state.",
     "api.import.errorDetail": "Import failed: {detail}.",
     "api.destroy.errorDetailInconsistent": "Data destruction failed: {detail}. Data might be in an inconsistent state.",
-    "api.destroy.errorDetail": "Data destruction failed: {detail}."
+    "api.destroy.errorDetail": "Data destruction failed: {detail}.",
+    "migrate.title": "Database Migration Needed",
+    "migrate.versionInfo": "Your database is version {dbVersion} but this app is version {appVersion}.",
+    "migrate.description.exportImport": "Please export your data, recreate an empty database, then import your data back. That will align your schema with this version.",
+    "migrate.description.indexedDB": "Please export your data, delete the IndexedDB entry in your browser settings, then import your data again to rebuild the database at the current version."
 }

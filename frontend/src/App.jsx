@@ -16,6 +16,7 @@ import OwnersView from "./components/OwnersView";
 import SettingsView from "./components/SettingsView";
 import ConfigureFromUrlView from "./components/ConfigureFromUrlView";
 import ShareConfigurationLinkView from "./components/ShareConfigurationLinkView";
+import MigrateView from "./components/MigrateView";
 import "./App.css";
 
 function App() {
@@ -73,7 +74,13 @@ function App() {
 
   return (
     <BrowserRouter basename={baseUrl}>
-      {warn && <div className="status-warning">{warn}</div>}
+      {warn && (
+        <div className="status-warning">
+          <NavLink to="/migrate" className="migrate-link">
+            {warn}
+          </NavLink>
+        </div>
+      )}
       <div className="app">
         <header className="app-header">
           <h1>
