@@ -29,7 +29,9 @@ const openDB = () => {
     if (dbPromise) return dbPromise;
 
     dbPromise = new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        // omit DB_VERSION here so that if the DB already exists at a given version
+        // we simply open it and do NOT fire onupgradeneeded
+        const request = indexedDB.open(DB_NAME);
 
         request.onerror = (event) => {
             console.error(`[${PROVIDER_NAME}]: IndexedDB error:`, event.target.error); // Add prefix
@@ -540,8 +542,24 @@ const getFromStore = async (storeName, key) => {
     });
 };
 
-export const getDbVersion = async (/* settings */) => {
-    return DB_VERSION; // existing constant = 1
+export const getDbVersion = () => {
+    return new Promise((resolve, reject) => {
+        // open only by name, so we get the real current version
+        const req = indexedDB.open(DB_NAME);
+        req.onsuccess = () => {
+            const db = req.result;
+            const ver = db.version;
+            db.close();
+            resolve(ver);
+        };
+        req.onerror = (evt) => {
+            console.error(
+              `[${PROVIDER_NAME}]: Error reading IndexedDB version:`,
+              evt.target.error
+            );
+            reject(evt.target.error);
+        };
+    });
 };
 
 // --- Exported API Methods ---
