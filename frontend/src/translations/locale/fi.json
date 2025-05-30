@@ -180,6 +180,7 @@
     "items.addForm.nameLabel": "Nimi:",
     "items.addForm.descriptionLabel": "Kuvaus:",
     "items.addForm.priceLabel":    "Hinta:",
+    "items.addForm.pricePlaceholder": "esim. 3,50",
     "items.addForm.locationLabel": "Sijainti:",
     "items.addForm.categoryLabel": "Kategoria:",
     "items.addForm.ownerLabel": "Omistaja:",
