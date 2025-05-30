@@ -31,6 +31,7 @@ const ItemsView = () => {
 
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
+  const [newItemPrice, setNewItemPrice] = useState("");
   const [newItemLocationId, setNewItemLocationId] = useState("");
   const [newItemCategoryId, setNewItemCategoryId] = useState("");
   const [newItemImageFile, setNewItemImageFile] = useState(null);
@@ -43,6 +44,7 @@ const ItemsView = () => {
   const [editingItemId, setEditingItemId] = useState(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editItemPrice, setEditItemPrice] = useState("");
   const [editLocationId, setEditLocationId] = useState("");
   const [editCategoryId, setEditCategoryId] = useState("");
   const [editItemImageFile, setEditItemImageFile] = useState(null);
@@ -506,6 +508,7 @@ const ItemsView = () => {
     // Reset form fields when opening the modal
     setNewItemName("");
     setNewItemDescription("");
+    setNewItemPrice("");
     setNewItemLocationId("");
     setNewItemCategoryId("");
     if (addImageUrl) URL.revokeObjectURL(addImageUrl);
@@ -532,6 +535,7 @@ const ItemsView = () => {
     // Reset form fields
     setNewItemName("");
     setNewItemDescription("");
+    setNewItemPrice("");
     setNewItemLocationId("");
     setNewItemCategoryId("");
     if (addImageUrl) URL.revokeObjectURL(addImageUrl);
@@ -592,6 +596,15 @@ const ItemsView = () => {
       return;
     }
 
+    // Validate price if entered
+    if (newItemPrice !== "") {
+      const p = parseFloat(newItemPrice);
+      if (isNaN(p) || p < 0) {
+        setAddItemError("Price must be ≥ 0");
+        return;
+      }
+    }
+
     setLoading(true);
     setAddItemError(null); // Clear previous modal-specific error
 
@@ -636,6 +649,7 @@ const ItemsView = () => {
       const result = await api.addItem({
         name: newItemName.trim(),
         description: newItemDescription.trim() || null,
+        price: newItemPrice !== "" ? parseFloat(newItemPrice) : null,
         location_id: parseInt(newItemLocationId, 10),
         category_id: parseInt(newItemCategoryId, 10),
         owner_id: parseInt(newItemOwnerId, 10),
@@ -731,6 +745,11 @@ const ItemsView = () => {
     setEditingItemId(itemToEdit.item_id);
     setEditName(itemToEdit.name);
     setEditDescription(itemToEdit.description || "");
+    setEditItemPrice(
+      typeof itemToEdit.price === "number" && itemToEdit.price !== null
+        ? itemToEdit.price.toString()
+        : ""
+    );
     setEditLocationId(itemToEdit.location_id || "");
     setEditCategoryId(itemToEdit.category_id || "");
     setEditOwnerId(itemToEdit.owner_id || "");
@@ -757,6 +776,7 @@ const ItemsView = () => {
     setEditingItemId(null);
     setEditName("");
     setEditDescription("");
+    setEditItemPrice("");
     setEditLocationId("");
     setEditCategoryId("");
     setEditOwnerId("");
@@ -802,6 +822,16 @@ const ItemsView = () => {
     setUpdateError(null);
     setSuccess(null);
 
+    // Validate price if entered
+    if (editItemPrice !== "") {
+      const p = parseFloat(editItemPrice);
+      if (isNaN(p) || p < 0) {
+        setUpdateError("Price must be ≥ 0");
+        setIsUpdating(false);
+        return;
+      }
+    }
+
     try {
       let fileToSend = null;
       // Process image before sending if a new file was selected AND compression is enabled
@@ -844,6 +874,7 @@ const ItemsView = () => {
         item_id: editingItemId,
         name: editName.trim(),
         description: editDescription.trim() || null,
+        price: editItemPrice !== "" ? parseFloat(editItemPrice) : null,
         location_id: parseInt(editLocationId, 10),
         category_id: parseInt(editCategoryId, 10),
         owner_id: parseInt(editOwnerId, 10),
@@ -1381,6 +1412,21 @@ const ItemsView = () => {
                 disabled={loading}
               />
             </div>
+            <div className="form-group">
+              <label htmlFor="item-price-modal">
+                Price:
+              </label>
+              <input
+                type="number"
+                id="item-price-modal"
+                step="0.01"
+                min="0"
+                value={newItemPrice}
+                onChange={e => setNewItemPrice(e.target.value)}
+                placeholder="e.g. 3.50"
+                disabled={loading}
+              />
+            </div>
             <div className="form-group form-group-image">
               <label htmlFor="item-image-modal">
                 {intl.formatMessage({
@@ -1626,6 +1672,21 @@ const ItemsView = () => {
                     id="edit-item-description"
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
+                    disabled={isUpdating || isDeleting}
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="edit-item-price">
+                    Price:
+                  </label>
+                  <input
+                    type="number"
+                    id="edit-item-price"
+                    step="0.01"
+                    min="0"
+                    value={editItemPrice}
+                    onChange={e => setEditItemPrice(e.target.value)}
+                    placeholder="e.g. 3.50"
                     disabled={isUpdating || isDeleting}
                   />
                 </div>

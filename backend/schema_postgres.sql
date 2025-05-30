@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS items (
     image_id INTEGER, -- Foreign key to images.image_id
     image_uuid UUID, -- The UUID of the linked image
     owner_id INTEGER,
+    price NUMERIC(10,2), -- nullable, two-decimal float
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ, -- Trigger will handle updates
     FOREIGN KEY (location_id) REFERENCES locations(location_id) ON DELETE SET NULL,
@@ -99,5 +100,5 @@ CREATE TABLE IF NOT EXISTS schema_version (
     version INTEGER NOT NULL
 );
 INSERT INTO schema_version(version)
-  SELECT 2
+  SELECT 3
   WHERE NOT EXISTS (SELECT 1 FROM schema_version);

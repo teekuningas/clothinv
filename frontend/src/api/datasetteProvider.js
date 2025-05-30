@@ -551,6 +551,7 @@ export const addItem = async (settings, data) => {
         location_id: data.location_id,
         category_id: data.category_id,
         owner_id: data.owner_id, // Add owner_id
+        price: typeof data.price !== "undefined" && data.price !== null ? parseFloat(data.price) : null,
         uuid: newItemUuid, // Add item UUID
         image_id: imageId, // Use the inserted image ID or null
         image_uuid: imageUuid, // Use the inserted image UUID or null
@@ -637,7 +638,10 @@ export const updateItem = async (settings, inputData) => { // data should NOT co
         update: {
             name: updateData.name,
             description: updateData.description || null,
-            location_id: updateData.location_id, category_id: updateData.category_id, owner_id: updateData.owner_id,
+            location_id: updateData.location_id,
+            category_id: updateData.category_id,
+            owner_id: updateData.owner_id,
+            price: typeof updateData.price !== "undefined" && updateData.price !== null ? parseFloat(updateData.price) : null,
             image_id: newImageId, // Set the potentially updated image ID
             image_uuid: newImageUuid, // Set the potentially updated image UUID
             updated_at: new Date().toISOString() // Add the current timestamp

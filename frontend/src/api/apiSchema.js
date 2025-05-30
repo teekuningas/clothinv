@@ -49,6 +49,7 @@
  * @property {ProviderID} owner_id
  * @property {ProviderID | null} image_id - Provider-specific ID for the image record.
  * @property {UUID | null} image_uuid - UUID for the image content.
+ * @property {number|null} price
  * @property {Timestamp} created_at
  * @property {Timestamp} updated_at
  */
@@ -128,6 +129,7 @@ export const ListItemsOutputSchema = Array; // Array of ItemMetadata
  * @property {ProviderID} category_id
  * @property {ProviderID} owner_id
  * @property {(FileObject | null)=} imageFile
+ * @property {(number|string|null)=} price
  * @property {UUID=} uuid - Optional item UUID (for import).
  * @property {UUID=} image_uuid - Optional image UUID (for import, if imageFile is also provided).
  */
@@ -150,6 +152,7 @@ export const AddItemOutputSchema = Object;
  * @property {ProviderID} category_id
  * @property {ProviderID} owner_id
  * @property {(FileObject | null)=} imageFile
+ * @property {(number|string|null)=} price
  * @property {(boolean)=} removeImage
  */
 export const UpdateItemInputSchema = Object;

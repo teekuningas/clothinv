@@ -874,7 +874,7 @@ export const getImage = async (settings, inputData) => {
 };
 
 export const addItem = async (settings, data) => {
-    const { imageFile, ...restOfData } = data; // Separate image file from metadata
+    const { imageFile, price, ...restOfData } = data; // Separate image file and price from metadata
     const db = await openDB();
 
     return new Promise((resolve, reject) => {
@@ -916,6 +916,7 @@ export const addItem = async (settings, data) => {
             // Prepare item metadata with the new ID
             const newItemMetadata = {
                 ...restOfData,
+                price: price == null ? null : parseFloat(price),
                 item_id: newId,
                 uuid: newItemUuid, // Add item UUID
                 image_uuid: newImageUuid, // Add image UUID (or null)
@@ -957,7 +958,7 @@ export const addItem = async (settings, data) => {
 
 
 export const updateItem = async (settings, inputData) => {
-    const { item_id: itemId, ...data } = inputData;
+    const { item_id: itemId, price, removeImage, imageFile, uuid, image_uuid, ...restOfData } = inputData;
 
     // Get existing item metadata first
     const existingItem = await getFromStore(STORES.items, itemId);
@@ -965,14 +966,13 @@ export const updateItem = async (settings, inputData) => {
         return { success: false, message: 'Item not found' };
     }
 
-    const { imageFile, removeImage, uuid, image_uuid, ...restOfData } = data; // Exclude UUIDs from update data
-
     let newImageUuid = existingItem.image_uuid; // Keep existing image UUID by default
 
     // Prepare updated metadata
     const updatedItemMetadata = {
         ...existingItem,
         ...restOfData,
+        price: price == null ? null : parseFloat(price),
         updated_at: new Date().toISOString()
     };
 
