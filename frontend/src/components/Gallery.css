@@ -14,8 +14,8 @@
   background-color: var(--color-primary);
   color: var(--color-primary-text);
   border-radius: 12px;
-  padding: 2px 8px;
-  font-size: 0.85em;
+  padding: 4px 10px;
+  font-size: 1em;
   font-weight: bold;
   line-height: 1;
   pointer-events: none;

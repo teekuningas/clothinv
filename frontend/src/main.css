@@ -272,6 +272,7 @@ button:disabled {
 /* Base Input Styles (Applied via .form-group > input/select) */
 .form-group input[type="text"],
 .form-group input[type="password"],
+.form-group input[type="number"],
 .form-group select {
     width: 100%;
     padding: 8px 10px;
