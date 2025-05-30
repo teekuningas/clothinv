@@ -312,27 +312,37 @@ const ItemsView = () => {
     loading,
   ]);
 
-  // Effect for scroll-based infinite loading
+  // ─── intersection observer for infinite loading ───
   useEffect(() => {
     if (!api.isConfigured || typeof api.listItems !== "function") return;
+    if (!hasMoreItems || loading) return;
 
-    const onScroll = () => {
-      if (loading || !hasMoreItems) return;
-      const scrollPos = window.innerHeight + window.pageYOffset;
-      const threshold = document.documentElement.scrollHeight - 200;
-      if (scrollPos >= threshold) {
-        setCurrentPage((p) => p + 1);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !loading && hasMoreItems) {
+          setCurrentPage(p => p + 1);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "200px",   // fire a bit before the loader comes into view
+        threshold: 0
       }
-    };
+    );
 
-    window.addEventListener("scroll", onScroll);
-    // trigger right away in case the content is shorter than the viewport
-    onScroll();
+    const node = loaderRef.current;
+    if (node) observer.observe(node);
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      observer.disconnect();
     };
-  }, [hasMoreItems, loading, api.isConfigured, api.listItems]);
+  }, [
+    api.isConfigured,
+    api.listItems,
+    hasMoreItems,
+    loading,
+    loaderRef
+  ]);
 
   // Effect to fetch images for displayed items
   useEffect(() => {
