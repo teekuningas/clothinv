@@ -29,6 +29,8 @@ const openDB = () => {
     const entry = dbs.find(d => d.name === DB_NAME);
     const existingVersion = entry?.version || 0;
 
+    console.log(existingVersion);
+
     // If no database, existingVersion === 0
     const request = existingVersion === 0
       ? indexedDB.open(DB_NAME, DB_VERSION)
