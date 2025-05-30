@@ -22,6 +22,11 @@ const Gallery = ({
     <div className="items-list">
       {items.map((item) => (
         <div key={item.item_id} className="item-card">
+          {item.price != null && (
+            <div className="price-badge">
+              {item.price.toFixed(2)}
+            </div>
+          )}
           <div
             className={`item-image-container ${!displayedItemImageUrls[item.item_id] ? "placeholder" : ""} ${displayedItemImageUrls[item.item_id] ? "clickable" : ""}`}
             onClick={() =>
