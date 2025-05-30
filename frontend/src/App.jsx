@@ -26,7 +26,14 @@ function App() {
   const { settings } = useSettings();
 
   const warn = api.isVersionMismatch
-    ? `Schema version mismatch (DB v${api.dbVersion} vs App v${api.appMajor}). Writes disabled until you migrate.`
+    ? intl.formatMessage(
+        {
+          id: "app.warn.versionMismatch",
+          defaultMessage:
+            "Schema version mismatch (DB v{dbVersion} vs App v{appVersion}). Writes disabled until you migrate."
+        },
+        { dbVersion: api.dbVersion, appVersion: api.appMajor }
+      )
     : "";
 
   const toggleMobileMenu = () => {

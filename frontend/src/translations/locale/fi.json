@@ -270,4 +270,5 @@
     "api.import.errorDetail": "Tuonti epäonnistui: {detail}.",
     "api.destroy.errorDetailInconsistent": "Tietojen tuhoaminen epäonnistui: {detail}. Tiedot saattavat olla epäyhtenäisessä tilassa.",
     "api.destroy.errorDetail": "Tietojen tuhoaminen epäonnistui: {detail}."
+  "app.warn.versionMismatch": "Skeeman versio ei täsmää (DB v{dbVersion} vs Sovellus v{appVersion}). Kirjoituksia ei sallita ennen migraatiota."
 }
