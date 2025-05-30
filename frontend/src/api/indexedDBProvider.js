@@ -16,6 +16,7 @@ const STORES = {
     categories: 'categories', // Stores category metadata, keyed by category_id
     owners: 'owners', // Stores owner metadata, keyed by owner_id
     counters: 'counters', // Stores next available ID for each entity type
+    schema_version: 'schema_version' // Stores unified schema version
 };
 
 let dbPromise = null;
@@ -63,6 +64,10 @@ const openDB = () => {
             const counterStore = db.createObjectStore(STORES.counters, { keyPath: 'entity' });
             ['items','locations','categories','owners']
               .forEach(entity => counterStore.put({ entity, nextId: 1 }));
+        }
+        if (!db.objectStoreNames.contains(STORES.schema_version)) {
+            const versionStore = db.createObjectStore(STORES.schema_version, { keyPath: 'key' });
+            versionStore.put({ key: 'db_version', value: 2 });
         }
 
         console.log(`[${PROVIDER_NAME}]: IndexedDB creation complete.`);
@@ -539,7 +544,14 @@ const getFromStore = async (storeName, key) => {
 };
 
 // schema‐version is now decoupled from internal IDB version
-export const getDbVersion = async () => 1;
+export const getDbVersion = async () => {
+    try {
+        const rec = await getFromStore(STORES.schema_version, 'db_version');
+        return rec?.value ?? 1;
+    } catch {
+        return 1;
+    }
+};
 
 // --- Exported API Methods ---
 

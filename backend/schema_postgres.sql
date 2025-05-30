@@ -93,3 +93,11 @@ CREATE TRIGGER update_items_updated_at
 BEFORE UPDATE ON items
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+-- Schema versioning table
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INTEGER NOT NULL
+);
+INSERT INTO schema_version(version)
+  SELECT 2
+  WHERE NOT EXISTS (SELECT 1 FROM schema_version);

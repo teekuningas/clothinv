@@ -27,8 +27,20 @@ const defaultHeaders = (settings) => {
     return headers;
 };
 
-export const getDbVersion = async (/* settings */) => {
-    return 1;
+export const getDbVersion = async (settings) => {
+    try {
+        const baseUrl = settings?.datasetteBaseUrl;
+        if (!baseUrl) return 1;
+        const res = await fetch(
+            `${baseUrl}/schema_version.json?_shape=array&_select=version&_size=1`,
+            { headers: { 'Accept': 'application/json' } }
+        );
+        if (!res.ok) throw new Error();
+        const arr = await res.json();
+        return arr[0]?.version || 1;
+    } catch {
+        return 1;
+    }
 };
 
 // handleResponse updated to be more generic and return JSON if possible

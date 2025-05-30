@@ -30,9 +30,19 @@ const defaultHeaders = (settings, preferRepresentation = true) => {
     return headers;
 };
 
-export const getDbVersion = async (/* settings */) => {
-    // No built-in metadata table yet:
-    return 1;
+export const getDbVersion = async (settings) => {
+    const baseUrl = settings?.postgrestApiUrl;
+    if (!baseUrl) return 1;
+    try {
+        const res = await fetch(`${baseUrl}/schema_version?select=version&limit=1`, {
+            headers: defaultHeaders(settings, false)
+        });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        return data[0]?.version || 1;
+    } catch {
+        return 1;
+    }
 };
 
 // handleResponse updated for PostgREST error format
