@@ -6,7 +6,6 @@ import React, {
   useRef,
 } from "react";
 
-// in-file hook for infinite loading
 function useInfiniteLoader({
   loaderRef,
   loading,
@@ -32,7 +31,6 @@ function useInfiniteLoader({
   }, [loaderRef, loading, hasMore, onLoadMore, root, rootMargin, threshold]);
 }
 
-// Pull “magic 11” into a named constant
 const DEFAULT_PAGE_SIZE = 11;
 import { useApi } from "../api/ApiContext";
 import { useSettings } from "../settings/SettingsContext";
@@ -56,7 +54,6 @@ const ItemsView = () => {
   // Pagination and loading state
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  // always reset to page 0 via this helper
   const resetPage = useCallback(() => setCurrentPage(0), []);
   const [hasMoreItems, setHasMoreItems] = useState(true);
   const [totalItemsCount, setTotalItemsCount] = useState(0); // Will be count after filtering, before pagination
@@ -94,7 +91,6 @@ const ItemsView = () => {
   const [imageViewModalUrl, setImageViewModalUrl] = useState(null);
   const [imageViewModalAlt, setImageViewModalAlt] = useState("");
 
-  // State for rotation loading
   const [isRotatingAdd, setIsRotatingAdd] = useState(false);
   const [isRotatingEdit, setIsRotatingEdit] = useState(false);
 
@@ -376,7 +372,6 @@ const ItemsView = () => {
     loading,
   ]);
 
-  // ─── infinite load when spacer scrolls into view ───
   useInfiniteLoader({
     loaderRef,
     loading,
