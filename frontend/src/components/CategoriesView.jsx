@@ -26,9 +26,7 @@ const CategoriesView = () => {
   const api = useApi();
   const intl = useIntl();
 
-  // Function to fetch categories
   const fetchCategories = useCallback(async () => {
-    // Only fetch if the provider is configured and listCategories exists
     if (!api.isConfigured || typeof api.listCategories !== "function") {
       setCategories([]); // Clear categories if not configured or function missing
       setError(
@@ -70,7 +68,6 @@ const CategoriesView = () => {
     }
   }, [api, intl]);
 
-  // Fetch categories on component mount and when fetchCategories changes
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
@@ -183,7 +180,6 @@ const CategoriesView = () => {
     }
   };
 
-  // --- Edit Handlers ---
   const handleEditClick = (category) => {
     setEditingCategoryId(category.category_id);
     setEditName(category.name);
@@ -282,7 +278,6 @@ const CategoriesView = () => {
     }
   };
 
-  // --- Delete Handlers ---
   const handleDeleteClick = (categoryId) => {
     // Open confirmation modal (can be called from within edit modal)
     setDeleteCandidateId(categoryId);
@@ -379,9 +374,6 @@ const CategoriesView = () => {
 
   return (
     <div className="categories-view">
-      {" "}
-      {/* Use categories-view class */}
-      {/* Status Messages */}
       {loading && (
         <p className="status-loading">
           {intl.formatMessage({
@@ -439,8 +431,6 @@ const CategoriesView = () => {
         )}
       {typeof api.listCategories === "function" && categories.length > 0 && (
         <div className="categories-list">
-          {" "}
-          {/* Use div for card container */}
           {categories.map((cat) => (
             <div key={cat.category_id} className="category-card">
               <h4>{cat.name}</h4>
@@ -461,14 +451,13 @@ const CategoriesView = () => {
                     !api.writeAllowed || loading || isUpdating || isDeleting
                   }
                 >
-                  ✏️ {/* Pencil emoji */}
+                  ✏️
                 </button>
               )}
             </div>
           ))}
         </div>
       )}
-      {/* Add Category FAB */}
       {api.isConfigured && typeof api.addCategory === "function" && (
         <button
           type="button"
@@ -482,7 +471,6 @@ const CategoriesView = () => {
           +
         </button>
       )}
-      {/* Add Category Modal */}
       {isAddCategoryModalOpen && (
         <Modal
           show={isAddCategoryModalOpen}
@@ -544,7 +532,6 @@ const CategoriesView = () => {
           </form>
         </Modal>
       )}
-      {/* Edit Category Modal */}
       {editingCategoryId && (
         <Modal
           show={!!editingCategoryId}
@@ -640,7 +627,6 @@ const CategoriesView = () => {
           </form>
         </Modal>
       )}
-      {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <Modal
           show={showDeleteConfirm}
