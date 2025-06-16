@@ -9,7 +9,6 @@ const Modal = ({ show, onClose, title, children }) => {
     return null;
   }
 
-  // Prevent clicks inside the modal from closing it
   const handleContentClick = (e) => {
     e.stopPropagation();
   };
@@ -25,7 +24,7 @@ const Modal = ({ show, onClose, title, children }) => {
             aria-label={intl.formatMessage({
               id: "modal.closeButton.label",
               defaultMessage: "Close modal",
-            })} /* Add modal. key */
+            })}
           >
             &times;
           </button>
