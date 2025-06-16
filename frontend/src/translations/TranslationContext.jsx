@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { IntlProvider } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
 import { availableLocales, defaultLocale, getLocaleCodes } from "./i18n";

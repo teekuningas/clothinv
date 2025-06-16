@@ -1,9 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import { defaultLocale } from "../translations/i18n";
 
 export const LS_APP_SETTINGS_KEY = "clothinvAppSettings";
