@@ -26,7 +26,6 @@ const OwnersView = () => {
   const api = useApi();
   const intl = useIntl();
 
-  // Function to fetch owners
   const fetchOwners = useCallback(async () => {
     // Only fetch if the provider is configured and listOwners exists
     if (!api.isConfigured || typeof api.listOwners !== "function") {
@@ -70,7 +69,6 @@ const OwnersView = () => {
     }
   }, [api, intl]);
 
-  // Fetch owners on component mount and when fetchOwners changes
   useEffect(() => {
     fetchOwners();
   }, [fetchOwners]);
@@ -78,9 +76,9 @@ const OwnersView = () => {
   const handleOpenAddOwnerModal = () => {
     setNewOwnerName("");
     setNewOwnerDescription("");
-    setAddOwnerError(null); // Clear previous modal errors
-    setError(null); // Clear general page errors
-    setSuccess(null); // Clear success messages
+    setAddOwnerError(null);
+    setError(null);
+    setSuccess(null);
     setIsAddOwnerModalOpen(true);
   };
 
@@ -378,7 +376,6 @@ const OwnersView = () => {
   return (
     <div className="owners-view">
       {" "}
-      {/* Use owners-view class */}
       {/* Status Messages */}
       {loading && (
         <p className="status-loading">
@@ -438,12 +435,10 @@ const OwnersView = () => {
       {typeof api.listOwners === "function" && owners.length > 0 && (
         <div className="owners-list">
           {" "}
-          {/* Use div for card container */}
           {owners.map((owner) => (
             <div key={owner.owner_id} className="owner-card">
               <h4>{owner.name}</h4>
               {owner.description && <p>{owner.description}</p>}
-              {/* Show Edit button only if provider configured and update method exists - Use button-light */}
               {api.isConfigured && typeof api.updateOwner === "function" && (
                 <button
                   onClick={() => handleEditClick(owner)}
@@ -459,7 +454,7 @@ const OwnersView = () => {
                     !api.writeAllowed || loading || isUpdating || isDeleting
                   }
                 >
-                  ✏️ {/* Pencil emoji */}
+                  ✏️
                 </button>
               )}
             </div>
