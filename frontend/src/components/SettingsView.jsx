@@ -6,9 +6,9 @@ import {
   getProviderById,
   getProviderDisplayNames,
 } from "../api/providerRegistry";
-import { useApi } from "../api/ApiContext"; // Keep useApi for export/import/destroy
-import { useTranslationContext } from "../translations/TranslationContext.jsx"; // Import translation context hook
-import { useSettings } from "../settings/SettingsContext"; // Import useSettings hook
+import { useApi } from "../api/ApiContext";
+import { useTranslationContext } from "../translations/TranslationContext.jsx";
+import { useSettings } from "../settings/SettingsContext";
 import "./SettingsView.css";
 const SettingsView = () => {
   // Get settings and update function from the centralized context
@@ -21,8 +21,8 @@ const SettingsView = () => {
   // Local state for Language setting being edited - Initialize from settings context
   const [localLocale, setLocalLocale] = useState(appSettings.locale);
   // State for Language config saving
-  const [languageSaveStatus, setLanguageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
-  const [languageSaveError, setLanguageSaveError] = useState(null); // Keep for local save feedback
+  const [languageSaveStatus, setLanguageSaveStatus] = useState("idle");
+  const [languageSaveError, setLanguageSaveError] = useState(null);
 
   // Local state ONLY holds the API configuration being edited
   const [localApiSettings, setLocalApiSettings] = useState({
@@ -30,30 +30,30 @@ const SettingsView = () => {
     settings: {},
   });
   // State for API config saving
-  const [apiSaveStatus, setApiSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
-  const [apiSaveError, setApiSaveError] = useState(null); // Keep for local save feedback
+  const [apiSaveStatus, setApiSaveStatus] = useState("idle");
+  const [apiSaveError, setApiSaveError] = useState(null);
   const [providerDisplayNames, setProviderDisplayNames] = useState({});
   const intl = useIntl(); // Get intl object
 
   // Local state for Image settings being edited
-  const [localImageCompressionEnabled, setLocalImageCompressionEnabled] = // Initialize from settings context
+  const [localImageCompressionEnabled, setLocalImageCompressionEnabled] =
     useState(appSettings.imageCompressionEnabled);
   // State for Image config saving
-  const [imageSaveStatus, setImageSaveStatus] = useState("idle"); // 'idle', 'saving', 'success', 'error'
+  const [imageSaveStatus, setImageSaveStatus] = useState("idle");
   const [imageSaveError, setImageSaveError] = useState(null);
 
   // State for Export
-  const [exportStatus, setExportStatus] = useState("idle"); // 'idle', 'exporting', 'success', 'error'
+  const [exportStatus, setExportStatus] = useState("idle");
   const [exportError, setExportError] = useState(null);
 
   // State for Import
   const [importFile, setImportFile] = useState(null);
-  const [importStatus, setImportStatus] = useState("idle"); // 'idle', 'importing', 'success', 'error'
+  const [importStatus, setImportStatus] = useState("idle");
   const [importError, setImportError] = useState(null);
-  const [importSummary, setImportSummary] = useState(""); // To show messages like "Import successful"
+  const [importSummary, setImportSummary] = useState("");
 
   // State for Destroy
-  const [destroyStatus, setDestroyStatus] = useState("idle"); // 'idle', 'destroying', 'success', 'error'
+  const [destroyStatus, setDestroyStatus] = useState("idle");
   const [destroyError, setDestroyError] = useState(null);
   const [destroySummary, setDestroySummary] = useState("");
 
