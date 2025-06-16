@@ -6,7 +6,7 @@ const ShareConfigurationLinkView = () => {
   const intl = useIntl();
   const [generatedUrl, setGeneratedUrl] = useState("");
   const [error, setError] = useState("");
-  const [copyStatus, setCopyStatus] = useState(""); // "success" or "error"
+  const [copyStatus, setCopyStatus] = useState("");
   const [copyMessage, setCopyMessage] = useState("");
   const { settings } = useSettings(); // Get the whole settings object
 
@@ -32,11 +32,6 @@ const ShareConfigurationLinkView = () => {
 
       const base64String = btoa(settingsJson);
 
-      // import.meta.env.BASE_URL is provided by Vite.
-      // It correctly ends with a '/' if it's a subpath, or is just '/' for the root.
-      // Construct the full base URL for the 'configure' path.
-      // If BASE_URL is '/', new URL('configure', 'http://host/').href is 'http://host/configure'
-      // If BASE_URL is '/app/', new URL('configure', 'http://host/app/').href is 'http://host/app/configure'
       const baseAppUrl = new URL(
         import.meta.env.BASE_URL,
         window.location.origin,
@@ -62,7 +57,7 @@ const ShareConfigurationLinkView = () => {
 
   const handleCopyUrl = () => {
     if (!generatedUrl) return;
-    setCopyStatus(""); // Clear previous message
+    setCopyStatus("");
     setCopyMessage("");
 
     navigator.clipboard
@@ -75,7 +70,6 @@ const ShareConfigurationLinkView = () => {
             defaultMessage: "Configuration URL copied to clipboard!",
           }),
         );
-        // Optionally clear after a few seconds
         setTimeout(() => {
           setCopyStatus("");
           setCopyMessage("");
@@ -132,7 +126,6 @@ const ShareConfigurationLinkView = () => {
               defaultMessage: "Copy URL",
             })}
           </button>
-          {/* Display copy status message */}
           {copyMessage && (
             <p
               className={
@@ -150,7 +143,6 @@ const ShareConfigurationLinkView = () => {
                 "Share the generated URL with someone. When they open it, the specified configuration will be automatically applied to their browser.",
             })}
           </p>
-          {/* Use status-warning class */}
           <p className="status-warning" style={{ marginTop: "10px" }}>
             {intl.formatMessage({
               id: "shareConfig.warning.secret",
