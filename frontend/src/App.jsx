@@ -46,7 +46,6 @@ function App() {
       case "owners":
         return <OwnersView />;
       case "settings":
-        // Pass props needed by SettingsView
         return (
           <SettingsView
             currentConfig={api.config}
@@ -58,7 +57,6 @@ function App() {
     }
   };
 
-  // Use VITE_BASE_URL from environment variables, defaulting to "/" if not set
   const baseUrl = import.meta.env.VITE_BASE_URL || "/";
 
   return (
@@ -89,7 +87,6 @@ function App() {
               defaultMessage: "Inventory Management",
             })}
           </h1>
-          {/* Hamburger button - shown only on small screens via CSS */}
           <button
             className="hamburger-button"
             onClick={toggleMobileMenu}
@@ -145,7 +142,6 @@ function App() {
             </NavLink>
           </nav>
         </header>
-        {/* Mobile Menu Overlay - shown when isMobileMenuOpen is true */}
         {isMobileMenuOpen && (
           <div className="mobile-menu-overlay">
             <button
@@ -248,7 +244,6 @@ function App() {
                 )}
               </p>
             )}
-            {/* Informational message if no provider is selected - Use status-loading (info style) */}
             {settings.apiProviderType === "none" && (
               <p className="status-loading">
                 {" "}
