@@ -13,10 +13,10 @@ import "./SettingsView.css";
 const SettingsView = () => {
   // Get settings and update function from the centralized context
   const { settings: appSettings, updateSettings: updateAppSettings } =
-    useSettings(); // Get general app settings
-  const api = useApi(); // Get full API context to access export/import methods
-  const { availableLocales } = useTranslationContext(); // Get available locales from context
-  const navigate = useNavigate(); // Initialize navigate
+    useSettings();
+  const api = useApi();
+  const { availableLocales } = useTranslationContext();
+  const navigate = useNavigate();
 
   // Local state for Language setting being edited - Initialize from settings context
   const [localLocale, setLocalLocale] = useState(appSettings.locale);
@@ -33,7 +33,7 @@ const SettingsView = () => {
   const [apiSaveStatus, setApiSaveStatus] = useState("idle");
   const [apiSaveError, setApiSaveError] = useState(null);
   const [providerDisplayNames, setProviderDisplayNames] = useState({});
-  const intl = useIntl(); // Get intl object
+  const intl = useIntl();
 
   // Local state for Image settings being edited
   const [localImageCompressionEnabled, setLocalImageCompressionEnabled] =
