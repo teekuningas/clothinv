@@ -8,12 +8,11 @@ export default function RangeSlider({
   value = [min, max],
   onChange,
   className = "",
-  minDistancePercent = 0, // new
+  minDistancePercent = 0,
 }) {
   const [minVal, setMinVal] = useState(value[0]);
   const [maxVal, setMaxVal] = useState(value[1]);
 
-  // keep local state in sync if parent value changes
   useEffect(() => {
     setMinVal(value[0]);
     setMaxVal(value[1]);
