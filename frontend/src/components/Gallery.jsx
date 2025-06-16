@@ -1,5 +1,5 @@
 import React from "react";
-import "./Gallery.css"; // Import the new CSS file
+import "./Gallery.css";
 
 const Gallery = ({
   items,
@@ -15,7 +15,7 @@ const Gallery = ({
   intl,
 }) => {
   if (!items || items.length === 0) {
-    return null; // Or a specific message if Gallery is ever used in a context where it might be empty
+    return null;
   }
 
   return (
@@ -29,7 +29,7 @@ const Gallery = ({
             className={`item-image-container ${!displayedItemImageUrls[item.item_id] ? "placeholder" : ""} ${displayedItemImageUrls[item.item_id] ? "clickable" : ""}`}
             onClick={() =>
               itemImageFiles[item.item_id] &&
-              itemImageFiles[item.item_id] instanceof File && // Ensure it's a file
+              itemImageFiles[item.item_id] instanceof File &&
               onImageClick(itemImageFiles[item.item_id], item.name)
             }
             title={
