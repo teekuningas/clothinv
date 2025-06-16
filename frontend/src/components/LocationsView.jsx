@@ -8,29 +8,27 @@ const LocationsView = () => {
   const [locations, setLocations] = useState([]);
   const [newLocationName, setNewLocationName] = useState("");
   const [newLocationDescription, setNewLocationDescription] = useState("");
-  const [loading, setLoading] = useState(false); // For initial list loading and adding
-  const [error, setError] = useState(null); // For list loading and adding errors
-  const [success, setSuccess] = useState(null); // For general success messages (add, update, delete)
-  const [editingLocationId, setEditingLocationId] = useState(null); // ID of location being edited
-  const [editName, setEditName] = useState(""); // Name in edit form
-  const [editDescription, setEditDescription] = useState(""); // Description in edit form
-  const [isUpdating, setIsUpdating] = useState(false); // Loading state for update operation
-  const [updateError, setUpdateError] = useState(null); // Error specific to update operation
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // Show delete confirmation modal
-  const [deleteCandidateId, setDeleteCandidateId] = useState(null); // ID of location to potentially delete
-  const [isDeleting, setIsDeleting] = useState(false); // Loading state for delete operation
-  const [deleteError, setDeleteError] = useState(null); // Error specific to delete operation
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [editingLocationId, setEditingLocationId] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteCandidateId, setDeleteCandidateId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
   const [isAddLocationModalOpen, setIsAddLocationModalOpen] = useState(false);
   const [addLocationError, setAddLocationError] = useState(null);
 
   const api = useApi();
   const intl = useIntl();
 
-  // Function to fetch locations
   const fetchLocations = useCallback(async () => {
-    // Only fetch if the provider is configured and listLocations exists
     if (!api.isConfigured || typeof api.listLocations !== "function") {
-      setLocations([]); // Clear locations if not configured
+      setLocations([]);
       setError(
         api.isConfigured
           ? intl.formatMessage({
@@ -89,13 +87,11 @@ const LocationsView = () => {
     setAddLocationError(null); // Clear errors when closing
   };
 
-  // Function to handle adding a new location
   const handleAddLocation = async (e) => {
     e.preventDefault();
 
     if (!newLocationName.trim()) {
       setAddLocationError(
-        // Use modal-specific error state
         intl.formatMessage({
           id: "locations.error.nameEmpty",
           defaultMessage: "Location name cannot be empty.",
@@ -106,7 +102,6 @@ const LocationsView = () => {
     // Only add if the provider is configured and addLocation exists
     if (!api.isConfigured || typeof api.addLocation !== "function") {
       setAddLocationError(
-        // Use modal-specific error state
         api.isConfigured
           ? intl.formatMessage({
               id: "locations.addForm.notSupported",
@@ -167,7 +162,6 @@ const LocationsView = () => {
       }
     } catch (err) {
       console.error("Failed to add location:", err);
-      // Use intl for consistency, even if the message might be technical
       setAddLocationError(
         // Use modal-specific error state
         intl.formatMessage(
@@ -183,14 +177,13 @@ const LocationsView = () => {
     }
   };
 
-  // --- Edit Handlers ---
   const handleEditClick = (location) => {
     setEditingLocationId(location.location_id);
     setEditName(location.name);
-    setEditDescription(location.description || ""); // Handle null description
-    setUpdateError(null); // Clear previous edit errors
-    setSuccess(null); // Clear success messages
-    setError(null); // Clear general errors
+    setEditDescription(location.description || "");
+    setUpdateError(null);
+    setSuccess(null);
+    setError(null);
   };
 
   const handleCancelEdit = () => {
@@ -201,7 +194,6 @@ const LocationsView = () => {
   };
 
   const handleUpdateLocation = async (e) => {
-    // Make async
     e.preventDefault();
     if (
       !editingLocationId ||
@@ -242,7 +234,6 @@ const LocationsView = () => {
         handleCancelEdit(); // Close modal
         fetchLocations(); // Refresh list
       } else {
-        // Should ideally not happen if updateLocation throws errors
         setUpdateError(
           intl.formatMessage(
             {
@@ -272,16 +263,14 @@ const LocationsView = () => {
         ),
       );
     } finally {
-      // Add a small delay before resetting loading state if successful
-      const wasSuccessful = !!success; // Capture success state before potential async delay
+      const wasSuccessful = !!success;
       if (wasSuccessful) {
-        await new Promise((resolve) => setTimeout(resolve, 100)); // 100ms delay
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
       setIsUpdating(false);
     }
   };
 
-  // --- Delete Handlers ---
   const handleDeleteClick = (locationId) => {
     // Open confirmation modal (can be called from within edit modal)
     setDeleteCandidateId(locationId);
@@ -296,7 +285,6 @@ const LocationsView = () => {
   };
 
   const handleConfirmDelete = async () => {
-    // Make async
     if (
       !deleteCandidateId ||
       typeof api.deleteLocation !== "function" ||
@@ -317,7 +305,6 @@ const LocationsView = () => {
     setSuccess(null);
 
     try {
-      // Proceed with deletion - provider will check if in use
       const result = await api.deleteLocation({
         location_id: deleteCandidateId,
       });
@@ -390,7 +377,6 @@ const LocationsView = () => {
       {error && <p className="status-error">Error: {error}</p>}
       {success && <p className="status-success">{success}</p>}
 
-      {/* Placeholder for messages if API not configured for adding, shown when modal is not open */}
       {!isAddLocationModalOpen && !api.isConfigured ? (
         <p className="status-warning">
           {intl.formatMessage({ id: "common.status.apiNotConfigured" })}
@@ -439,7 +425,6 @@ const LocationsView = () => {
       {typeof api.listLocations === "function" && locations.length > 0 && (
         <div className="locations-list">
           {" "}
-          {/* Use div for card container */}
           {locations.map((loc) => (
             <div key={loc.location_id} className="location-card">
               <h4>{loc.name}</h4>
@@ -460,7 +445,7 @@ const LocationsView = () => {
                     !api.writeAllowed || loading || isUpdating || isDeleting
                   }
                 >
-                  ✏️ {/* Pencil emoji */}
+                  ✏️
                 </button>
               )}
             </div>
