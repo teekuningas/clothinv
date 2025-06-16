@@ -3,7 +3,6 @@ import React, {
   useContext,
   useState,
   useEffect,
-  useCallback,
 } from "react";
 import { IntlProvider } from "react-intl";
 import { useSettings } from "../settings/SettingsContext";
@@ -61,24 +60,21 @@ export const TranslationProvider = ({ children }) => {
   const [loadError, setLoadError] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Effect to load messages when locale changes
   useEffect(() => {
     setLoadingMessages(true);
-    setLoadError(null); // Reset error on new load attempt
+    setLoadError(null);
     loadMessages(locale)
       .then((loadedMessages) => {
         setMessages(loadedMessages);
-        if (isInitialLoad) setIsInitialLoad(false); // Mark initial load as complete
+        if (isInitialLoad) setIsInitialLoad(false);
       })
       .catch((error) => {
-        // Error is already logged in loadMessages, but we can set state here if needed
         console.error("Error caught in TranslationProvider useEffect:", error);
-        setLoadError("Failed to load language data."); // Set user-facing error message
+        setLoadError("Failed to load language data.");
         setMessages({});
-        if (isInitialLoad) setIsInitialLoad(false); // Mark initial load attempt as done even on error
+        if (isInitialLoad) setIsInitialLoad(false);
       })
       .finally(() => {
-        // Only set loading to false after attempt, regardless of initial or subsequent load
         setLoadingMessages(false);
       });
   }, [locale, isInitialLoad]);
@@ -90,18 +86,13 @@ export const TranslationProvider = ({ children }) => {
     loadError,
   };
 
-  // Display loading or error state, or render children within IntlProvider
   const renderContent = () => {
-    // Show blocking indicator ONLY on initial load
     if (isInitialLoad && loadingMessages) {
-      return <div>Loading language...</div>; // Replace with a better loading indicator
+      return <div>Loading language...</div>;
     }
-    // Show blocking error ONLY if it happened during initial load
     if (isInitialLoad && loadError) {
       return <div>Error: {loadError} Please try refreshing.</div>;
     }
-    // After initial load, always render IntlProvider + children.
-    // Messages will update when subsequent loads finish.
     return (
       <IntlProvider
         locale={locale}
@@ -113,9 +104,8 @@ export const TranslationProvider = ({ children }) => {
             console.warn(
               `Missing translation id: "${err.descriptor?.id}" in locale "${locale}"`,
             );
-            return; // Don't log the full error object for missing translations
+            return;
           }
-          // Log other errors
           if (err.code !== "MISSING_TRANSLATION") {
             console.error("IntlProvider Error:", err);
           }
