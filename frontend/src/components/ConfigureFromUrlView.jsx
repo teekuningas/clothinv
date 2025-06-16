@@ -6,7 +6,7 @@ import { useSettings } from "../settings/SettingsContext";
 const ConfigureFromUrlView = () => {
   const [searchParams] = useSearchParams();
   const intl = useIntl();
-  const { updateSettings } = useSettings(); // Use the generic updateSettings
+  const { updateSettings } = useSettings();
   const navigate = useNavigate();
   const [statusMessage, setStatusMessage] = useState(
     intl.formatMessage({
@@ -15,15 +15,12 @@ const ConfigureFromUrlView = () => {
     }),
   );
   const [isError, setIsError] = useState(false);
-  const processedPayloadRef = useRef(null); // Ref to track the processed payload
+  const processedPayloadRef = useRef(null);
 
-  // Extract the specific search parameter value. This string will be stable if the URL param doesn't change.
   const encodedSettingsPayload = searchParams.get("settingsPayload");
 
   useEffect(() => {
-    // If the current payload (or its absence) has already been processed by this effect instance,
-    // skip further execution. This prevents loops if intl or other dependencies change
-    // while the encodedSettingsPayload remains the same.
+    // Prevent reprocessing same payload
     if (processedPayloadRef.current === encodedSettingsPayload) {
       return;
     }
@@ -35,7 +32,7 @@ const ConfigureFromUrlView = () => {
         }),
       );
       setIsError(true);
-      processedPayloadRef.current = encodedSettingsPayload; // Mark this state (null/undefined payload) as processed
+      processedPayloadRef.current = encodedSettingsPayload;
       return;
     }
 
@@ -58,7 +55,7 @@ const ConfigureFromUrlView = () => {
       }
 
       updateSettings(importedSettings);
-      processedPayloadRef.current = encodedSettingsPayload; // Mark as processed before navigation
+      processedPayloadRef.current = encodedSettingsPayload;
 
       setStatusMessage(
         intl.formatMessage({
@@ -68,7 +65,6 @@ const ConfigureFromUrlView = () => {
       );
       setIsError(false); // Clear any previous error state
 
-      // Navigate after settings are updated and status message is set.
       navigate("/items", { replace: true });
     } catch (error) {
       console.error("Error processing configuration from URL:", error);
@@ -104,7 +100,7 @@ const ConfigureFromUrlView = () => {
         ),
       );
       setIsError(true);
-      processedPayloadRef.current = encodedSettingsPayload; // Mark as processed (even if an error occurred)
+      processedPayloadRef.current = encodedSettingsPayload;
     }
   }, [encodedSettingsPayload, intl, updateSettings, navigate]);
   return (
