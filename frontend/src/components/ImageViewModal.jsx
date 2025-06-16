@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import "./ImageViewModal.css";
 
 const ImageViewModal = ({ show, onClose, imageUrl, imageAlt }) => {
-  // Effect to handle Escape key press
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -16,7 +15,6 @@ const ImageViewModal = ({ show, onClose, imageUrl, imageAlt }) => {
       window.removeEventListener("keydown", handleKeyDown);
     }
 
-    // Cleanup listener on component unmount or when modal closes
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -26,7 +24,6 @@ const ImageViewModal = ({ show, onClose, imageUrl, imageAlt }) => {
     return null;
   }
 
-  // Prevent clicks inside the image container from closing the modal
   const handleContentClick = (e) => {
     e.stopPropagation();
   };
