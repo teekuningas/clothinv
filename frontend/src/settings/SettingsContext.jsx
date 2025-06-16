@@ -2,18 +2,15 @@ import React, {
   createContext,
   useContext,
   useState,
-  // useEffect, // No longer strictly needed for settings persistence alone
   useCallback,
 } from "react";
 import { defaultLocale } from "../translations/i18n";
 
-// Define the localStorage key for general app settings
 export const LS_APP_SETTINGS_KEY = "clothinvAppSettings";
 
-// Define default settings
 const defaultSettings = {
   locale: defaultLocale,
-  apiProviderType: "indexedDB", // Default provider
+  apiProviderType: "indexedDB",
   apiSettings: {}, // Will be populated per provider, e.g., { datasette: {...}, postgrest: {...} }
   imageCompressionEnabled: true,
 };
@@ -52,7 +49,6 @@ const deepMerge = (target, source) => {
 
 const SettingsContext = createContext(null);
 
-// Custom hook to use the context
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) {
@@ -61,9 +57,7 @@ export const useSettings = () => {
   return context;
 };
 
-// Create the provider component
 export const SettingsProvider = ({ children }) => {
-  // Initialize state from localStorage or defaults
   const [settings, setSettings] = useState(() => {
     const savedSettings = localStorage.getItem(LS_APP_SETTINGS_KEY);
     let initialSettings = { ...defaultSettings };
